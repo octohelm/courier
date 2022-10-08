@@ -62,7 +62,12 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 			hh.ServeHTTP(rw, req.WithContext(ctx))
 		})
 
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", h.Method()[0:3], reHttpRouterPath.ReplaceAllString(h.Path(), "/{$1}"), h.OperationID(), h.Summary())
+		_, _ = fmt.Fprintf(w, "%s\t%s", h.Method()[0:3], reHttpRouterPath.ReplaceAllString(h.Path(), "/{$1}"))
+		_, _ = fmt.Fprintf(w, "\t%s", h.Summary())
+		for _, o := range h.Operators() {
+			_, _ = fmt.Fprintf(w, "\t%s", o.String())
+		}
+		_, _ = fmt.Fprintf(w, "\n")
 	}
 
 	return r, nil
