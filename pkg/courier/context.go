@@ -2,6 +2,10 @@ package courier
 
 import "context"
 
+type CanInjectContext interface {
+	InjectContext(ctx context.Context) context.Context
+}
+
 type ContextInjector = func(ctx context.Context) context.Context
 
 func ComposeContextWith(injectContexts ...ContextInjector) ContextInjector {

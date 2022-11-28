@@ -29,7 +29,12 @@ type statusErrScanner struct {
 var statusErr = reflect.TypeOf(statuserror.StatusErr{})
 
 func isTypeStatusErr(named *types.Named) bool {
-	return named.Obj().Pkg().Path() == statusErr.PkgPath() && named.Obj().Name() == statusErr.Name()
+	if o := named.Obj(); o != nil {
+		if pkg := o.Pkg(); pkg != nil {
+			return pkg.Path() == statusErr.PkgPath() && o.Name() == statusErr.Name()
+		}
+	}
+	return false
 }
 
 func identChainOfCallFunc(expr ast.Expr) (list []*ast.Ident) {

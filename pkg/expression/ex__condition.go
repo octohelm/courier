@@ -71,6 +71,47 @@ func (e *allOf) Exec(ctx context.Context, in any) (any, error) {
 	return true, nil
 }
 
+// AnyOf
+//
+// Syntax
+//
+//	anyOf(1, 2, 3)
+var AnyOf = Register(func(b ExprBuilder) func(ex ...any) Expression {
+	return func(ex ...any) Expression {
+		return b.BuildExpression(ex...)
+	}
+}, &anyOf{})
+
+type anyOf struct {
+	E
+	Rules []any `arg:"..."`
+}
+
+func (e *anyOf) Exec(ctx context.Context, in any) (any, error) {
+	for i := range e.Rules {
+		switch x := e.Rules[i].(type) {
+		case Expr:
+			o, err := x.Exec(ctx, in)
+			if err != nil {
+				return nil, err
+			}
+			if raw.ToBool(raw.ValueOf(o)) {
+				return true, nil
+			}
+		default:
+			ret, err := raw.Compare(raw.ValueOf(x), raw.ValueOf(in))
+			if err != nil {
+				return false, err
+			}
+			if ret == 0 {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
 // OneOf
 //
 // Syntax
@@ -95,6 +136,7 @@ func (e *oneOf) Exec(ctx context.Context, in any) (any, error) {
 			if err != nil {
 				return nil, err
 			}
+			// FIXME should check all, oneOf means only one.
 			if raw.ToBool(raw.ValueOf(o)) {
 				return true, nil
 			}

@@ -143,11 +143,15 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 
 		if !opFactory.IsLast {
-			if c, ok := result.(context.Context); ok {
-				ctx = c
-			} else {
-				// set result in context with key of operator name
-				ctx = contextx.WithValue(ctx, opFactory.ContextKey, result)
+			switch x := result.(type) {
+			case courier.CanInjectContext:
+				ctx = x.InjectContext(ctx)
+			case context.Context:
+				ctx = x
+			default:
+				if opFactory.ContextKey != nil {
+					ctx = contextx.WithValue(ctx, opFactory.ContextKey, result)
+				}
 			}
 			continue
 		}

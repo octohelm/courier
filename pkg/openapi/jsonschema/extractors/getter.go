@@ -7,25 +7,10 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
-func SchemaFrom(ctx context.Context, v any, def bool) (s *jsonschema.Schema) {
+func SchemaFrom(ctx context.Context, v any, def bool) *jsonschema.Schema {
 	if v == nil {
 		return nil
 	}
-
-	defer func() {
-		if !def {
-			return
-		}
-
-		if g, ok := v.(OpenAPISchemaTypeGetter); ok {
-			s.Type = g.OpenAPISchemaType()
-			s.Format = ""
-		}
-
-		if g, ok := v.(OpenAPISchemaFormatGetter); ok {
-			s.Format = g.OpenAPISchemaFormat()
-		}
-	}()
 
 	t := reflect.TypeOf(v)
 

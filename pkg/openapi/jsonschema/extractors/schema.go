@@ -100,6 +100,19 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			}
 		}()
 
+		if g, ok := v.(OpenAPISchemaTypeGetter); ok {
+			s := &jsonschema.Schema{}
+
+			s.Type = g.OpenAPISchemaType()
+			s.Format = ""
+
+			if g, ok := v.(OpenAPISchemaFormatGetter); ok {
+				s.Format = g.OpenAPISchemaFormat()
+			}
+
+			return s
+		}
+
 		if !def && t.Kind() != reflect.Interface {
 			return jsonschema.RefSchemaByRefer(TypeName(ref))
 		}
