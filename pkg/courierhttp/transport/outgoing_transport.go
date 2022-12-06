@@ -146,7 +146,9 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 				if tryEncode {
 					switch x := fieldValue.Interface().(type) {
 					case io.ReadCloser:
-						header.Set("Content-Type", p.Transformer.Names()[0])
+						if header.Get("Content-Type") == "" {
+							header.Set("Content-Type", p.Transformer.Names()[0])
+						}
 						body = x
 					default:
 						b := bytes.NewBuffer(nil)
