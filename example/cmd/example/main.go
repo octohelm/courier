@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/go-courier/logr"
+	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/httputil"
 )
 
 func main() {
-	ctx := logr.WithLogger(context.Background(), logr.StdLogger().WithValues("service", "example"))
+	ctx := logr.WithLogger(context.Background(), slog.Logger(slog.Default()))
 
 	h, err := httprouter.New(apis.R, "example")
 	if err != nil {

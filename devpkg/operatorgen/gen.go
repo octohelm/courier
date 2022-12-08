@@ -92,7 +92,7 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 
 			if !isNil(tpe) {
 				if tpe.String() != tpe2.String() {
-					panic(fmt.Errorf("%s return multi types in operator", tpe2))
+					panic(fmt.Errorf("%s return multi types, `%s` `%s`", named, tpe, tpe2))
 				}
 			}
 

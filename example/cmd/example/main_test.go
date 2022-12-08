@@ -11,16 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/octohelm/courier/pkg/courierhttp"
-
 	"github.com/go-courier/logr"
+	"github.com/go-courier/logr/slog"
+	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/example/client/example"
+	"github.com/octohelm/courier/internal/testingutil"
+	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/pkg/errors"
-
-	"github.com/octohelm/courier/example/apis"
-	"github.com/octohelm/courier/internal/testingutil"
 )
 
 var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.RoundTrip) (*http.Response, error) {
@@ -64,7 +63,7 @@ func TestAll(t *testing.T) {
 		HttpTransports: []client.HttpTransport{htLogger},
 	}
 	ctx := c.InjectContext(context.Background())
-	ctx = logr.WithLogger(ctx, logr.StdLogger())
+	ctx = logr.WithLogger(ctx, slog.Logger(slog.Default()))
 
 	t.Run("Do Some Request", func(t *testing.T) {
 		org := example.GetOrg{

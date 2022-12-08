@@ -20,10 +20,10 @@ func ListenAndServe(ctx context.Context, addr string, handler http.Handler) erro
 		logger.Info("listen on %s", addr)
 
 		if err := srv.ListenAndServe(); err != nil {
-			if err == http.ErrServerClosed {
-				logger.Error(err)
-			} else {
-				logger.Fatal(err)
+			logger.Error(err)
+
+			if err != http.ErrServerClosed {
+				panic(err)
 			}
 		}
 	}()

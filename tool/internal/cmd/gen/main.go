@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/go-courier/logr/slog"
 
 	"github.com/go-courier/logr"
 	"github.com/octohelm/gengo/pkg/gengo"
@@ -27,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	ctx := logr.WithLogger(context.Background(), logr.StdLogger())
+	ctx := logr.WithLogger(context.Background(), slog.Logger(slog.Default()))
 	if err := c.Execute(ctx, gengo.GetRegisteredGenerators()...); err != nil {
 		panic(err)
 	}
