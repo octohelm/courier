@@ -7,10 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-
-	"github.com/octohelm/courier/pkg/statuserror"
-
-	"github.com/pkg/errors"
+	"sync"
 
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courier"
@@ -19,9 +16,11 @@ import (
 	"github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
+	"github.com/octohelm/courier/pkg/statuserror"
 	transformer "github.com/octohelm/courier/pkg/transformer/core"
 	"github.com/octohelm/gengo/pkg/gengo"
 	typesx "github.com/octohelm/x/types"
+	"github.com/pkg/errors"
 )
 
 type CanResponseStatusCode interface {
@@ -101,8 +100,15 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 
 type scanner struct {
 	o                 *openapi.OpenAPI
+	m                 sync.Map
 	incomingTransport transport.IncomingTransport
 	opt               buildOption
+}
+
+func (b *scanner) Record(typeRef string) bool {
+	_, ok := b.m.Load(typeRef)
+	defer b.m.Store(typeRef, true)
+	return ok
 }
 
 func tag(pkgPath string) string {
@@ -178,6 +184,8 @@ func (b *scanner) RegisterSchema(ref string, s *jsonschema.Schema) {
 
 	if _, ok := b.o.Components.Schemas[n]; !ok {
 		b.o.Components.Schemas[n] = s
+	} else {
+		fmt.Println(n, "Registered.")
 	}
 }
 

@@ -39,8 +39,6 @@ func (t TypeName) RefString() string {
 	return string(t)
 }
 
-var namedDefs = map[string]bool{}
-
 func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschema.Schema) {
 	sr := SchemaRegisterFromContext(ctx)
 
@@ -49,13 +47,11 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
 		ref := sr.RefString(typeRef)
 
-		if _, ok := namedDefs[typeRef]; ok {
+		if ok := sr.Record(typeRef); ok {
 			if !def {
 				return jsonschema.RefSchemaByRefer(TypeName(ref))
 			}
 		}
-
-		namedDefs[typeRef] = true
 
 		v := reflect.New(t).Interface()
 

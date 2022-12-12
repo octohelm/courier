@@ -2,8 +2,8 @@ package extractors
 
 import (
 	"context"
-
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+	"sync"
 )
 
 type OpenAPISchemaTypeGetter interface {
@@ -25,21 +25,29 @@ func SchemaRegisterFromContext(ctx context.Context) SchemaRegister {
 	if v, ok := ctx.Value(contextSchemaRegister{}).(SchemaRegister); ok {
 		return v
 	}
-	return defaultSchemaRegister{}
+	return &defaultSchemaRegister{}
 }
 
 type defaultSchemaRegister struct {
+	m sync.Map
 }
 
-func (d defaultSchemaRegister) RegisterSchema(ref string, s *jsonschema.Schema) {
+func (d *defaultSchemaRegister) Record(typeRef string) bool {
+	_, ok := d.m.Load(typeRef)
+	defer d.m.Store(typeRef, true)
+	return ok
+}
+
+func (d *defaultSchemaRegister) RegisterSchema(ref string, s *jsonschema.Schema) {
 	return
 }
 
-func (d defaultSchemaRegister) RefString(ref string) string {
+func (d *defaultSchemaRegister) RefString(ref string) string {
 	return ref
 }
 
 type SchemaRegister interface {
 	RegisterSchema(ref string, s *jsonschema.Schema)
 	RefString(ref string) string
+	Record(typeRef string) bool
 }
