@@ -2,11 +2,12 @@ package client
 
 import (
 	"context"
-	contextx "github.com/octohelm/x/context"
-	"golang.org/x/net/http2"
 	"net"
 	"net/http"
 	"time"
+
+	contextx "github.com/octohelm/x/context"
+	"golang.org/x/net/http2"
 )
 
 type contextKeyClient struct{}

@@ -2,6 +2,7 @@ package transport_test
 
 import (
 	"context"
+	"net/http"
 	"reflect"
 	"testing"
 
@@ -201,4 +202,23 @@ Content-Type: application/json; charset=utf-8
 			}
 		})
 	}
+
+	t.Run("Should unmarshal header values from query values with prefix `x-param-header-`", func(t *testing.T) {
+		req := &struct {
+			courierhttp.MethodGet `path:"/"`
+			Headers
+		}{}
+
+		it, _ := transport.NewIncomingTransport(context.Background(), req)
+
+		httpRequest, _ := http.NewRequest("GET", "/?x-param-header-Hint=1&x-param-header-Hbool=true&x-param-header-Hstring=string", nil)
+
+		err := it.UnmarshalOperator(context.Background(), transport.FromHttpRequest(httpRequest, ""), req)
+		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingutil.Expect(t, req.Headers, testingutil.Equal(Headers{
+			HInt:    1,
+			HString: "string",
+			HBool:   true,
+		}))
+	})
 }

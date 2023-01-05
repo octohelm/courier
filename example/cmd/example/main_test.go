@@ -5,11 +5,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"golang.org/x/net/http2"
 	"net"
 	"net/http"
 	"testing"
 	"time"
+
+	"golang.org/x/net/http2"
 
 	"github.com/go-courier/logr"
 	"github.com/go-courier/logr/slog"
@@ -40,11 +41,10 @@ var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.Roun
 			"url", req.URL.String(),
 			"metadata", req.Header,
 			"content-len", req.ContentLength,
-			"response.proto", resp.Proto,
 		)
 
 		if err == nil {
-			logger.Info("success")
+			logger.WithValues("response.proto", resp.Proto).Info("success")
 		} else {
 			logger.Warn(errors.Wrap(err, "http request failed"))
 		}

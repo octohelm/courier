@@ -116,6 +116,9 @@ func (info *requestInfo) QueryValues(name string) []string {
 }
 
 func (info *requestInfo) HeaderValues(name string) []string {
+	if values := info.QueryValues("x-param-header-" + textproto.CanonicalMIMEHeaderKey(name)); len(values) > 0 {
+		return values
+	}
 	return info.request.Header[textproto.CanonicalMIMEHeaderKey(name)]
 }
 

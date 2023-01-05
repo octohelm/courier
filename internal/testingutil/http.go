@@ -6,10 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"net/http"
 	"net/http/httputil"
+
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 func Serve(t testing.TB, handler http.Handler) int {

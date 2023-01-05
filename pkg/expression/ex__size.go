@@ -2,8 +2,9 @@ package expression
 
 import (
 	"context"
-	"github.com/octohelm/courier/pkg/expression/raw"
 	"unicode/utf8"
+
+	"github.com/octohelm/courier/pkg/expression/raw"
 )
 
 // Len

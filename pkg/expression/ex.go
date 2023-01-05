@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding"
 	"fmt"
-	"github.com/pkg/errors"
 	"go/ast"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/pkg/expression/raw"
 )

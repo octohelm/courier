@@ -2,8 +2,9 @@ package extractors
 
 import (
 	"context"
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"sync"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 type OpenAPISchemaTypeGetter interface {

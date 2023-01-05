@@ -1,8 +1,9 @@
 package expression
 
 import (
-	testingx "github.com/octohelm/x/testing"
 	"testing"
+
+	testingx "github.com/octohelm/x/testing"
 )
 
 func TestParse(t *testing.T) {

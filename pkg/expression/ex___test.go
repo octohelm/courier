@@ -3,8 +3,9 @@ package expression
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/expression/raw"
 	"testing"
+
+	"github.com/octohelm/courier/pkg/expression/raw"
 
 	testingx "github.com/octohelm/x/testing"
 )
