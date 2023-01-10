@@ -106,6 +106,11 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 				s.Format = g.OpenAPISchemaFormat()
 			}
 
+			switch s.Format {
+			case "int-or-string":
+				return jsonschema.AnyOf(jsonschema.Integer(), jsonschema.String())
+			}
+
 			return s
 		}
 
