@@ -199,9 +199,9 @@ type SchemaValidation struct {
 	// numbers
 	MultipleOf       *float64 `json:"multipleOf,omitempty"`
 	Maximum          *float64 `json:"maximum,omitempty"`
-	ExclusiveMaximum bool     `json:"exclusiveMaximum,omitempty"`
+	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitempty"`
 	Minimum          *float64 `json:"minimum,omitempty"`
-	ExclusiveMinimum bool     `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitempty"`
 
 	// string
 	MaxLength *uint64 `json:"maxLength,omitempty"`

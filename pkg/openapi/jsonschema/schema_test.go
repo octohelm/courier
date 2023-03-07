@@ -120,9 +120,9 @@ func TestSchema(t *testing.T) {
 		validation := &SchemaValidation{
 			MultipleOf:       ptr.Ptr(2.0),
 			Maximum:          ptr.Ptr(10.0),
-			ExclusiveMaximum: true,
+			ExclusiveMaximum: ptr.Ptr(10.0),
 			Minimum:          ptr.Ptr(1.0),
-			ExclusiveMinimum: true,
+			ExclusiveMinimum: ptr.Ptr(1.0),
 
 			MaxLength: ptr.Ptr[uint64](10),
 			MinLength: ptr.Ptr[uint64](0),
@@ -151,7 +151,7 @@ func TestSchema(t *testing.T) {
 			gomega.NewWithT(t).Expect(testingutil.MustJSONRaw(
 				Integer().WithValidation(validation),
 			)).To(
-				gomega.Equal(`{"type":"integer","format":"int32","multipleOf":2,"maximum":10,"exclusiveMaximum":true,"minimum":1,"exclusiveMinimum":true,"enum":["1","2","3"]}`),
+				gomega.Equal(`{"type":"integer","format":"int32","multipleOf":2,"maximum":10,"exclusiveMaximum":10,"minimum":1,"exclusiveMinimum":1,"enum":["1","2","3"]}`),
 			)
 		})
 
@@ -160,7 +160,7 @@ func TestSchema(t *testing.T) {
 				gomega.NewWithT(t).Expect(testingutil.MustJSONRaw(
 					Float().WithValidation(validation),
 				)).To(
-					gomega.Equal(`{"type":"number","format":"float","multipleOf":2,"maximum":10,"exclusiveMaximum":true,"minimum":1,"exclusiveMinimum":true,"enum":["1","2","3"]}`),
+					gomega.Equal(`{"type":"number","format":"float","multipleOf":2,"maximum":10,"exclusiveMaximum":10,"minimum":1,"exclusiveMinimum":1,"enum":["1","2","3"]}`),
 				)
 			})
 

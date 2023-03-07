@@ -3,6 +3,7 @@ package extractors
 import (
 	"context"
 	"fmt"
+	reflectx "github.com/octohelm/x/reflect"
 	"go/ast"
 	"reflect"
 	"strings"
@@ -13,6 +14,15 @@ import (
 
 type EnumValues interface {
 	EnumValues() []any
+}
+
+type UnionType interface {
+	OneOf() []any
+}
+
+type TaggedUnionType interface {
+	Discriminator() string
+	Mapping() map[string]any
 }
 
 type RuntimeDocer interface {
@@ -47,8 +57,8 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
 		ref := sr.RefString(typeRef)
 
-		if ok := sr.Record(typeRef); ok {
-			if !def {
+		if def {
+			if ok := sr.Record(typeRef); ok {
 				return jsonschema.RefSchemaByRefer(TypeName(ref))
 			}
 		}
@@ -96,6 +106,36 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			}
 		}()
 
+		if g, ok := v.(UnionType); ok {
+			types := g.OneOf()
+			schemas := make([]*jsonschema.Schema, len(types))
+			for i := range schemas {
+				schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), false)
+			}
+			return jsonschema.OneOf(schemas...)
+		}
+
+		if g, ok := v.(TaggedUnionType); ok {
+			types := g.Mapping()
+			schemas := make([]*jsonschema.Schema, 0, len(types))
+
+			for _, t := range types {
+				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(t)), true))
+			}
+
+			s := jsonschema.OneOf(schemas...)
+
+			s.Type = []string{jsonschema.TypeObject}
+			s.Discriminator = &jsonschema.Discriminator{
+				PropertyName: g.Discriminator(),
+			}
+			s.Required = []string{
+				s.Discriminator.PropertyName,
+			}
+
+			return s
+		}
+
 		if g, ok := v.(OpenAPISchemaTypeGetter); ok {
 			s := &jsonschema.Schema{}
 
@@ -108,7 +148,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 
 			switch s.Format {
 			case "int-or-string":
-				return jsonschema.AnyOf(jsonschema.Integer(), jsonschema.String())
+				return jsonschema.OneOf(jsonschema.Integer(), jsonschema.String())
 			}
 
 			return s
@@ -153,10 +193,17 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 		}
 
 		s := SchemaFromType(ctx, elem, false)
-		s.Nullable = true
-		s.AddExtension(jsonschema.XGoStarLevel, count)
 
-		return s
+		patch := func(s *jsonschema.Schema) *jsonschema.Schema {
+			s.Nullable = true
+			s.AddExtension(jsonschema.XGoStarLevel, count)
+			return s
+		}
+
+		if s.Refer != nil {
+			return jsonschema.AllOf(s, patch(&jsonschema.Schema{}))
+		}
+		return patch(s)
 	case reflect.Interface:
 		return &jsonschema.Schema{}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
@@ -186,6 +233,9 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 		return jsonschema.KeyValueOf(keySchema, SchemaFromType(ctx, t.Elem(), false))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
+		structSchema.AdditionalProperties = &jsonschema.SchemaOrBool{
+			Allows: false,
+		}
 
 		allOfSchemas := make([]*jsonschema.Schema, 0)
 
@@ -211,6 +261,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 				continue
 			}
 
+			// includes ,inline
 			if name == "" && field.Anonymous {
 				if field.Type.String() == "bytes.Buffer" {
 					structSchema = jsonschema.Binary()
@@ -233,7 +284,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 				required = !hasOmitempty
 			}
 
-			propSchema := PropSchemaFromStructField(ctx, field, required)
+			propSchema := PropSchemaFromStructField(ctx, t, field, name, required)
 
 			if propSchema != nil {
 				structSchema.SetProperty(name, propSchema, required)
@@ -250,7 +301,11 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 	return nil
 }
 
-func PropSchemaFromStructField(ctx context.Context, field reflect.StructField, required bool) *jsonschema.Schema {
+func PropSchemaFromStructField(ctx context.Context, t reflect.Type, field reflect.StructField, name string, required bool) *jsonschema.Schema {
+	if !FieldShouldPick(t, name) {
+		return nil
+	}
+
 	propSchema := SchemaFromType(ctx, field.Type, false)
 
 	if propSchema != nil {

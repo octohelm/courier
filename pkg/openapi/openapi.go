@@ -4,7 +4,7 @@ import "github.com/octohelm/courier/pkg/openapi/jsonschema"
 
 func NewOpenAPI() *OpenAPI {
 	openAPI := &OpenAPI{}
-	openAPI.OpenAPI = "3.0.3"
+	openAPI.OpenAPI = "3.1.0"
 	openAPI.Paths.Paths = map[string]*PathItem{}
 	return openAPI
 }
