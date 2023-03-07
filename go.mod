@@ -8,7 +8,7 @@ require (
 	github.com/octohelm/gengo v0.0.0-20230203081555-b66e95cb6110
 	github.com/octohelm/storage v0.0.0-20230306100510-1c1a8290ae0c
 	github.com/octohelm/x v0.0.0-20220811034253-019992077a5d
-	github.com/onsi/gomega v1.23.0
+	github.com/onsi/gomega v1.27.2
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.8.0
 )
