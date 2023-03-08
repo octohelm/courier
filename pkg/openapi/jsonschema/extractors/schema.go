@@ -6,6 +6,7 @@ import (
 	reflectx "github.com/octohelm/x/reflect"
 	"go/ast"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
@@ -49,78 +50,106 @@ func (t TypeName) RefString() string {
 	return string(t)
 }
 
-func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschema.Schema) {
+type Opt struct {
+	Decl      bool
+	Doc       map[string]string
+	EnumInDoc []string
+}
+
+func (o Opt) WithDecl(decl bool) Opt {
+	o.Decl = decl
+	return o
+}
+
+func (o Opt) WithDoc(doc map[string]string) Opt {
+	o.Doc = doc
+	return o
+}
+
+func (o Opt) WithEnumInDoc(enumInDoc []string) Opt {
+	o.EnumInDoc = enumInDoc
+	return o
+}
+
+func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema.Schema) {
 	sr := SchemaRegisterFromContext(ctx)
 
-	// namedDefs typed
+	// named type
 	if pkgPath := t.PkgPath(); pkgPath != "" {
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
 		ref := sr.RefString(typeRef)
 
-		if def {
-			if ok := sr.Record(typeRef); ok {
-				return jsonschema.RefSchemaByRefer(TypeName(ref))
-			}
+		if ok := sr.Record(typeRef); ok {
+			return jsonschema.RefSchemaByRefer(TypeName(ref))
+		} else {
+			defer func() {
+				if n := len(opt.EnumInDoc); n > 0 {
+					s.Enum = make([]any, n)
+					for i := range s.Enum {
+						s.Enum[i] = opt.EnumInDoc[i]
+					}
+				}
+
+				sr.RegisterSchema(ref, s)
+
+				if !opt.Decl {
+					s = jsonschema.RefSchemaByRefer(TypeName(ref))
+				}
+			}()
 		}
 
-		v := reflect.New(t).Interface()
+		inst := reflect.New(t).Interface()
 
-		if def {
+		if canDoc, ok := inst.(CanSwaggerDoc); ok {
+			opt = opt.WithDoc(canDoc.SwaggerDoc())
+		}
+
+		if canEnumValues, ok := inst.(EnumValues); ok {
 			defer func() {
-				if canEnumValues, ok := v.(EnumValues); ok {
-					values := canEnumValues.EnumValues()
-					labels := make([]string, 0)
+				values := canEnumValues.EnumValues()
+				labels := make([]string, 0)
 
-					for i := range values {
-						s.Enum = append(s.Enum, values[i])
+				for i := range values {
+					s.Enum = append(s.Enum, values[i])
 
-						if canLabel, ok := values[i].(interface{ Label() string }); ok {
-							labels = append(labels, canLabel.Label())
-						}
+					if canLabel, ok := values[i].(interface{ Label() string }); ok {
+						labels = append(labels, canLabel.Label())
 					}
+				}
 
-					if len(labels) > 0 {
-						s.AddExtension(jsonschema.XEnumLabels, labels)
+				if len(labels) > 0 {
+					s.AddExtension(jsonschema.XEnumLabels, labels)
+				}
+			}()
+		}
+
+		if docer, ok := inst.(RuntimeDocer); ok {
+			ctx = ContextWithRuntimeDocer(ctx, docer)
+
+			defer func() {
+				if opt.Decl {
+					if lines, ok := docer.RuntimeDoc(); ok {
+						s.Description = strings.Join(lines, "\n")
 					}
 				}
 			}()
-
-			if docer, ok := v.(RuntimeDocer); ok {
-				ctx = ContextWithRuntimeDocer(ctx, docer)
-
-				defer func() {
-					if def {
-						if lines, ok := docer.RuntimeDoc(); ok {
-							s.Description = strings.Join(lines, "\n")
-						}
-					}
-				}()
-			}
 		}
 
-		defer func() {
-			if !def {
-				SchemaFromType(ctx, t, true)
-			} else {
-				sr.RegisterSchema(ref, s)
-			}
-		}()
-
-		if g, ok := v.(UnionType); ok {
+		if g, ok := inst.(UnionType); ok {
 			types := g.OneOf()
 			schemas := make([]*jsonschema.Schema, len(types))
 			for i := range schemas {
-				schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), false)
+				schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), opt.WithDecl(false))
 			}
 			return jsonschema.OneOf(schemas...)
 		}
 
-		if g, ok := v.(TaggedUnionType); ok {
+		if g, ok := inst.(TaggedUnionType); ok {
 			types := g.Mapping()
 			schemas := make([]*jsonschema.Schema, 0, len(types))
 
 			for _, t := range types {
-				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(t)), true))
+				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(t)), opt.WithDecl(true)))
 			}
 
 			s := jsonschema.OneOf(schemas...)
@@ -136,13 +165,13 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			return s
 		}
 
-		if g, ok := v.(OpenAPISchemaTypeGetter); ok {
+		if g, ok := inst.(OpenAPISchemaTypeGetter); ok {
 			s := &jsonschema.Schema{}
 
 			s.Type = g.OpenAPISchemaType()
 			s.Format = ""
 
-			if g, ok := v.(OpenAPISchemaFormatGetter); ok {
+			if g, ok := inst.(OpenAPISchemaFormatGetter); ok {
 				s.Format = g.OpenAPISchemaFormat()
 			}
 
@@ -152,10 +181,6 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			}
 
 			return s
-		}
-
-		if !def && t.Kind() != reflect.Interface {
-			return jsonschema.RefSchemaByRefer(TypeName(ref))
 		}
 
 		defer func() {
@@ -192,7 +217,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			}
 		}
 
-		s := SchemaFromType(ctx, elem, false)
+		s := SchemaFromType(ctx, elem, opt.WithDecl(false))
 
 		patch := func(s *jsonschema.Schema) *jsonschema.Schema {
 			s.Nullable = true
@@ -214,7 +239,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 		reflect.Bool:
 		return jsonschema.NewSchema(schemaTypeAndFormatFromBasicType(t.Kind().String()))
 	case reflect.Array:
-		s := jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), false))
+		s := jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 		n := uint64(t.Len())
 		s.MaxItems = &n
 		s.MinItems = &n
@@ -224,13 +249,13 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 			return jsonschema.Bytes()
 		}
 
-		return jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), false))
+		return jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Map:
-		keySchema := SchemaFromType(ctx, t.Key(), false)
+		keySchema := SchemaFromType(ctx, t.Key(), opt.WithDecl(false))
 		if keySchema != nil && len(keySchema.Type) > 0 && !keySchema.Type.Contains("string") {
 			panic(errors.New("only support map[string]any"))
 		}
-		return jsonschema.KeyValueOf(keySchema, SchemaFromType(ctx, t.Elem(), false))
+		return jsonschema.KeyValueOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
 		structSchema.AdditionalProperties = &jsonschema.SchemaOrBool{
@@ -267,7 +292,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 					structSchema = jsonschema.Binary()
 					break
 				}
-				s := SchemaFromType(ctx, field.Type, false)
+				s := SchemaFromType(ctx, field.Type, opt.WithDecl(false))
 				if s != nil {
 					allOfSchemas = append(allOfSchemas, s)
 				}
@@ -284,7 +309,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 				required = !hasOmitempty
 			}
 
-			propSchema := PropSchemaFromStructField(ctx, t, field, name, required)
+			propSchema := PropSchemaFromStructField(ctx, t, field, name, required, opt)
 
 			if propSchema != nil {
 				structSchema.SetProperty(name, propSchema, required)
@@ -301,12 +326,31 @@ func SchemaFromType(ctx context.Context, t reflect.Type, def bool) (s *jsonschem
 	return nil
 }
 
-func PropSchemaFromStructField(ctx context.Context, t reflect.Type, field reflect.StructField, name string, required bool) *jsonschema.Schema {
-	if !FieldShouldPick(t, name) {
+func PropSchemaFromStructField(
+	ctx context.Context,
+	t reflect.Type,
+	field reflect.StructField,
+	fieldName string,
+	required bool,
+	opt Opt,
+) *jsonschema.Schema {
+	if !FieldShouldPick(t, fieldName) {
 		return nil
 	}
 
-	propSchema := SchemaFromType(ctx, field.Type, false)
+	fieldDoc := ""
+
+	if opt.Doc != nil {
+		if fieldDesc := opt.Doc[fieldName]; fieldDesc != "" {
+			fieldDoc = fieldDesc
+			stringEnum := pickStringEnumFromDesc(fieldDesc)
+			if len(stringEnum) > 0 {
+				opt = opt.WithEnumInDoc(stringEnum)
+			}
+		}
+	}
+
+	propSchema := SchemaFromType(ctx, field.Type, opt.WithDecl(false))
 
 	if propSchema != nil {
 		if required {
@@ -322,6 +366,7 @@ func PropSchemaFromStructField(ctx context.Context, t reflect.Type, field reflec
 		}
 
 		additional := &jsonschema.Schema{}
+		additional.Description = fieldDoc
 
 		if propSchema.Refer == nil {
 			additional = propSchema
@@ -339,6 +384,34 @@ func PropSchemaFromStructField(ctx context.Context, t reflect.Type, field reflec
 			return jsonschema.AllOf(propSchema, additional)
 		}
 		return propSchema
+	}
+
+	return nil
+}
+
+func pickStringEnumFromDesc(d string) []string {
+	parts := strings.Split(d, ".")
+	for _, p := range parts {
+		line := strings.TrimSpace(p)
+		if strings.HasPrefix(line, "One of") {
+			enumValues := strings.Split(line[len("One of")+1:], ",")
+			for i := range enumValues {
+				enumValues[i] = strings.TrimSpace(enumValues[i])
+			}
+			return enumValues
+		}
+		if strings.HasPrefix(line, "Can be") {
+			enumValues := strings.Split(line[len("Can be")+1:], " or ")
+			for i := range enumValues {
+				enumValues[i] = strings.TrimSpace(enumValues[i])
+				if len(enumValues[i]) > 0 {
+					if enumValues[i][0] == '"' {
+						enumValues[i], _ = strconv.Unquote(enumValues[i])
+					}
+				}
+			}
+			return enumValues
+		}
 	}
 
 	return nil

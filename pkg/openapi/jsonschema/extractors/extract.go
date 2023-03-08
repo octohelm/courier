@@ -19,7 +19,7 @@ func SchemaFrom(ctx context.Context, v any, def bool) *jsonschema.Schema {
 		t = t.Elem()
 	}
 
-	return SchemaFromType(ctx, t, def)
+	return SchemaFromType(ctx, t, Opt{Decl: def})
 }
 
 type FieldExclude func(fields ...string)

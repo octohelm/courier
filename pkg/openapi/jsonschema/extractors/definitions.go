@@ -15,6 +15,10 @@ type OpenAPISchemaFormatGetter interface {
 	OpenAPISchemaFormat() string
 }
 
+type CanSwaggerDoc interface {
+	SwaggerDoc() map[string]string
+}
+
 type contextSchemaRegister struct {
 }
 
