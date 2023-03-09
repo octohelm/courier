@@ -6,6 +6,7 @@ import (
 	reflectx "github.com/octohelm/x/reflect"
 	"go/ast"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -146,12 +147,17 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 
 		if g, ok := inst.(TaggedUnionType); ok {
 			types := g.Mapping()
-			schemas := make([]*jsonschema.Schema, 0, len(types))
 
-			for _, t := range types {
-				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(t)), opt.WithDecl(true)))
+			tags := make([]string, 0, len(types))
+			for tag := range types {
+				tags = append(tags, tag)
 			}
+			sort.Strings(tags)
 
+			schemas := make([]*jsonschema.Schema, 0, len(types))
+			for _, tag := range tags {
+				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[tag])), opt.WithDecl(true)))
+			}
 			s := jsonschema.OneOf(schemas...)
 
 			s.Type = []string{jsonschema.TypeObject}
