@@ -7,8 +7,8 @@ github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4d
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
-github.com/octohelm/gengo v0.0.0-20230203081555-b66e95cb6110 h1:DXGIYntsK1Oal+ziIjkQz+BgKSs1Qb5m7j5A0U1XYV0=
-github.com/octohelm/gengo v0.0.0-20230203081555-b66e95cb6110/go.mod h1:CPbwRJCrc3mMscDBDyU4Rn7Qk04YTomD+6fFViRybD4=
+github.com/octohelm/gengo v0.0.0-20230315080452-73cfd15ab4dc h1:+MWqM46+uj6ll4RLGkBg8wHbArM91nEg7LCyzJxgcrs=
+github.com/octohelm/gengo v0.0.0-20230315080452-73cfd15ab4dc/go.mod h1:CPbwRJCrc3mMscDBDyU4Rn7Qk04YTomD+6fFViRybD4=
 github.com/octohelm/storage v0.0.0-20230306100510-1c1a8290ae0c h1:0uiJ/q7SVD1vHulLPIYKrbJvkNB9m9VtNvp0OXjo02U=
 github.com/octohelm/storage v0.0.0-20230306100510-1c1a8290ae0c/go.mod h1:CAUQxdbuFxuK52gBrPXMlAVl0IyrnIn4Wu4oRCUykWc=
 github.com/octohelm/x v0.0.0-20220811034253-019992077a5d h1:RrzP/RZsHePcnumSevr5wwOrKCZ+KBvVEGrM5jchwPI=

@@ -23,6 +23,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+type OpenAPIBuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
+
+var DefaultOpenAPIBuildFunc = func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
+	return FromRouter(r, fns...)
+}
+
 type CanResponseStatusCode interface {
 	ResponseStatusCode() int
 }

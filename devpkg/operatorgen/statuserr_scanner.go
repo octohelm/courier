@@ -140,6 +140,10 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 				continue
 			}
 
+			if tv.Value == nil {
+				continue
+			}
+
 			switch i {
 			case 0: // code
 				code, _ = strconv.Atoi(tv.Value.String())

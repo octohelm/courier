@@ -7,6 +7,7 @@ import (
 	"go/types"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/octohelm/courier/pkg/statuserror"
 
@@ -101,7 +102,7 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 		}
 	}
 
-	if isNil(tpe) || isAny(tpe) {
+	if isNil(tpe) {
 		c.Render(gengo.Snippet{
 			gengo.T: `
 func (*@Type) ResponseContent() any {
@@ -112,6 +113,8 @@ func (*@Type) ResponseContent() any {
 			"Type": gengo.ID(named.Obj()),
 		})
 
+	} else if types.IsInterface(tpe) && !strings.Contains(tpe.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
+		c.Logger().Warn(fmt.Errorf("%s return interface %s will be untyped jsonschema", named, tpe))
 	} else {
 		if n, ok := tpe.(*types.Named); ok {
 			typeArgs := n.TypeArgs()
@@ -285,8 +288,4 @@ func valueOf(v constant.Value) interface{} {
 
 func isNil(typ types.Type) bool {
 	return typ == nil || typ.String() == types.Typ[types.UntypedNil].String()
-}
-
-func isAny(typ types.Type) bool {
-	return types.IsInterface(typ) && typ.String() == "interface {}"
 }

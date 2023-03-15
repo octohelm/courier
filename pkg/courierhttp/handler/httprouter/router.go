@@ -21,7 +21,7 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 
 	cr.Register(courier.NewRouter(&OpenAPI{}))
 
-	oas = openapi.FromRouter(cr)
+	oas = openapi.DefaultOpenAPIBuildFunc(cr)
 
 	routes := cr.Routes()
 
