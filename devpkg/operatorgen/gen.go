@@ -83,7 +83,12 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 	var tpe types.Type
 	var expr ast.Expr
 
-	for _, resp := range typeAndValues {
+	for i, resp := range typeAndValues {
+		if i != 0 {
+			// only handle non-error
+			continue
+		}
+
 		if resp.Type != nil {
 			tpe2 := dePtr(resp.Type)
 
@@ -93,7 +98,7 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 
 			if !isNil(tpe) {
 				if tpe.String() != tpe2.String() {
-					panic(fmt.Errorf("%s return multi types, `%s` `%s`", named, tpe, tpe2))
+					c.Logger().Warn(fmt.Errorf("%s return multi types, `%s` `%s`", named, tpe, tpe2))
 				}
 			}
 
