@@ -2,6 +2,7 @@ package courierhttp
 
 import (
 	"context"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -174,8 +175,18 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		return respWriter.WriteResponse(ctx, rw, req)
 	}
 
+	resp := r.v
+
+	if err, ok := resp.(error); ok {
+		resp = statuserror.FromErr(err)
+	}
+
+	if statusCodeDescriber, ok := resp.(StatusCodeDescriber); ok {
+		r.SetStatusCode(statusCodeDescriber.StatusCode())
+	}
+
 	if r.statusCode == 0 {
-		if r.v == nil {
+		if resp == nil {
 			r.SetStatusCode(http.StatusNoContent)
 		} else {
 			if req.Method() == http.MethodPost {
@@ -187,7 +198,7 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 	}
 
 	if r.location == nil {
-		if redirectDescriber, ok := any(r.v).(RedirectDescriber); ok {
+		if redirectDescriber, ok := resp.(RedirectDescriber); ok {
 			r.SetStatusCode(redirectDescriber.StatusCode())
 			r.SetLocation(redirectDescriber.Location())
 		}
@@ -223,7 +234,7 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		rw.Header().Set("Content-Type", r.contentType)
 	}
 
-	switch v := r.v.(type) {
+	switch v := resp.(type) {
 	case courier.Result:
 		rw.WriteHeader(r.statusCode)
 		if _, err := v.Into(rw); err != nil {
@@ -240,13 +251,13 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 			return err
 		}
 	default:
-		tf, err := transformer.NewTransformer(ctx, typesutil.FromRType(reflect.TypeOf(r.v)), transformer.Option{
+		tf, err := transformer.NewTransformer(ctx, typesutil.FromRType(reflect.TypeOf(resp)), transformer.Option{
 			MIME: r.contentType,
 		})
 		if err != nil {
 			return err
 		}
-		if err := tf.EncodeTo(transformer.ContextWithStatusCode(ctx, r.statusCode), rw, r.v); err != nil {
+		if err := tf.EncodeTo(transformer.ContextWithStatusCode(ctx, r.statusCode), rw, resp); err != nil {
 			return err
 		}
 	}
