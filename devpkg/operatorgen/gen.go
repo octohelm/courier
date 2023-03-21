@@ -181,7 +181,7 @@ func (*@Type) ResponseContentType() string {
 
 		c.Render(gengo.Snippet{gengo.T: `
 func (*@Type) ResponseContent() any {
-	return &@ReturnType{}
+	return new(@ReturnType)
 }
 
 `,
