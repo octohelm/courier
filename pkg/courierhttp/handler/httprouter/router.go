@@ -55,19 +55,19 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 
 		hh := handler.ApplyHandlerMiddlewares(middlewares...)(h)
 
-		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-			ctx := req.Context()
-			ctx = courierhttp.ContextWithOperationID(ctx, h.OperationID())
-			ctx = handler.ContextWithParamGetter(ctx, params)
-			hh.ServeHTTP(rw, req.WithContext(ctx))
-		})
-
 		_, _ = fmt.Fprintf(w, "%s\t%s", h.Method()[0:3], reHttpRouterPath.ReplaceAllString(h.Path(), "/{$1}"))
 		_, _ = fmt.Fprintf(w, "\t%s", h.Summary())
 		for _, o := range h.Operators() {
 			_, _ = fmt.Fprintf(w, "\t%s", o.String())
 		}
 		_, _ = fmt.Fprintf(w, "\n")
+
+		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+			ctx := req.Context()
+			ctx = courierhttp.ContextWithOperationID(ctx, h.OperationID())
+			ctx = handler.ContextWithParamGetter(ctx, params)
+			hh.ServeHTTP(rw, req.WithContext(ctx))
+		})
 	}
 
 	return r, nil
