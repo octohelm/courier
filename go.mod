@@ -10,15 +10,15 @@ require (
 	github.com/octohelm/x v0.0.0-20220811034253-019992077a5d
 	github.com/onsi/gomega v1.23.0
 	github.com/pkg/errors v0.9.1
-	golang.org/x/net v0.8.0
+	golang.org/x/net v0.9.0
 )
 
 require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	golang.org/x/exp v0.0.0-20230129154200-a960b3787bd2 // indirect
 	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
