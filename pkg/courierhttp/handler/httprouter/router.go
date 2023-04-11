@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/julienschmidt/httprouter"
@@ -63,6 +64,9 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		_, _ = fmt.Fprintf(w, "\n")
 
 		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+			if methodOverwrite := req.Header.Get("X-HTTP-Method-Override"); methodOverwrite != "" {
+				req.Method = strings.ToUpper(methodOverwrite)
+			}
 			ctx := req.Context()
 			ctx = courierhttp.ContextWithOperationID(ctx, h.OperationID())
 			ctx = handler.ContextWithParamGetter(ctx, params)
