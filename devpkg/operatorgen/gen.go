@@ -83,12 +83,7 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 	var tpe types.Type
 	var expr ast.Expr
 
-	for i, resp := range typeAndValues {
-		if i != 0 {
-			// only handle non-error
-			continue
-		}
-
+	for _, resp := range typeAndValues {
 		if resp.Type != nil {
 			tpe2 := dePtr(resp.Type)
 
@@ -104,6 +99,9 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 
 			tpe = tpe2
 			expr = resp.Expr
+
+			// use first got type
+			break
 		}
 	}
 
