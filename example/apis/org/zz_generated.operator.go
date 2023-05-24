@@ -34,7 +34,7 @@ func init() {
 }
 
 func (*GetOrg) ResponseContent() any {
-	return nil
+	return new(Detail)
 }
 
 func (*GetOrg) ResponseErrors() []error {
