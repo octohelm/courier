@@ -16,5 +16,5 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 }
 
 func (c *Client) InjectContext(ctx context.Context) context.Context {
-	return courier.ContentWithClient(ctx, "example", c)
+	return courier.ContextWithClient(ctx, "example", c)
 }

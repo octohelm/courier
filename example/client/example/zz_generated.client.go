@@ -17,7 +17,7 @@ type ListOrgOld struct {
 }
 
 func (r *ListOrgOld) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *ListOrgOld) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -31,7 +31,7 @@ type ListOrg struct {
 }
 
 func (r *ListOrg) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *ListOrg) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (*ListOrgResponse, github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -47,7 +47,7 @@ type CreateOrg struct {
 }
 
 func (r *CreateOrg) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *CreateOrg) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -61,7 +61,7 @@ type DeleteOrg struct {
 }
 
 func (r *DeleteOrg) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *DeleteOrg) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -77,7 +77,7 @@ type GetOrg struct {
 }
 
 func (r *GetOrg) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *GetOrg) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (*GetOrgResponse, github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -93,7 +93,7 @@ type UploadBlob struct {
 }
 
 func (r *UploadBlob) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *UploadBlob) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (github_com_octohelm_courier_pkg_courier.Metadata, error) {
@@ -109,7 +109,7 @@ type Cookie struct {
 }
 
 func (r *Cookie) Do(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) github_com_octohelm_courier_pkg_courier.Result {
-	return github_com_octohelm_courier_pkg_courier.ClientFromContent(ctx, "example").Do(ctx, r, metas...)
+	return github_com_octohelm_courier_pkg_courier.ClientFromContext(ctx, "example").Do(ctx, r, metas...)
 }
 
 func (r *Cookie) Invoke(ctx context.Context, metas ...github_com_octohelm_courier_pkg_courier.Metadata) (*CookieResponse, github_com_octohelm_courier_pkg_courier.Metadata, error) {

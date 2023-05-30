@@ -16,13 +16,13 @@ type Result interface {
 
 type clientContext struct{ name string }
 
-func ClientFromContent(ctx context.Context, name string) Client {
+func ClientFromContext(ctx context.Context, name string) Client {
 	if v, ok := ctx.Value(clientContext{name: name}).(Client); ok {
 		return v
 	}
 	return nil
 }
 
-func ContentWithClient(ctx context.Context, name string, client Client) context.Context {
+func ContextWithClient(ctx context.Context, name string, client Client) context.Context {
 	return contextx.WithValue(ctx, clientContext{name: name}, client)
 }

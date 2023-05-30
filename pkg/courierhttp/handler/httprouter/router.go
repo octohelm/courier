@@ -54,7 +54,7 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 	for i := range handlers {
 		h := handlers[i]
 
-		hh := handler.ApplyHandlerMiddlewares(middlewares...)(h)
+		hh := handler.ApplyHandlerMiddlewares(append(middlewares, methodOverride)...)(h)
 
 		_, _ = fmt.Fprintf(w, "%s\t%s", h.Method()[0:3], reHttpRouterPath.ReplaceAllString(h.Path(), "/{$1}"))
 		_, _ = fmt.Fprintf(w, "\t%s", h.Summary())
@@ -64,9 +64,6 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		_, _ = fmt.Fprintf(w, "\n")
 
 		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-			if methodOverwrite := req.Header.Get("X-HTTP-Method-Override"); methodOverwrite != "" {
-				req.Method = strings.ToUpper(methodOverwrite)
-			}
 			ctx := req.Context()
 			ctx = courierhttp.ContextWithOperationID(ctx, h.OperationID())
 			ctx = handler.ContextWithParamGetter(ctx, params)
@@ -78,3 +75,12 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 }
 
 var reHttpRouterPath = regexp.MustCompile("/:([^/]+)")
+
+var methodOverride = func(n http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if methodOverwrite := req.Header.Get("X-HTTP-Method-Override"); methodOverwrite != "" {
+			req.Method = strings.ToUpper(methodOverwrite)
+		}
+		n.ServeHTTP(rw, req)
+	})
+}
