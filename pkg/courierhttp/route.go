@@ -23,7 +23,7 @@ func GroupRouter(path string) courier.Router {
 }
 
 func BasePathRouter(basePath string) courier.Router {
-	return courier.NewRouter(Group(basePath))
+	return courier.NewRouter(BasePath(basePath))
 }
 
 func BasePath(basePath string) courier.Operator {

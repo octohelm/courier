@@ -20,11 +20,30 @@ import (
 func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddleware) (http.Handler, error) {
 	r := httprouter.New()
 
-	cr.Register(courier.NewRouter(&OpenAPI{}))
+	customOpenApiRouter := false
 
-	oas = openapi.DefaultOpenAPIBuildFunc(cr)
+	for _, r := range cr.Routes() {
+		if customOpenApiRouter {
+			break
+		}
+
+		_ = r.RangeOperator(func(f *courier.OperatorFactory, i int) error {
+			if f.IsLast {
+				if _, ok := f.Operator.(*OpenAPI); ok {
+					customOpenApiRouter = true
+				}
+			}
+			return nil
+		})
+	}
+
+	if !customOpenApiRouter {
+		cr.Register(courier.NewRouter(&OpenAPI{}))
+	}
 
 	routes := cr.Routes()
+
+	oas = openapi.DefaultOpenAPIBuildFunc(cr)
 
 	handlers := make([]request.RouteHandler, 0, len(routes))
 
