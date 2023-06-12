@@ -13,13 +13,14 @@ var (
 )
 
 /*
-	Validator for map
+Validator for map
 
-	Rules:
-		@map<KEY_RULE, ELEM_RULE>[minSize,maxSize]
-		@map<KEY_RULE, ELEM_RULE>[length]
+Rules:
 
-		@map<@string{A,B,C},@int[0]>[,100]
+	@map<KEY_RULE, ELEM_RULE>[minSize,maxSize]
+	@map<KEY_RULE, ELEM_RULE>[length]
+
+	@map<@string{A,B,C},@int[0]>[,100]
 */
 type MapValidator struct {
 	MinProperties uint64

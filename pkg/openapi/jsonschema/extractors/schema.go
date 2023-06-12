@@ -3,12 +3,13 @@ package extractors
 import (
 	"context"
 	"fmt"
-	reflectx "github.com/octohelm/x/reflect"
 	"go/ast"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+
+	reflectx "github.com/octohelm/x/reflect"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/pkg/errors"

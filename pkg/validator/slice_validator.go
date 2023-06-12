@@ -13,16 +13,18 @@ var (
 )
 
 /*
-	Validator for slice
+Validator for slice
 
-	Rules:
-		@slice<ELEM_RULE>[minLen,maxLen]
-		@slice<ELEM_RULE>[length]
+Rules:
 
-		@slice<@string{A,B,C}>[,100]
+	@slice<ELEM_RULE>[minLen,maxLen]
+	@slice<ELEM_RULE>[length]
 
-	Aliases
-		@array = @slice // and range must to be use length
+	@slice<@string{A,B,C}>[,100]
+
+Aliases
+
+	@array = @slice // and range must to be use length
 */
 type SliceValidator struct {
 	ElemValidator Validator

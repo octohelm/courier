@@ -82,9 +82,15 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		}
 		_, _ = fmt.Fprintf(w, "\n")
 
+		info := courierhttp.OperationInfo{
+			ID:     h.OperationID(),
+			Method: h.Method(),
+			Route:  h.Path(),
+		}
+
 		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 			ctx := req.Context()
-			ctx = courierhttp.ContextWithOperationID(ctx, h.OperationID())
+			ctx = courierhttp.ContextWithOperationInfo(ctx, info)
 			ctx = handler.ContextWithParamGetter(ctx, params)
 			hh.ServeHTTP(rw, req.WithContext(ctx))
 		})

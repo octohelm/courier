@@ -20,37 +20,43 @@ var (
 )
 
 /*
-	Validator for float32 and float64
+Validator for float32 and float64
 
-	Rules:
+Rules:
 
-	ranges
-		@float[min,max]
-		@float[1,10] // value should large or equal than 1 and less or equal than 10
-		@float(1,10] // value should large than 1 and less or equal than 10
-		@float[1,10) // value should large or equal than 1
+ranges
 
-		@float[1,)  // value should large or equal than 1
-		@float[,1)  // value should less than 1
+	@float[min,max]
+	@float[1,10] // value should large or equal than 1 and less or equal than 10
+	@float(1,10] // value should large than 1 and less or equal than 10
+	@float[1,10) // value should large or equal than 1
 
-	enumeration
-		@float{1.1,1.2,1.3} // value should be one of these
+	@float[1,)  // value should large or equal than 1
+	@float[,1)  // value should less than 1
 
-	multiple of some float value
-		@float{%multipleOf}
-		@float{%2.2} // value should be multiple of 2.2
+enumeration
 
-	max digits and decimal digits.
-	when defined, all values in rule should be under range of them.
-		@float<MAX_DIGITS,DECIMAL_DIGITS>
-		@float<5,2> // will checkout these values invalid: 1.111 (decimal digits too many), 12345.6 (digits too many)
+	@float{1.1,1.2,1.3} // value should be one of these
 
-	composes
-		@float<MAX_DIGITS,DECIMAL_DIGITS>[min,max]
+multiple of some float value
 
-	aliases:
-		@float32 = @float<7>
-		@float64 = @float<15>
+	@float{%multipleOf}
+	@float{%2.2} // value should be multiple of 2.2
+
+max digits and decimal digits.
+when defined, all values in rule should be under range of them.
+
+	@float<MAX_DIGITS,DECIMAL_DIGITS>
+	@float<5,2> // will checkout these values invalid: 1.111 (decimal digits too many), 12345.6 (digits too many)
+
+composes
+
+	@float<MAX_DIGITS,DECIMAL_DIGITS>[min,max]
+
+aliases:
+
+	@float32 = @float<7>
+	@float64 = @float<15>
 */
 type FloatValidator struct {
 	MaxDigits     uint

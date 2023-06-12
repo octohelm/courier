@@ -18,15 +18,30 @@ func HttpRequestFromContext(ctx context.Context) *http.Request {
 	return p
 }
 
-type contextKeyOperationID struct{}
+type contextOperationInfo struct{}
 
-func ContextWithOperationID(ctx context.Context, operationID string) context.Context {
-	return contextx.WithValue(ctx, contextKeyOperationID{}, operationID)
+func ContextWithOperationInfo(ctx context.Context, info OperationInfo) context.Context {
+	return contextx.WithValue(ctx, contextOperationInfo{}, info)
 }
 
+func OperationInfoFromContext(ctx context.Context) OperationInfo {
+	if info, ok := ctx.Value(contextOperationInfo{}).(OperationInfo); ok {
+		return info
+	}
+	return OperationInfo{}
+}
+
+// OperationIDFromContext
+// Deprecated use OperationInfoFromContext instead
 func OperationIDFromContext(ctx context.Context) string {
-	if id, ok := ctx.Value(contextKeyOperationID{}).(string); ok {
-		return id
+	if info, ok := ctx.Value(contextOperationInfo{}).(OperationInfo); ok {
+		return info.ID
 	}
 	return ""
+}
+
+type OperationInfo struct {
+	ID     string
+	Method string
+	Route  string
 }

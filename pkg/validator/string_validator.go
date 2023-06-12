@@ -32,38 +32,46 @@ var strLenModes = map[StrLenMode]func(s string) uint64{
 }
 
 /*
-	Validator for string
+Validator for string
 
-	Rules:
-		@string/regexp/
-		@string{VALUE_1,VALUE_2,VALUE_3}
-		@string<StrLenMode>[from,to]
-		@string<StrLenMode>[length]
+Rules:
 
-	ranges
-		@string[min,max]
-		@string[length]
-		@string[1,10] // string length should large or equal than 1 and less or equal than 10
-		@string[1,]  // string length should large or equal than 1 and less than the maxinum of int32
-		@string[,1]  // string length should less than 1 and large or equal than 0
-		@string[10]  // string length should be equal 10
+	@string/regexp/
+	@string{VALUE_1,VALUE_2,VALUE_3}
+	@string<StrLenMode>[from,to]
+	@string<StrLenMode>[length]
 
-	enumeration
-		@string{A,B,C} // should one of these values
+ranges
 
-	regexp
-		@string/\w+/ // string values should match \w+
-	since we use / as wrapper for regexp, we need to use \ to escape /
+	@string[min,max]
+	@string[length]
+	@string[1,10] // string length should large or equal than 1 and less or equal than 10
+	@string[1,]  // string length should large or equal than 1 and less than the maxinum of int32
+	@string[,1]  // string length should less than 1 and large or equal than 0
+	@string[10]  // string length should be equal 10
 
-	length mode in parameter
-		@string<length> // use string length directly
-		@string<rune_count> // use rune count as string length
+enumeration
 
-	composes
-		@string<>[1,]
+	@string{A,B,C} // should one of these values
 
-	aliases:
-		@char = @string<rune_count>
+regexp
+
+	@string/\w+/ // string values should match \w+
+
+since we use / as wrapper for regexp, we need to use \ to escape /
+
+length mode in parameter
+
+	@string<length> // use string length directly
+	@string<rune_count> // use rune count as string length
+
+composes
+
+	@string<>[1,]
+
+aliases:
+
+	@char = @string<rune_count>
 */
 type StringValidator struct {
 	Pattern   string

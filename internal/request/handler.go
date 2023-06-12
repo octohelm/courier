@@ -15,7 +15,6 @@ type RouteHandler interface {
 	http.Handler
 
 	OperationID() string
-
 	Method() string
 	Path() string
 

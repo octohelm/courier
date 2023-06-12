@@ -2,12 +2,13 @@ package courierhttp
 
 import (
 	"context"
-	"github.com/octohelm/courier/pkg/statuserror"
 	"io"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"reflect"
+
+	"github.com/octohelm/courier/pkg/statuserror"
 
 	"github.com/octohelm/courier/pkg/courier"
 	transformer "github.com/octohelm/courier/pkg/transformer/core"

@@ -18,45 +18,52 @@ var (
 )
 
 /*
-	Validator for int
+Validator for int
 
-	Rules:
+Rules:
 
-	ranges
-		@int[min,max]
-		@int[1,10] // value should large or equal than 1 and less or equal than 10
-		@int(1,10] // value should large than 1 and less or equal than 10
-		@int[1,10) // value should large or equal than 1
+ranges
 
-		@int[1,)  // value should large or equal than 1 and less than the maxinum of int32
-		@int[,1)  // value should less than 1 and large or equal than the mininum of int32
-		@int  // value should less or equal than maxinum of int32 and large or equal than the mininum of int32
+	@int[min,max]
+	@int[1,10] // value should large or equal than 1 and less or equal than 10
+	@int(1,10] // value should large than 1 and less or equal than 10
+	@int[1,10) // value should large or equal than 1
 
-	enumeration
-		@int{1,2,3} // should one of these values
+	@int[1,)  // value should large or equal than 1 and less than the maxinum of int32
+	@int[,1)  // value should less than 1 and large or equal than the mininum of int32
+	@int  // value should less or equal than maxinum of int32 and large or equal than the mininum of int32
 
-	multiple of some int value
-		@int{%multipleOf}
-		@int{%2} // should be multiple of 2
+enumeration
 
-	bit size in parameter
-		@int<8>
-		@int<16>
-		@int<32>
-		@int<64>
+	@int{1,2,3} // should one of these values
 
-	composes
-		@int<8>[1,]
+multiple of some int value
 
-	aliases:
-		@int8 = @int<8>
-		@int16 = @int<16>
-		@int32 = @int<32>
-		@int64 = @int<64>
+	@int{%multipleOf}
+	@int{%2} // should be multiple of 2
 
-	Tips:
-	for JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
-		int<53>
+bit size in parameter
+
+	@int<8>
+	@int<16>
+	@int<32>
+	@int<64>
+
+composes
+
+	@int<8>[1,]
+
+aliases:
+
+	@int8 = @int<8>
+	@int16 = @int<16>
+	@int32 = @int<32>
+	@int64 = @int<64>
+
+Tips:
+for JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
+
+	int<53>
 */
 type IntValidator struct {
 	BitSize uint
