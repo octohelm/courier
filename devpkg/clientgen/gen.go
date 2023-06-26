@@ -46,10 +46,29 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	openapiSpec := ""
 	tags, _ := c.Doc(named.Obj())
 
+	includes := make([]string, 0)
+
+	shouldGenerate := func(o *openapi.Operation) bool {
+		if len(includes) == 0 {
+			return true
+		}
+
+		for i := range includes {
+			if includes[i] == o.OperationId {
+				return true
+			}
+		}
+
+		return false
+	}
+
 	if r, ok := tags["gengo:client:openapi"]; ok {
 		if len(r) > 0 {
 			openapiSpec = r[0]
 		}
+	}
+	if values, ok := tags["gengo:client:openapi:include"]; ok {
+		includes = values
 	}
 
 	if openapiSpec == "" {
@@ -73,9 +92,12 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 
 	for p, oo := range g.oas.Paths.Paths {
 		for method, o := range oo.Operations.Operations {
-			if err := g.genOperation(c, toColonPath(p), gengo.UpperCamelCase(strings.ToLower(string(method))), o); err != nil {
-				return err
+			if shouldGenerate(o) {
+				if err := g.genOperation(c, toColonPath(p), gengo.UpperCamelCase(strings.ToLower(string(method))), o); err != nil {
+					return err
+				}
 			}
+
 		}
 	}
 
