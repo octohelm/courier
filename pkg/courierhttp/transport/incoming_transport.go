@@ -72,9 +72,42 @@ func (i *incomingTransport) writeErr(ctx context.Context, rw http.ResponseWriter
 
 	statusErr = statusErr.AppendSource(req.ServiceName())
 
-	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
-	rw.WriteHeader(statusErr.StatusCode())
-	_ = json.NewEncoder(rw).Encode(statusErr)
+	if errResponseWriter := ErrResponseWriterFromContext(ctx); errResponseWriter != nil {
+		errResponseWriter.WriteErr(ctx, rw, req, statusErr)
+	} else {
+		rw.Header().Set("Content-Type", "application/json; charset=utf-8")
+		rw.WriteHeader(statusErr.StatusCode())
+		_ = json.NewEncoder(rw).Encode(statusErr)
+	}
+}
+
+func ErrResponseWriterFunc(fn func(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)) ErrResponseWriter {
+	return &errResponseWriterFunc{fn: fn}
+}
+
+type errResponseWriterFunc struct {
+	fn func(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)
+}
+
+func (e *errResponseWriterFunc) WriteErr(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr) {
+	e.fn(ctx, rw, req, statusErr)
+}
+
+type ErrResponseWriter interface {
+	WriteErr(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)
+}
+
+type contextErrResponseWriter struct{}
+
+func ContextWithErrResponseWriter(ctx context.Context, errResponseWriter ErrResponseWriter) context.Context {
+	return context.WithValue(ctx, contextErrResponseWriter{}, errResponseWriter)
+}
+
+func ErrResponseWriterFromContext(ctx context.Context) ErrResponseWriter {
+	if writeErrResp, ok := ctx.Value(contextErrResponseWriter{}).(ErrResponseWriter); ok {
+		return writeErrResp
+	}
+	return nil
 }
 
 func (t *incomingTransport) UnmarshalOperator(ctx context.Context, info courierhttp.Request, op any) error {
