@@ -54,21 +54,21 @@ func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error)
 	ot.Type = typ
 
 	if methodDescriber, ok := r.(courierhttp.MethodDescriber); ok {
-		ot.Method = methodDescriber.Method()
+		ot.RouteMethod = methodDescriber.Method()
 	}
 
 	if pathDescriber, ok := r.(courierhttp.PathDescriber); ok {
-		ot.Path = pathDescriber.Path()
+		ot.RoutePath = pathDescriber.Path()
 	}
 
-	if ot.Path == "" {
+	if ot.RoutePath == "" {
 		if ot.Type.Kind() == reflect.Struct {
 			for i := 0; i < ot.Type.NumField(); i++ {
 				f := ot.Type.Field(i)
 
 				if f.Anonymous && f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {
 					if p, ok := f.Tag.Lookup("path"); ok {
-						ot.Path = p
+						ot.RoutePath = p
 					}
 				}
 			}
@@ -88,10 +88,18 @@ func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error)
 }
 
 type outgoingTransport struct {
-	Method       string
-	Path         string
+	RouteMethod  string
+	RoutePath    string
 	Type         reflect.Type
 	InParameters map[string][]transformer.RequestParameter
+}
+
+func (t *outgoingTransport) Method() string {
+	return t.RouteMethod
+}
+
+func (t *outgoingTransport) Path() string {
+	return t.RoutePath
 }
 
 func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Request, error) {
@@ -101,8 +109,8 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 		return nil, errors.Errorf("unmatched outgoingTransport, need %s but got %s", t.Type, typ)
 	}
 
-	method := t.Method
-	rawUrl := t.Path
+	method := t.Method()
+	rawUrl := t.Path()
 
 	errSet := verrors.NewErrorSet("")
 
@@ -184,7 +192,7 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, rawUrl, nil)
+	req, err := http.NewRequestWithContext(courierhttp.ContextWithRouteDescriber(ctx, t), method, rawUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -238,14 +246,14 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 	return req, nil
 }
 
-type contextKeyQueryInBodyForHttpGet struct{}
+type contextQueryInBody struct{}
 
 func EnableQueryInBodyForHttpGet(ctx context.Context) context.Context {
-	return contextx.WithValue(ctx, contextKeyQueryInBodyForHttpGet{}, true)
+	return contextx.WithValue(ctx, contextQueryInBody{}, true)
 }
 
 func ShouldQueryInBodyForHttpGet(ctx context.Context) bool {
-	if v, ok := ctx.Value(contextKeyQueryInBodyForHttpGet{}).(bool); ok {
+	if v, ok := ctx.Value(contextQueryInBody{}).(bool); ok {
 		return v
 	}
 	return false
