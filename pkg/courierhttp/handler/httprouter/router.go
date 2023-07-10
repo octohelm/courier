@@ -17,6 +17,12 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/openapi"
 )
 
+type RouteHandler = request.RouteHandler
+
+func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) {
+	return request.NewRouteHandler(route, service)
+}
+
 func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddleware) (http.Handler, error) {
 	r := httprouter.New()
 
