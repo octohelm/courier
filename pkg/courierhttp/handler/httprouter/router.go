@@ -94,12 +94,30 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 			Route:  h.Path(),
 		}
 
-		r.Handle(h.Method(), h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-			ctx := req.Context()
-			ctx = courierhttp.ContextWithOperationInfo(ctx, info)
-			ctx = handler.ContextWithParamGetter(ctx, params)
-			hh.ServeHTTP(rw, req.WithContext(ctx))
-		})
+		methods := []string{h.Method()}
+
+		if h.Method() == "ALL" {
+			methods = []string{
+				http.MethodGet,
+				http.MethodHead,
+				http.MethodPost,
+				http.MethodPut,
+				http.MethodDelete,
+				http.MethodPatch,
+				http.MethodConnect,
+				http.MethodOptions,
+				http.MethodTrace,
+			}
+		}
+
+		for _, m := range methods {
+			r.Handle(m, h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+				ctx := req.Context()
+				ctx = courierhttp.ContextWithOperationInfo(ctx, info)
+				ctx = handler.ContextWithParamGetter(ctx, params)
+				hh.ServeHTTP(rw, req.WithContext(ctx))
+			})
+		}
 	}
 
 	return r, nil

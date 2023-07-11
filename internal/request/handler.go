@@ -2,13 +2,13 @@ package request
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	contextx "github.com/octohelm/x/context"
+	"net/http"
+	"strings"
 )
 
 type RouteHandler interface {
@@ -67,6 +67,13 @@ func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) 
 	})
 
 	h.path = httprouter.CleanPath(basePath + h.path)
+
+	// support catch all pattern
+	parts := strings.Split(h.path, "/")
+
+	if strings.HasPrefix(parts[len(parts)-1], "*") {
+		h.method = "ALL"
+	}
 
 	if err != nil {
 		return nil, err
