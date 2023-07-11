@@ -48,7 +48,11 @@ func Wrap(err error, code int, key string, msgAndDesc ...string) *StatusErr {
 	if len(msgAndDesc) > 1 {
 		desc = strings.Join(msgAndDesc[1:], "\n")
 	} else {
-		desc = err.Error()
+		if code == http.StatusInternalServerError {
+			desc = fmt.Sprintf("%+v", err)
+		} else {
+			desc = err.Error()
+		}
 	}
 
 	s := &StatusErr{
