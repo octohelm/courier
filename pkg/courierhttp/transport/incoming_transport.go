@@ -2,7 +2,7 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
+	"github.com/go-courier/logr"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -57,57 +57,6 @@ func NewIncomingTransport(ctx context.Context, v any) (IncomingTransport, error)
 type incomingTransport struct {
 	Type         reflect.Type
 	InParameters map[string][]transformer.RequestParameter
-}
-
-func (i *incomingTransport) writeErr(ctx context.Context, rw http.ResponseWriter, err error, req courierhttp.Request) {
-	statusErr, ok := statuserror.IsStatusErr(err)
-	if !ok {
-		if errors.Is(err, context.Canceled) {
-			// https://httpstatuses.com/499
-			statusErr = statuserror.Wrap(err, 499, "ContextCanceled")
-		} else {
-			statusErr = statuserror.Wrap(err, http.StatusInternalServerError, "InternalServerError")
-		}
-	}
-
-	statusErr = statusErr.AppendSource(req.ServiceName())
-
-	if errResponseWriter := ErrResponseWriterFromContext(ctx); errResponseWriter != nil {
-		errResponseWriter.WriteErr(ctx, rw, req, statusErr)
-	} else {
-		rw.Header().Set("Content-Type", "application/json; charset=utf-8")
-		rw.WriteHeader(statusErr.StatusCode())
-		_ = json.NewEncoder(rw).Encode(statusErr)
-	}
-}
-
-func ErrResponseWriterFunc(fn func(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)) ErrResponseWriter {
-	return &errResponseWriterFunc{fn: fn}
-}
-
-type errResponseWriterFunc struct {
-	fn func(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)
-}
-
-func (e *errResponseWriterFunc) WriteErr(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr) {
-	e.fn(ctx, rw, req, statusErr)
-}
-
-type ErrResponseWriter interface {
-	WriteErr(ctx context.Context, rw http.ResponseWriter, req courierhttp.Request, statusErr *statuserror.StatusErr)
-}
-
-type contextErrResponseWriter struct{}
-
-func ContextWithErrResponseWriter(ctx context.Context, errResponseWriter ErrResponseWriter) context.Context {
-	return context.WithValue(ctx, contextErrResponseWriter{}, errResponseWriter)
-}
-
-func ErrResponseWriterFromContext(ctx context.Context) ErrResponseWriter {
-	if writeErrResp, ok := ctx.Value(contextErrResponseWriter{}).(ErrResponseWriter); ok {
-		return writeErrResp
-	}
-	return nil
 }
 
 func (t *incomingTransport) UnmarshalOperator(ctx context.Context, info courierhttp.Request, op any) error {
@@ -296,20 +245,26 @@ type Upgrader interface {
 func (i *incomingTransport) WriteResponse(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.Request) {
 	if upgrader, ok := ret.(Upgrader); ok {
 		if err := upgrader.Upgrade(rw, req.Underlying()); err != nil {
-			i.writeErr(ctx, rw, err, req)
+			i.writeErrResp(ctx, rw, err, req)
 		}
 		return
 	}
 
 	if err, ok := ret.(error); ok {
-		i.writeErr(ctx, rw, err, req)
+		i.writeErrResp(ctx, rw, err, req)
 	} else {
 		i.writeResp(ctx, rw, ret, req)
 	}
 }
 
 func (i *incomingTransport) writeResp(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.Request) {
-	if err := courierhttp.Wrap(ret).(courierhttp.ResponseWriter).WriteResponse(req.Context(), rw, req); err != nil {
-		i.writeErr(ctx, rw, err, req)
+	if err := courierhttp.Wrap(ret).(courierhttp.ResponseWriter).WriteResponse(ctx, rw, req); err != nil {
+		logr.FromContext(ctx).Error(err)
+	}
+}
+
+func (i *incomingTransport) writeErrResp(ctx context.Context, rw http.ResponseWriter, err error, req courierhttp.Request) {
+	if err := courierhttp.WrapError(err).(courierhttp.ResponseWriter).WriteResponse(ctx, rw, req); err != nil {
+		logr.FromContext(ctx).Error(err)
 	}
 }

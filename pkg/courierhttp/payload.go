@@ -2,6 +2,7 @@ package courierhttp
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -103,6 +104,25 @@ func Wrap[T any](v T, opts ...ResponseSettingFunc) Response[T] {
 	return resp
 }
 
+func WrapError(err error, opts ...ResponseSettingFunc) ErrorResponse {
+	errResp := &errorResponse{}
+	errResp.response.v = err
+	for i := range opts {
+		opts[i](&errResp.response)
+	}
+	return errResp
+}
+
+type ErrorResponse interface {
+	Error() string
+	Unwrap() error
+
+	StatusCodeDescriber
+	ContentTypeDescriber
+	CookiesDescriber
+	courier.MetadataCarrier
+}
+
 type Response[T any] interface {
 	Underlying() T
 	StatusCodeDescriber
@@ -111,8 +131,49 @@ type Response[T any] interface {
 	courier.MetadataCarrier
 }
 
+type ErrResponseWriter interface {
+	WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)
+}
+
+type contextErrResponseWriter struct{}
+
+func ContextWithErrResponseWriter(ctx context.Context, errResponseWriter ErrResponseWriter) context.Context {
+	return context.WithValue(ctx, contextErrResponseWriter{}, errResponseWriter)
+}
+
+func ErrResponseWriterFromContext(ctx context.Context) ErrResponseWriter {
+	if writeErrResp, ok := ctx.Value(contextErrResponseWriter{}).(ErrResponseWriter); ok {
+		return writeErrResp
+	}
+	return nil
+}
+
+func ErrResponseWriterFunc(fn func(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)) ErrResponseWriter {
+	return &errResponseWriterFunc{fn: fn}
+}
+
+func (e *errResponseWriterFunc) WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr) {
+	e.fn(ctx, rw, req, statusErr)
+}
+
+type errResponseWriterFunc struct {
+	fn func(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)
+}
+
 type ResponseWriter interface {
 	WriteResponse(ctx context.Context, rw http.ResponseWriter, req Request) error
+}
+
+type errorResponse struct {
+	response[error]
+}
+
+func (e errorResponse) Error() string {
+	return e.Underlying().Error()
+}
+
+func (e errorResponse) Unwrap() error {
+	return e.Underlying()
 }
 
 type response[T any] struct {
@@ -179,7 +240,21 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 	resp := r.v
 
 	if err, ok := resp.(error); ok {
-		resp = statuserror.FromErr(err)
+		statusErr, ok := statuserror.IsStatusErr(err)
+		if !ok {
+			if errors.Is(err, context.Canceled) {
+				// https://httpstatuses.com/499
+				statusErr = statuserror.Wrap(err, 499, "ContextCanceled")
+			} else {
+				statusErr = statuserror.Wrap(err, http.StatusInternalServerError, "InternalServerError")
+			}
+		}
+		resp = statusErr.AppendSource(req.ServiceName())
+
+		if errResponseWriter := ErrResponseWriterFromContext(ctx); errResponseWriter != nil {
+			errResponseWriter.WriteErr(ctx, rw, req, statusErr)
+			return nil
+		}
 	}
 
 	if statusCodeDescriber, ok := resp.(StatusCodeDescriber); ok {
