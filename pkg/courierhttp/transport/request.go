@@ -3,16 +3,14 @@ package transport
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
-
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 )
 
 func FromHttpRequest(r *http.Request, service string) courierhttp.Request {
@@ -96,18 +94,15 @@ func (info *requestInfo) Param(name string) string {
 func (info *requestInfo) QueryValues(name string) []string {
 	if info.query == nil {
 		info.query = info.request.URL.Query()
+		// get query in form-urlencoded body
+		if len(info.query) == 0 && strings.HasPrefix(info.request.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
+			data, err := io.ReadAll(info.request.Body)
+			if err == nil {
+				_ = info.request.Body.Close()
 
-		if info.request.Method == http.MethodGet && len(info.query) == 0 && info.request.ContentLength > 0 {
-			// get query in form-urlencoded body
-			if strings.HasPrefix(info.request.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
-				data, err := ioutil.ReadAll(info.request.Body)
-				if err == nil {
-					info.request.Body.Close()
-
-					query, e := url.ParseQuery(string(data))
-					if e == nil {
-						info.query = query
-					}
+				query, e := url.ParseQuery(string(data))
+				if e == nil {
+					info.query = query
 				}
 			}
 		}
