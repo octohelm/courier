@@ -15,6 +15,7 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/openapi"
+	openapispec "github.com/octohelm/courier/pkg/openapi"
 )
 
 type RouteHandler = request.RouteHandler
@@ -49,7 +50,7 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 
 	routes := cr.Routes()
 
-	oas = openapi.DefaultOpenAPIBuildFunc(cr)
+	oas := openapi.DefaultOpenAPIBuildFunc(cr)
 
 	handlers := make([]request.RouteHandler, 0, len(routes))
 
@@ -113,6 +114,7 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		for _, m := range methods {
 			r.Handle(m, h.Path(), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 				ctx := req.Context()
+				ctx = openapispec.InjectContext(ctx, oas)
 				ctx = courierhttp.ContextWithOperationInfo(ctx, info)
 				ctx = handler.ContextWithParamGetter(ctx, params)
 				hh.ServeHTTP(rw, req.WithContext(ctx))

@@ -25,8 +25,15 @@ import (
 
 type OpenAPIBuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
 
+var cached = sync.Map{}
+
 var DefaultOpenAPIBuildFunc = func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
-	return FromRouter(r, fns...)
+	if v, ok := cached.Load(r); ok {
+		return v.(*openapi.OpenAPI)
+	}
+	o := FromRouter(r, fns...)
+	cached.Store(r, o)
+	return o
 }
 
 type CanResponseStatusCode interface {
