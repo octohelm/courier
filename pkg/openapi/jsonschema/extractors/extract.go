@@ -8,7 +8,7 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
-func SchemaFrom(ctx context.Context, v any, def bool) *jsonschema.Schema {
+func SchemaFrom(ctx context.Context, v any, def bool) jsonschema.Schema {
 	if v == nil {
 		return nil
 	}

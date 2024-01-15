@@ -1,8 +1,9 @@
 package testingutil
 
 import (
-	"encoding/json"
 	"os"
+
+	"github.com/go-json-experiment/json"
 )
 
 func MustJSONRaw(v interface{}) string {
@@ -14,8 +15,6 @@ func MustJSONRaw(v interface{}) string {
 }
 
 func PrintJSON(v interface{}) {
-	e := json.NewEncoder(os.Stdout)
-	e.SetIndent("", "  ")
-
-	_ = e.Encode(v)
+	// FIXME set option until https://github.com/go-json-experiment/json/pull/20
+	_ = json.MarshalWrite(os.Stdout, v)
 }

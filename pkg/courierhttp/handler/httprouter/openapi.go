@@ -2,9 +2,9 @@ package httprouter
 
 import (
 	"context"
+	"github.com/octohelm/courier/pkg/openapi"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/openapi"
 )
 
 type OpenAPI struct {
@@ -12,7 +12,9 @@ type OpenAPI struct {
 }
 
 func (o *OpenAPI) Output(ctx context.Context) (any, error) {
-	return openapi.FromContext(ctx), nil
+	return &openapi.Payload{
+		OpenAPI: *openapi.FromContext(ctx),
+	}, nil
 }
 
 func (o *OpenAPI) ResponseContentType() string {

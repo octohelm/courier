@@ -3,6 +3,8 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+	"github.com/octohelm/courier/pkg/ptr"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -14,7 +16,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/openapi"
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
 	"github.com/octohelm/courier/pkg/statuserror"
 	transformer "github.com/octohelm/courier/pkg/transformer/core"
@@ -139,7 +140,10 @@ func (b *scanner) scan(r courier.Route) error {
 
 	op.Summary = rh.Summary()
 	op.Description = rh.Description()
-	op.Deprecated = rh.Deprecated()
+
+	if rh.Deprecated() {
+		op.Deprecated = ptr.Ptr(true)
+	}
 
 	ctx := context.Background()
 
@@ -157,14 +161,14 @@ func (b *scanner) scan(r courier.Route) error {
 		}
 	}
 
-	b.o.AddOperation(openapi.HttpMethod(strings.ToLower(rh.Method())), b.patchPath(rh.Path(), op), op)
+	b.o.AddOperation(rh.Method(), b.patchPath(rh.Path(), op), op)
 
 	return nil
 }
 
 var reHttpRouterPath = regexp.MustCompile("/[*:]([^/]+)")
 
-func (b *scanner) patchPath(openapiPath string, operation *openapi.Operation) string {
+func (b *scanner) patchPath(openapiPath string, operation *openapi.OperationObject) string {
 	return reHttpRouterPath.ReplaceAllStringFunc(openapiPath, func(str string) string {
 		name := reHttpRouterPath.FindAllStringSubmatch(str, -1)[0][1]
 
@@ -188,30 +192,30 @@ func (b *scanner) RefString(ref string) string {
 	return fmt.Sprintf("#/components/schemas/%s", b.opt.naming(ref))
 }
 
-func (b *scanner) RegisterSchema(ref string, s *jsonschema.Schema) {
-	if b.o.Components.Schemas == nil {
-		b.o.Components.Schemas = map[string]*openapi.Schema{}
+func (b *scanner) RegisterSchema(ref string, s jsonschema.Schema) {
+	if b.o.ComponentsObject.Schemas == nil {
+		b.o.ComponentsObject.Schemas = map[string]jsonschema.Schema{}
 	}
 
 	n := strings.TrimLeft(ref, "#/components/schemas/")
 
-	if _, ok := b.o.Components.Schemas[n]; !ok {
-		b.o.Components.Schemas[n] = s
+	if _, ok := b.o.ComponentsObject.Schemas[n]; !ok {
+		b.o.ComponentsObject.Schemas[n] = s
 	} else {
 		fmt.Println(n, "Registered.")
 	}
 }
 
-func (b *scanner) SchemaFromType(ctx context.Context, v any, def bool) *jsonschema.Schema {
-	return extractors.SchemaFrom(extractors.ContextWithSchemaRegister(ctx, b), v, def)
+func (b *scanner) SchemaFromType(ctx context.Context, v any, def bool) jsonschema.Schema {
+	return extractors.SchemaFrom(extractors.SchemaRegisterContext.Inject(ctx, b), v, def)
 }
 
-func (b *scanner) scanResponse(ctx context.Context, op *openapi.Operation, o *courier.OperatorFactory) {
+func (b *scanner) scanResponse(ctx context.Context, op *openapi.OperationObject, o *courier.OperatorFactory) {
 	method := ""
 
 	statusCode := http.StatusNoContent
 	contentType := "application/json"
-	resp := &openapi.Response{}
+	resp := &openapi.ResponseObject{}
 
 	if can, ok := o.Operator.(courierhttp.MethodDescriber); ok {
 		method = can.Method()
@@ -237,12 +241,12 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.Operation, o *co
 
 	if can, ok := o.Operator.(CanResponseContent); ok {
 		if rt := can.ResponseContent(); rt != nil {
-			mt := &openapi.MediaType{}
+			mt := &openapi.MediaTypeObject{}
 			mt.Schema = b.SchemaFromType(ctx, rt, false)
 			resp.AddContent(contentType, mt)
 		}
 	} else {
-		resp.AddContent(contentType, &openapi.MediaType{})
+		resp.AddContent(contentType, &openapi.MediaTypeObject{})
 	}
 
 	op.AddResponse(statusCode, resp)
@@ -258,8 +262,8 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.Operation, o *co
 		}
 
 		for statusCode := range codes {
-			errResp := &openapi.Response{}
-			mt := &openapi.MediaType{}
+			errResp := &openapi.ResponseObject{}
+			mt := &openapi.MediaTypeObject{}
 			mt.Schema = b.SchemaFromType(
 				ctx,
 				returnErrors[0],
@@ -267,7 +271,7 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.Operation, o *co
 			)
 
 			errResp.AddContent("application/json", mt)
-			errResp.AddExtension("x-status-returnErrors", codes[statusCode])
+			errResp.AddExtension("x-status-return-errors", codes[statusCode])
 
 			op.AddResponse(statusCode, errResp)
 		}
@@ -279,7 +283,7 @@ type CanRuntimeDoc interface {
 	RuntimeDoc(names ...string) ([]string, bool)
 }
 
-func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Operation, t reflect.Type) {
+func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.OperationObject, t reflect.Type) {
 	var docer CanRuntimeDoc
 	if d, ok := reflect.New(t).Interface().(CanRuntimeDoc); ok {
 		docer = d
@@ -307,34 +311,43 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 		case "body":
 			reqBody := op.RequestBody
 			if op.RequestBody == nil {
-				reqBody = openapi.NewRequestBody("", true)
+				reqBody = &openapi.RequestBodyObject{
+					Required: true,
+				}
 				op.SetRequestBody(reqBody)
 			}
 
-			s := schema
 			if docer != nil {
-				if lines, ok := docer.RuntimeDoc(field.Name()); ok {
-					ds := &jsonschema.Schema{
-						SchemaBasic: jsonschema.SchemaBasic{
-							Description: strings.Join(lines, "\n"),
-						},
-					}
-					if schema == nil {
-						s = ds
-					} else {
-						s = jsonschema.AllOf(schema, ds)
+				if schema != nil {
+					if lines, ok := docer.RuntimeDoc(field.Name()); ok {
+						schema.GetMetadata().Description = strings.Join(lines, "\n")
 					}
 				}
 			}
-			reqBody.AddContent(tf.Names()[0], openapi.NewMediaTypeWithSchema(s))
+
+			reqBody.AddContent(tf.Names()[0], &openapi.MediaTypeObject{
+				Schema: schema,
+			})
 		case "query":
-			op.AddParameter(openapi.QueryParameter(fieldDisplayName, schema, !omitempty))
+			op.AddParameter(fieldDisplayName, openapi.InQuery, &openapi.Parameter{
+				Schema:   schema,
+				Required: ptr.Ptr(!omitempty),
+			})
 		case "cookie":
-			op.AddParameter(openapi.CookieParameter(fieldDisplayName, schema, !omitempty))
+			op.AddParameter(fieldDisplayName, openapi.InCookie, &openapi.Parameter{
+				Schema:   schema,
+				Required: ptr.Ptr(!omitempty),
+			})
 		case "header":
-			op.AddParameter(openapi.HeaderParameter(fieldDisplayName, schema, !omitempty))
+			op.AddParameter(fieldDisplayName, openapi.InHeader, &openapi.Parameter{
+				Schema:   schema,
+				Required: ptr.Ptr(!omitempty),
+			})
 		case "path":
-			op.AddParameter(openapi.PathParameter(fieldDisplayName, schema))
+			op.AddParameter(fieldDisplayName, openapi.InPath, &openapi.Parameter{
+				Schema:   schema,
+				Required: ptr.Ptr(true),
+			})
 		}
 
 		return true

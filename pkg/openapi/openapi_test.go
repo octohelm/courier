@@ -1,30 +1,19 @@
 package openapi
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/octohelm/courier/internal/testingutil"
 	"net/http"
+	"testing"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
-func ExampleOpenAPI() {
+func TestOpenAPI(t *testing.T) {
 	openapi := NewOpenAPI()
 
 	openapi.Version = "1.0.0"
 	openapi.Title = "Swagger Petstore"
-	openapi.License = &License{
-		LicenseObject: LicenseObject{
-			Name: "MIT",
-		},
-	}
-
-	openapi.AddTag(nil)
-	openapi.AddTag(NewTag("pets"))
-
-	openapi.AddSecurityScheme("token", NewHTTPSecurityScheme("bearer", "JWT"))
-
-	openapi.AddServer(NewServer("http://petstore.swagger.io/v1"))
+	openapi.License = &License{Name: "MIT"}
 
 	openapi.AddSchema("Pet", jsonschema.ObjectOf(jsonschema.Props{
 		"id":   jsonschema.Long(),
@@ -32,7 +21,7 @@ func ExampleOpenAPI() {
 		"tag":  jsonschema.String(),
 	}, "id", "name"))
 
-	openapi.AddSchema("Pets", jsonschema.ItemsOf(openapi.RefSchema("Pet")))
+	openapi.AddSchema("Pets", jsonschema.ArrayOf(openapi.RefSchema("Pet")))
 
 	openapi.AddSchema("Error", jsonschema.ObjectOf(jsonschema.Props{
 		"code":    jsonschema.Integer(),
@@ -41,33 +30,44 @@ func ExampleOpenAPI() {
 
 	{
 		op := NewOperation("listPets")
+
 		op.Summary = "List all pets"
 		op.Tags = []string{"pets"}
 
-		parameterLimit := QueryParameter("limit", jsonschema.Integer(), false).
-			WithDesc("How many items to return at one time (max 100)")
-
-		op.AddParameter(parameterLimit)
+		paramLimit := &Parameter{}
+		paramLimit.Schema = jsonschema.Integer()
+		paramLimit.Description = "How many items to return at one time (max 100)"
+		op.AddParameter("limit", InQuery, paramLimit)
 
 		{
-			resp := NewResponse("An paged array of pets")
+			resp := &ResponseObject{}
+			resp.Description = "An paged array of pets"
 
 			s := jsonschema.String()
 			s.Description = "A link to the next page of responses"
-			resp.AddHeader("x-next", NewHeaderWithSchema(s))
-			resp.AddContent("application/json", NewMediaTypeWithSchema(openapi.RefSchema("Pets")))
+
+			resp.AddHeader("x-next", &Parameter{
+				Schema: s,
+			})
+
+			resp.AddContent("application/json", &MediaTypeObject{
+				Schema: openapi.RefSchema("Pets"),
+			})
 
 			op.AddResponse(http.StatusOK, resp)
 		}
 
 		{
-			resp := NewResponse("unexpected error")
-			resp.AddContent("application/json", NewMediaTypeWithSchema(openapi.RefSchema("Error")))
+			resp := &ResponseObject{}
+
+			resp.AddContent("application/json", &MediaTypeObject{
+				Schema: openapi.RefSchema("Error"),
+			})
 
 			op.SetDefaultResponse(resp)
 		}
 
-		openapi.AddOperation(GET, "/pets", op)
+		openapi.AddOperation(http.MethodGet, "/pets", op)
 	}
 
 	{
@@ -76,22 +76,25 @@ func ExampleOpenAPI() {
 		op.Tags = []string{"pets"}
 
 		{
-			resp := NewResponse("Null response")
-
-			op.AddResponse(http.StatusNoContent, resp)
+			op.AddResponse(http.StatusNoContent, &ResponseObject{
+				Description: "Null response",
+			})
 		}
 
 		{
-			resp := NewResponse("unexpected error")
-			resp.AddContent("application/json", NewMediaTypeWithSchema(openapi.RefSchema("Error")))
+
+			resp := &ResponseObject{}
+			resp.Description = "unexpected error"
+
+			resp.AddContent("application/json", &MediaTypeObject{
+				Schema: openapi.RefSchema("Error"),
+			})
 
 			op.SetDefaultResponse(resp)
 		}
 
-		openapi.AddOperation(POST, "/pets", op)
+		openapi.AddOperation(http.MethodPost, "/pets", op)
 	}
 
-	data, _ := json.MarshalIndent(openapi, "\t", "\t")
-	fmt.Println(string(data))
-	// Output
+	testingutil.PrintJSON(openapi)
 }

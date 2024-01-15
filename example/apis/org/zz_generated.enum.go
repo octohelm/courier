@@ -43,8 +43,9 @@ func ParseTypeFromString(s string) (Type, error) {
 	case "COMPANY":
 		return TYPE__COMPANY, nil
 
+	default:
+		return TYPE_UNKNOWN, InvalidType
 	}
-	return TYPE_UNKNOWN, InvalidType
 }
 
 func (v Type) String() string {
@@ -54,8 +55,9 @@ func (v Type) String() string {
 	case TYPE__COMPANY:
 		return "COMPANY"
 
+	default:
+		return "UNKNOWN"
 	}
-	return "UNKNOWN"
 }
 
 func ParseTypeLabelString(label string) (Type, error) {
@@ -65,8 +67,9 @@ func ParseTypeLabelString(label string) (Type, error) {
 	case "企事业单位":
 		return TYPE__COMPANY, nil
 
+	default:
+		return TYPE_UNKNOWN, InvalidType
 	}
-	return TYPE_UNKNOWN, InvalidType
 }
 
 func (v Type) Label() string {
@@ -76,8 +79,9 @@ func (v Type) Label() string {
 	case TYPE__COMPANY:
 		return "企事业单位"
 
+	default:
+		return "UNKNOWN"
 	}
-	return "UNKNOWN"
 }
 
 func (v Type) Value() (database_sql_driver.Value, error) {

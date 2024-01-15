@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -45,7 +46,9 @@ func (es *ErrorSet) Flatten() *ErrorSet {
 
 	walk = func(es *ErrorSet, parents ...interface{}) {
 		es.Each(func(fieldErr *FieldError) {
-			if subSet, ok := fieldErr.Error.(*ErrorSet); ok {
+			var subSet *ErrorSet
+
+			if errors.As(fieldErr.Error, &subSet) {
 				walk(subSet, append(parents, fieldErr.Path...)...)
 			} else {
 				flattened.AddErr(fieldErr.Error, append(parents, fieldErr.Path...)...)

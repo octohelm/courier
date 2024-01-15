@@ -11,118 +11,141 @@ import (
 	"github.com/octohelm/courier/pkg/validator"
 )
 
-func BindSchemaValidationByValidateBytes(s *jsonschema.Schema, typ reflect.Type, validateBytes []byte) error {
+func PatchSchemaValidationByValidateBytes(s jsonschema.Schema, typ reflect.Type, validateBytes []byte) (jsonschema.Schema, error) {
 	fieldValidator, err := validator.Compile(context.Background(), validateBytes, types.FromRType(typ), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if fieldValidator != nil {
-		BindSchemaValidationByValidator(s, fieldValidator)
-		s.AddExtension(jsonschema.XTagValidate, string(validateBytes))
+	if fieldValidator != nil && s != nil {
+		s = PatchSchemaValidationByValidator(s, fieldValidator)
+		s.GetMetadata().AddExtension(jsonschema.XTagValidate, string(validateBytes))
 	}
-	return nil
+	return s, nil
 }
 
-func BindSchemaValidationByValidator(s *jsonschema.Schema, v validator.Validator) {
+func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator) jsonschema.Schema {
 	if validatorLoader, ok := v.(*validator.ValidatorLoader); ok {
 		v = validatorLoader.Validator
-	}
-
-	if s == nil {
-		return
 	}
 
 	switch vt := v.(type) {
 	case *validator.UintValidator:
 		if len(vt.Enums) > 0 {
-			for _, v := range vt.Enums {
-				s.Enum = append(s.Enum, v)
+			enum := &jsonschema.EnumType{
+				Enum: make([]any, len(vt.Enums)),
 			}
-			return
+			for i, v := range vt.Enums {
+				enum.Enum[i] = v
+			}
+			return enum
 		}
 
-		if vt.ExclusiveMinimum || vt.ExclusiveMaximum {
-			if vt.ExclusiveMinimum {
-				s.ExclusiveMinimum = ptr.Ptr(float64(vt.Minimum))
+		switch x := s.(type) {
+		case *jsonschema.NumberType:
+			if vt.ExclusiveMinimum || vt.ExclusiveMaximum {
+				if vt.ExclusiveMinimum {
+					x.ExclusiveMinimum = ptr.Ptr(float64(vt.Minimum))
+				}
+				if vt.ExclusiveMaximum {
+					x.ExclusiveMaximum = ptr.Ptr(float64(vt.Maximum))
+				}
+			} else {
+				x.Minimum = ptr.Ptr(float64(vt.Minimum))
+				x.Maximum = ptr.Ptr(float64(vt.Maximum))
 			}
-			if vt.ExclusiveMaximum {
-				s.ExclusiveMaximum = ptr.Ptr(float64(vt.Maximum))
-			}
-		} else {
-			s.Minimum = ptr.Ptr(float64(vt.Minimum))
-			s.Maximum = ptr.Ptr(float64(vt.Maximum))
-		}
 
-		if vt.MultipleOf > 0 {
-			s.MultipleOf = ptr.Ptr(float64(vt.MultipleOf))
+			if vt.MultipleOf > 0 {
+				x.MultipleOf = ptr.Ptr(float64(vt.MultipleOf))
+			}
+			return x
 		}
 	case *validator.IntValidator:
 		if len(vt.Enums) > 0 {
-			for _, v := range vt.Enums {
-				s.Enum = append(s.Enum, v)
+			enum := &jsonschema.EnumType{
+				Enum: make([]any, len(vt.Enums)),
 			}
-			return
+			for i, v := range vt.Enums {
+				enum.Enum[i] = v
+			}
+			return enum
 		}
 
-		if vt.Minimum != nil {
-			if vt.ExclusiveMinimum {
-				s.ExclusiveMinimum = ptr.Ptr(float64(*vt.Minimum))
-			} else {
-				s.Minimum = ptr.Ptr(float64(*vt.Minimum))
+		switch x := s.(type) {
+		case *jsonschema.NumberType:
+			if vt.Minimum != nil {
+				if vt.ExclusiveMinimum {
+					x.ExclusiveMinimum = ptr.Ptr(float64(*vt.Minimum))
+				} else {
+					x.Minimum = ptr.Ptr(float64(*vt.Minimum))
+				}
 			}
-		}
 
-		if vt.Maximum != nil {
-			if vt.ExclusiveMaximum {
-				s.ExclusiveMaximum = ptr.Ptr(float64(*vt.Maximum))
-			} else {
-				s.Maximum = ptr.Ptr(float64(*vt.Maximum))
+			if vt.Maximum != nil {
+				if vt.ExclusiveMaximum {
+					x.ExclusiveMaximum = ptr.Ptr(float64(*vt.Maximum))
+				} else {
+					x.Maximum = ptr.Ptr(float64(*vt.Maximum))
+				}
 			}
-		}
 
-		if vt.MultipleOf > 0 {
-			s.MultipleOf = ptr.Ptr(float64(vt.MultipleOf))
+			if vt.MultipleOf > 0 {
+				x.MultipleOf = ptr.Ptr(float64(vt.MultipleOf))
+			}
+
+			return x
 		}
 	case *validator.FloatValidator:
 		if len(vt.Enums) > 0 {
-			for _, v := range vt.Enums {
-				s.Enum = append(s.Enum, v)
+			enum := &jsonschema.EnumType{
+				Enum: make([]any, len(vt.Enums)),
 			}
-			return
+			for i, v := range vt.Enums {
+				enum.Enum[i] = v
+			}
+			return enum
 		}
 
-		if vt.Minimum != nil {
-			if vt.ExclusiveMinimum {
-				s.ExclusiveMinimum = ptr.Ptr(*vt.Minimum)
-			} else {
-				s.Minimum = ptr.Ptr(*vt.Minimum)
+		switch x := s.(type) {
+		case *jsonschema.NumberType:
+			if vt.Minimum != nil {
+				if vt.ExclusiveMinimum {
+					x.ExclusiveMinimum = ptr.Ptr(float64(*vt.Minimum))
+				} else {
+					x.Minimum = ptr.Ptr(float64(*vt.Minimum))
+				}
 			}
-		}
 
-		if vt.Maximum != nil {
-			if vt.ExclusiveMaximum {
-				s.ExclusiveMaximum = ptr.Ptr(*vt.Maximum)
-			} else {
-				s.Maximum = ptr.Ptr(*vt.Maximum)
+			if vt.Maximum != nil {
+				if vt.ExclusiveMaximum {
+					x.ExclusiveMaximum = ptr.Ptr(float64(*vt.Maximum))
+				} else {
+					x.Maximum = ptr.Ptr(float64(*vt.Maximum))
+				}
 			}
-		}
 
-		if vt.MultipleOf > 0 {
-			s.MultipleOf = ptr.Ptr(vt.MultipleOf)
+			if vt.MultipleOf > 0 {
+				x.MultipleOf = ptr.Ptr(float64(vt.MultipleOf))
+			}
+
+			return x
 		}
 	case *validator.StrfmtValidator:
-		s.Type = []string{"string"} // force to type string for TextMarshaler
-		s.Format = vt.Names()[0]
-	case *validator.StringValidator:
-		s.Type = []string{"string"} // force to type string for TextMarshaler
-
-		if len(vt.Enums) > 0 {
-			for _, v := range vt.Enums {
-				s.Enum = append(s.Enum, v)
-			}
-			return
+		// force to type string for TextMarshaler
+		return &jsonschema.StringType{
+			Type:   "string",
+			Format: vt.Names()[0],
 		}
-
+	case *validator.StringValidator:
+		if len(vt.Enums) > 0 {
+			enum := &jsonschema.EnumType{
+				Enum: make([]any, len(vt.Enums)),
+			}
+			for i, v := range vt.Enums {
+				enum.Enum[i] = v
+			}
+			return enum
+		}
+		s := jsonschema.String()
 		s.MinLength = ptr.Ptr(vt.MinLength)
 		if vt.MaxLength != nil {
 			s.MaxLength = ptr.Ptr(*vt.MaxLength)
@@ -130,26 +153,35 @@ func BindSchemaValidationByValidator(s *jsonschema.Schema, v validator.Validator
 		if vt.Pattern != "" {
 			s.Pattern = vt.Pattern
 		}
+		return s
 	case *validator.SliceValidator:
-		s.MinItems = ptr.Ptr(vt.MinItems)
-		if vt.MaxItems != nil {
-			s.MaxItems = ptr.Ptr(*vt.MaxItems)
-		}
+		switch x := s.(type) {
+		case *jsonschema.ArrayType:
 
-		if vt.ElemValidator != nil {
-			if s.Items == nil {
-				s.Items = &jsonschema.SchemaOrArray{}
+			x.MinItems = ptr.Ptr(vt.MinItems)
+			if vt.MaxItems != nil {
+				x.MaxItems = ptr.Ptr(*vt.MaxItems)
 			}
 
-			BindSchemaValidationByValidator(s.Items.Schema, vt.ElemValidator)
+			if vt.ElemValidator != nil {
+				x.Items = PatchSchemaValidationByValidator(x.Items, vt.ElemValidator)
+			}
+
+			return x
 		}
 	case *validator.MapValidator:
-		s.MinProperties = ptr.Ptr(vt.MinProperties)
-		if vt.MaxProperties != nil {
-			s.MaxProperties = ptr.Ptr(*vt.MaxProperties)
-		}
-		if vt.ElemValidator != nil {
-			BindSchemaValidationByValidator(s.AdditionalProperties.Schema, vt.ElemValidator)
+		switch x := s.(type) {
+		case *jsonschema.ObjectType:
+			x.MinProperties = ptr.Ptr(vt.MinProperties)
+			if vt.MaxProperties != nil {
+				x.MaxProperties = ptr.Ptr(*vt.MaxProperties)
+			}
+			if vt.ElemValidator != nil {
+				x.AdditionalProperties = PatchSchemaValidationByValidator(x.AdditionalProperties, vt.ElemValidator)
+			}
+			return x
 		}
 	}
+
+	return s
 }

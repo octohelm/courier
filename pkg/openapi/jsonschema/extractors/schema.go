@@ -9,42 +9,18 @@ import (
 	"strconv"
 	"strings"
 
+	contextx "github.com/octohelm/x/context"
 	reflectx "github.com/octohelm/x/reflect"
+	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/pkg/errors"
 )
-
-type EnumValues interface {
-	EnumValues() []any
-}
-
-type UnionType interface {
-	OneOf() []any
-}
-
-type TaggedUnionType interface {
-	Discriminator() string
-	Mapping() map[string]any
-}
 
 type RuntimeDocer interface {
 	RuntimeDoc(names ...string) ([]string, bool)
 }
 
-type contextCanRuntimeDoc struct {
-}
-
-func ContextWithRuntimeDocer(ctx context.Context, sr RuntimeDocer) context.Context {
-	return context.WithValue(ctx, contextCanRuntimeDoc{}, sr)
-}
-
-func RuntimeDocerFromContext(ctx context.Context) RuntimeDocer {
-	if v, ok := ctx.Value(contextCanRuntimeDoc{}).(RuntimeDocer); ok {
-		return v
-	}
-	return nil
-}
+var RuntimeDocerContext = contextx.New[RuntimeDocer]()
 
 type TypeName string
 
@@ -73,46 +49,63 @@ func (o Opt) WithEnumInDoc(enumInDoc []string) Opt {
 	return o
 }
 
-func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema.Schema) {
-	sr := SchemaRegisterFromContext(ctx)
+func must[T any](ret T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return ret
+}
+
+func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.Schema) {
+	sr := SchemaRegisterContext.From(ctx)
 
 	// named type
 	if pkgPath := t.PkgPath(); pkgPath != "" {
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
+
 		ref := sr.RefString(typeRef)
 
 		if ok := sr.Record(typeRef); ok {
-			return jsonschema.RefSchemaByRefer(TypeName(ref))
+			return &jsonschema.RefType{Ref: must(jsonschema.ParseURIReferenceString(ref))}
 		} else {
 			defer func() {
 				if n := len(opt.EnumInDoc); n > 0 {
-					s.Enum = make([]any, n)
-					for i := range s.Enum {
-						s.Enum[i] = opt.EnumInDoc[i]
+					e := &jsonschema.EnumType{}
+
+					e.Enum = make([]any, n)
+					for i := range e.Enum {
+						e.Enum[i] = opt.EnumInDoc[i]
 					}
+
+					if s != nil {
+						s.GetMetadata().DeepCopyInto(e.GetMetadata())
+					}
+
+					s = e
 				}
 
 				sr.RegisterSchema(ref, s)
 
 				if !opt.Decl {
-					s = jsonschema.RefSchemaByRefer(TypeName(ref))
+					s = &jsonschema.RefType{Ref: must(jsonschema.ParseURIReferenceString(ref))}
 				}
 			}()
 		}
 
 		inst := reflect.New(t).Interface()
 
-		if canDoc, ok := inst.(CanSwaggerDoc); ok {
+		if canDoc, ok := inst.(jsonschema.CanSwaggerDoc); ok {
 			opt = opt.WithDoc(canDoc.SwaggerDoc())
 		}
 
-		if canEnumValues, ok := inst.(EnumValues); ok {
+		if canEnumValues, ok := inst.(jsonschema.GoEnumValues); ok {
 			defer func() {
 				values := canEnumValues.EnumValues()
 				labels := make([]string, 0)
+				e := &jsonschema.EnumType{}
 
 				for i := range values {
-					s.Enum = append(s.Enum, values[i])
+					e.Enum = append(e.Enum, values[i])
 
 					if canLabel, ok := values[i].(interface{ Label() string }); ok {
 						labels = append(labels, canLabel.Label())
@@ -120,33 +113,39 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 				}
 
 				if len(labels) > 0 {
-					s.AddExtension(jsonschema.XEnumLabels, labels)
+					e.AddExtension(jsonschema.XEnumLabels, labels)
 				}
+
+				if s != nil {
+					s.GetMetadata().DeepCopyInto(e.GetMetadata())
+				}
+
+				s = e
 			}()
 		}
 
 		if docer, ok := inst.(RuntimeDocer); ok {
-			ctx = ContextWithRuntimeDocer(ctx, docer)
+			ctx = RuntimeDocerContext.Inject(ctx, docer)
 
 			defer func() {
 				if opt.Decl {
 					if lines, ok := docer.RuntimeDoc(); ok {
-						s.Description = strings.Join(lines, "\n")
+						s.GetMetadata().Description = strings.Join(lines, "\n")
 					}
 				}
 			}()
 		}
 
-		if g, ok := inst.(UnionType); ok {
+		if g, ok := inst.(jsonschema.GoUnionType); ok {
 			types := g.OneOf()
-			schemas := make([]*jsonschema.Schema, len(types))
+			schemas := make([]jsonschema.Schema, len(types))
 			for i := range schemas {
 				schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), opt.WithDecl(false))
 			}
 			return jsonschema.OneOf(schemas...)
 		}
 
-		if g, ok := inst.(TaggedUnionType); ok {
+		if g, ok := inst.(jsonschema.GoTaggedUnionType); ok {
 			types := g.Mapping()
 
 			tags := make([]string, 0, len(types))
@@ -155,32 +154,33 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 			}
 			sort.Strings(tags)
 
-			schemas := make([]*jsonschema.Schema, 0, len(types))
+			schemas := make([]jsonschema.Schema, 0, len(types))
+			mapping := map[string]jsonschema.Schema{}
+
 			for _, tag := range tags {
-				schemas = append(schemas, SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[tag])), opt.WithDecl(true)))
+				s := SchemaFromType(
+					ctx,
+					reflectx.Deref(reflect.TypeOf(types[tag])),
+					opt.WithDecl(false),
+				)
+
+				schemas = append(schemas, s)
+				mapping[tag] = s
 			}
+
 			s := jsonschema.OneOf(schemas...)
 
-			s.Type = []string{jsonschema.TypeObject}
 			s.Discriminator = &jsonschema.Discriminator{
 				PropertyName: g.Discriminator(),
-			}
-			s.Required = []string{
-				s.Discriminator.PropertyName,
+				Mapping:      mapping,
 			}
 
 			return s
 		}
 
-		if g, ok := inst.(OpenAPISchemaTypeGetter); ok {
-			s := &jsonschema.Schema{}
-
-			s.Type = g.OpenAPISchemaType()
-			s.Format = ""
-
-			if g, ok := inst.(OpenAPISchemaFormatGetter); ok {
-				s.Format = g.OpenAPISchemaFormat()
-			}
+		if g, ok := inst.(jsonschema.OpenAPISchemaFormatGetter); ok {
+			s := jsonschema.String()
+			s.Format = g.OpenAPISchemaFormat()
 
 			switch s.Format {
 			case "int-or-string":
@@ -193,12 +193,15 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 		defer func() {
 			if s != nil {
 				if !(strings.Contains(typeRef, "/internal/") || strings.Contains(typeRef, "/internal.")) {
-					s.AddExtension(jsonschema.XGoVendorType, typeRef)
+					s.GetMetadata().AddExtension(jsonschema.XGoVendorType, typeRef)
 				}
 			}
 		}()
 
 		for i := 0; i < t.NumMethod(); i++ {
+			if t.Method(i).Name == "Bytes" {
+				return jsonschema.Binary()
+			}
 			if t.Method(i).Name == "MarshalText" {
 				return jsonschema.String()
 			}
@@ -226,27 +229,39 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 
 		s := SchemaFromType(ctx, elem, opt.WithDecl(false))
 
-		patch := func(s *jsonschema.Schema) *jsonschema.Schema {
-			s.Nullable = true
-			s.AddExtension(jsonschema.XGoStarLevel, count)
+		patch := func(s jsonschema.Schema) jsonschema.Schema {
+			s.GetMetadata().AddExtension(jsonschema.XGoStarLevel, count)
 			return s
 		}
 
-		if s.Refer != nil {
-			return jsonschema.AllOf(s, patch(&jsonschema.Schema{}))
-		}
 		return patch(s)
 	case reflect.Interface:
-		return &jsonschema.Schema{}
+		return jsonschema.Any()
+	case reflect.String:
+		return jsonschema.String()
+	case reflect.Bool:
+		return jsonschema.Boolean()
+	case reflect.Float32:
+		st := &jsonschema.NumberType{
+			Type: "number",
+		}
+		st.AddExtension("x-format", "float32")
+		return st
+	case reflect.Float64:
+		st := &jsonschema.NumberType{
+			Type: "number",
+		}
+		st.AddExtension("x-format", "float64")
+		return st
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64,
-		reflect.String,
-		reflect.Invalid,
-		reflect.Bool:
-		return jsonschema.NewSchema(schemaTypeAndFormatFromBasicType(t.Kind().String()))
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		st := &jsonschema.NumberType{
+			Type: "integer",
+		}
+		st.AddExtension("x-format", t.Kind().String())
+		return st
 	case reflect.Array:
-		s := jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
+		s := jsonschema.ArrayOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 		n := uint64(t.Len())
 		s.MaxItems = &n
 		s.MinItems = &n
@@ -255,100 +270,48 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s *jsonschema
 		if t.Elem().Kind() == reflect.Uint8 && t.Elem().PkgPath() == "" {
 			return jsonschema.Bytes()
 		}
-
-		return jsonschema.ItemsOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
+		return jsonschema.ArrayOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Map:
 		keySchema := SchemaFromType(ctx, t.Key(), opt.WithDecl(false))
-		if keySchema != nil && len(keySchema.Type) > 0 && !keySchema.Type.Contains("string") {
+		if _, ok := keySchema.(*jsonschema.StringType); !ok {
 			panic(errors.New("only support map[string]any"))
 		}
-		return jsonschema.KeyValueOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
+		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
-		structSchema.AdditionalProperties = &jsonschema.SchemaOrBool{
-			Allows: false,
-		}
 
-		allOfSchemas := make([]*jsonschema.Schema, 0)
-
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-
-			if !ast.IsExported(field.Name) {
-				continue
-			}
-
-			structTag := field.Tag
-
-			tagValueForName := ""
-
-			for _, namedTag := range []string{"json", "name"} {
-				if tagValueForName == "" {
-					tagValueForName = structTag.Get(namedTag)
-				}
-			}
-
-			name, flags := tagValueAndFlagsByTagString(tagValueForName)
-			if name == "-" {
-				continue
-			}
-
-			// includes ,inline
-			if name == "" && field.Anonymous {
-				if field.Type.String() == "bytes.Buffer" {
-					structSchema = jsonschema.Binary()
-					break
-				}
-				s := SchemaFromType(ctx, field.Type, opt.WithDecl(false))
-				if s != nil {
-					allOfSchemas = append(allOfSchemas, s)
-				}
-				continue
-			}
-
-			if name == "" {
-				name = field.Name
-			}
-
-			required := true
-
-			if hasOmitempty, ok := flags["omitempty"]; ok {
-				required = !hasOmitempty
-			}
-
-			propSchema := PropSchemaFromStructField(ctx, t, field, name, required, opt)
+		EachStructField(t, func(f *StructField) {
+			propSchema := f.ToPropSchema(ctx, opt)
 
 			if propSchema != nil {
-				structSchema.SetProperty(name, propSchema, required)
+				structSchema.SetProperty(f.DisplayName, propSchema, !f.Optional)
 			}
-		}
-
-		if len(allOfSchemas) > 0 {
-			return jsonschema.AllOf(append(allOfSchemas, structSchema)...)
-		}
+		})
 
 		return structSchema
+	default:
+		panic(fmt.Errorf("unsupported type %T", t))
 	}
 
 	return nil
 }
 
-func PropSchemaFromStructField(
-	ctx context.Context,
-	t reflect.Type,
-	field reflect.StructField,
-	fieldName string,
-	required bool,
-	opt Opt,
-) *jsonschema.Schema {
-	if !FieldShouldPick(t, fieldName) {
+type StructField struct {
+	reflect.StructField
+
+	DisplayName string
+	Optional    bool
+}
+
+func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Schema {
+	if !FieldShouldPick(sf.Type, sf.DisplayName) {
 		return nil
 	}
 
 	fieldDoc := ""
 
 	if opt.Doc != nil {
-		if fieldDesc := opt.Doc[fieldName]; fieldDesc != "" {
+		if fieldDesc := opt.Doc[sf.Name]; fieldDesc != "" {
 			fieldDoc = fieldDesc
 			stringEnum := pickStringEnumFromDesc(fieldDesc)
 			if len(stringEnum) > 0 {
@@ -357,39 +320,29 @@ func PropSchemaFromStructField(
 		}
 	}
 
-	propSchema := SchemaFromType(ctx, field.Type, opt.WithDecl(false))
-
+	propSchema := SchemaFromType(ctx, sf.Type, opt.WithDecl(false))
 	if propSchema != nil {
-		if required {
-			propSchema.Nullable = false
-		}
-
-		validate, hasValidate := field.Tag.Lookup("validate")
+		validate, hasValidate := sf.Tag.Lookup("validate")
 
 		if hasValidate && validate != "-" {
-			if err := BindSchemaValidationByValidateBytes(propSchema, field.Type, []byte(validate)); err != nil {
+			s, err := PatchSchemaValidationByValidateBytes(propSchema, sf.Type, []byte(validate))
+			if err != nil {
 				panic(errors.Wrapf(err, "invalid validate %s", validate))
 			}
+			propSchema = s
 		}
 
-		additional := &jsonschema.Schema{}
-		additional.Description = fieldDoc
+		metadata := propSchema.GetMetadata()
+		metadata.Description = fieldDoc
 
-		if propSchema.Refer == nil {
-			additional = propSchema
-		}
-
-		if canRuntimeDoc := RuntimeDocerFromContext(ctx); canRuntimeDoc != nil {
-			if lines, ok := canRuntimeDoc.RuntimeDoc(field.Name); ok {
-				additional.Description = strings.Join(lines, "\n")
+		if canRuntimeDoc := RuntimeDocerContext.From(ctx); canRuntimeDoc != nil {
+			if lines, ok := canRuntimeDoc.RuntimeDoc(sf.Name); ok {
+				metadata.Description = strings.Join(lines, "\n")
 			}
 		}
 
-		additional.AddExtension(jsonschema.XGoFieldName, field.Name)
+		metadata.AddExtension(jsonschema.XGoFieldName, sf.Name)
 
-		if propSchema != additional {
-			return jsonschema.AllOf(propSchema, additional)
-		}
 		return propSchema
 	}
 
@@ -424,38 +377,55 @@ func pickStringEnumFromDesc(d string) []string {
 	return nil
 }
 
-var basicTypeToSchemaType = map[string][2]string{
-	"invalid": {"null", ""},
+func EachStructField(t reflect.Type, each func(f *StructField)) {
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
 
-	"bool":    {"boolean", ""},
-	"error":   {"string", "string"},
-	"float32": {"number", "float"},
-	"float64": {"number", "double"},
+		if !ast.IsExported(field.Name) {
+			continue
+		}
 
-	"int":   {"integer", "int32"},
-	"int8":  {"integer", "int8"},
-	"int16": {"integer", "int16"},
-	"int32": {"integer", "int32"},
-	"int64": {"integer", "int64"},
+		structTag := field.Tag
 
-	"rune": {"integer", "int32"},
+		tagValueForName := ""
 
-	"uint":   {"integer", "uint32"},
-	"uint8":  {"integer", "uint8"},
-	"uint16": {"integer", "uint16"},
-	"uint32": {"integer", "uint32"},
-	"uint64": {"integer", "uint64"},
+		for _, namedTag := range []string{"json", "name"} {
+			if tagValueForName == "" {
+				tagValueForName = structTag.Get(namedTag)
+			}
+		}
 
-	"byte": {"integer", "uint8"},
+		name, flags := tagValueAndFlagsByTagString(tagValueForName)
+		if name == "-" {
+			continue
+		}
 
-	"string": {"string", ""},
-}
+		// includes ,inline
+		if name == "" && field.Anonymous {
+			ft := field.Type
+			if ft.Kind() == reflect.Ptr {
+				ft = ft.Elem()
+			}
 
-func schemaTypeAndFormatFromBasicType(basicTypeName string) (typ string, format string) {
-	if schemaTypeAndFormat, ok := basicTypeToSchemaType[basicTypeName]; ok {
-		return schemaTypeAndFormat[0], schemaTypeAndFormat[1]
+			if ft.Kind() == reflect.Struct {
+				EachStructField(ft, each)
+			}
+			continue
+		}
+
+		st := &StructField{StructField: field}
+
+		st.DisplayName = field.Name
+		if name != "" {
+			st.DisplayName = name
+		}
+
+		if hasOmitempty, ok := flags["omitempty"]; ok {
+			st.Optional = hasOmitempty
+		}
+
+		each(st)
 	}
-	panic(errors.Errorf("unsupported type %q", basicTypeName))
 }
 
 func tagValueAndFlagsByTagString(tagString string) (string, map[string]bool) {
