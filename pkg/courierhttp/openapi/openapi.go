@@ -77,20 +77,28 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 
 	if b.opt.naming == nil {
 		b.opt.naming = func(t string) string {
-			parts := strings.Split(t, "/internal/")
-			t = parts[len(parts)-1]
+			splitter := map[string]bool{
+				"internal": true,
+				"pkg":      true,
+				"apis":     true,
+				"client":   true,
+				"domain":   true,
+			}
 
-			parts = strings.Split(t, "/pkg/")
-			t = parts[len(parts)-1]
+			parts := strings.Split(t, "/")
 
-			parts = strings.Split(t, "/apis/")
-			t = parts[len(parts)-1]
+			idx := 0
+			for i, p := range parts {
+				if splitter[p] {
+					idx = i
+				}
+			}
 
-			parts = strings.Split(t, "/client/")
-			t = parts[len(parts)-1]
-
-			parts = strings.Split(t, "/domain/")
-			t = parts[len(parts)-1]
+			if idx < len(parts)-1 {
+				t = strings.Join(parts[idx+1:], "/")
+			} else {
+				t = strings.Join(parts[idx:], "/")
+			}
 
 			parts = strings.Split(t, ".")
 
