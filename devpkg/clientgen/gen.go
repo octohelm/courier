@@ -149,7 +149,6 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 					Schema: mt.Schema,
 					Decl:   g.typeOfSchema(c, mt.Schema),
 				})
-
 				hasResponse = true
 			}
 		}
