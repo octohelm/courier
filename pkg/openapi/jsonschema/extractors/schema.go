@@ -273,9 +273,17 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		return jsonschema.ArrayOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Map:
 		keySchema := SchemaFromType(ctx, t.Key(), opt.WithDecl(false))
-		if _, ok := keySchema.(*jsonschema.StringType); !ok {
-			panic(errors.Errorf("only support string of map key, but got %s", keySchema))
+		switch keySchema.(type) {
+		case *jsonschema.StringType:
+			break
+		case *jsonschema.RefType:
+			break
+		default:
+			if _, ok := keySchema.(*jsonschema.StringType); !ok {
+				panic(errors.Errorf("only support string of map key, but got %s", keySchema))
+			}
 		}
+
 		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
