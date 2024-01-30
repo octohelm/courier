@@ -8,16 +8,16 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20231102232822-2e55bd4e08b0
 	github.com/go-openapi/jsonpointer v0.20.2
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/octohelm/gengo v0.0.0-20230809023313-1339e47458a4
-	github.com/octohelm/storage v0.0.0-20240110105112-64398426f19b
+	github.com/octohelm/gengo v0.0.0-20240116032423-048028ecb7bb
+	github.com/octohelm/storage v0.0.0-20240125075455-2c26e507e753
 	github.com/octohelm/x v0.0.0-20231115103341-17be3238221d
-	github.com/onsi/gomega v1.30.0
+	github.com/onsi/gomega v1.31.1
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.20.0
 )
 
 require (
-	github.com/go-openapi/swag v0.22.5 // indirect
+	github.com/go-openapi/swag v0.22.9 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

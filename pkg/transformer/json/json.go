@@ -68,6 +68,8 @@ func (*jsonTransformer) DecodeFrom(ctx context.Context, r io.ReadCloser, v any, 
 
 func wrapLocationDecoderError(dec *json.Decoder, err error) error {
 	switch e := err.(type) {
+	case *validatorerrors.ErrorSet:
+		return e
 	case *json.UnmarshalTypeError:
 		r := reflect.ValueOf(dec).Elem()
 		errSet := validatorerrors.NewErrorSet()
