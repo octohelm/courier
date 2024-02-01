@@ -48,7 +48,7 @@ func TestJSONTransformer(t *testing.T) {
 		NewWithT(t).Expect(h.Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
 	})
 
-	t.Run("EncodeTo with reflect.Value", func(t *testing.T) {
+	t.Run("EncodeTo with reflect.value", func(t *testing.T) {
 		b := bytes.NewBuffer(nil)
 		h := http.Header{}
 

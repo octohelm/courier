@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/octohelm/courier/pkg/transformer/internal"
+	"github.com/octohelm/courier/internal/pathpattern"
 )
 
 func StringifyPath(path string, params map[string]string) string {
-	return internal.NewPathnamePattern(path).Stringify(params)
+	return pathpattern.Parse(path).Encode(params)
 }

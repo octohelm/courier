@@ -438,12 +438,12 @@ const (
 `,
 			"enums": gengo.MapSnippet(enumType.Enum, func(enum any) gengo.Snippet {
 				return gengo.Snippet{gengo.T: `
-@NamePrefix'__@Name @Type = @Value
+@NamePrefix'__@Name @Type = @value
 `,
 					"Type":       gengo.ID(gengo.UpperCamelCase(name)),
 					"NamePrefix": gengo.ID(gengo.UpperSnakeCase(name)),
 					"Name":       gengo.ID(gengo.UpperCamelCase(enum.(string))),
-					"Value":      enum,
+					"value":      enum,
 				}
 			}),
 		})

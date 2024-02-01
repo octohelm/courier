@@ -2,14 +2,16 @@ package request
 
 import (
 	"context"
-	"github.com/julienschmidt/httprouter"
+	"net/http"
+
+	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	contextx "github.com/octohelm/x/context"
-	"net/http"
-	"strings"
 )
+
+type Segments = pathpattern.Segments
 
 type RouteHandler interface {
 	http.Handler
@@ -17,6 +19,7 @@ type RouteHandler interface {
 	OperationID() string
 	Method() string
 	Path() string
+	PathSegments() Segments
 
 	Summary() string
 	Description() string
@@ -31,6 +34,7 @@ func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) 
 	}
 
 	basePath := "/"
+	path := ""
 
 	err := route.RangeOperator(func(f *courier.OperatorFactory, i int) error {
 		m := metaFrom(f)
@@ -40,15 +44,17 @@ func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) 
 		}
 
 		if m.Path != "" {
-			h.path += m.Path
+			path += m.Path
 		}
 
 		if f.IsLast {
 			h.operationID = f.Type.Name()
-			h.method = m.Method
 			h.deprecated = m.Deprecated
 			h.summary = m.Summary
 			h.description = m.Description
+			if m.Method != "" {
+				h.method = m.Method
+			}
 		}
 
 		if f.NoOutput {
@@ -65,18 +71,14 @@ func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) 
 
 		return nil
 	})
-
-	h.path = httprouter.CleanPath(basePath + h.path)
-
-	// support catch all pattern
-	parts := strings.Split(h.path, "/")
-
-	if strings.HasPrefix(parts[len(parts)-1], "*") {
-		h.method = "ALL"
-	}
-
 	if err != nil {
 		return nil, err
+	}
+
+	h.segments = pathpattern.Parse(pathpattern.NormalizePath(basePath + path))
+
+	if h.method == "" {
+		h.method = "ALL"
 	}
 
 	return h, nil
@@ -86,7 +88,7 @@ type handler struct {
 	service      string
 	operationID  string
 	method       string
-	path         string
+	segments     pathpattern.Segments
 	summary      string
 	deprecated   bool
 	description  string
@@ -103,7 +105,11 @@ func (h *handler) Method() string {
 }
 
 func (h *handler) Path() string {
-	return h.path
+	return h.segments.String()
+}
+
+func (h *handler) PathSegments() Segments {
+	return h.segments
 }
 
 func (h *handler) Summary() string {

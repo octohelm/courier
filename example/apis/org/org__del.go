@@ -8,7 +8,7 @@ import (
 
 // 删除组织
 type DeleteOrg struct {
-	courierhttp.MethodDelete `path:"/orgs/:orgName"`
+	courierhttp.MethodDelete `path:"/orgs/{orgName}"`
 	OrgName                  string `name:"orgName" in:"path" `
 }
 

@@ -3,6 +3,8 @@ package transport
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/internal/pathpattern"
+	"github.com/octohelm/courier/pkg/transformer"
 	"io"
 	"mime"
 	"net/http"
@@ -15,7 +17,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	transformer "github.com/octohelm/courier/pkg/transformer"
 	"github.com/octohelm/courier/pkg/transformer/core"
 	verrors "github.com/octohelm/courier/pkg/validator"
 	contextx "github.com/octohelm/x/context"
@@ -68,7 +69,7 @@ func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error)
 
 				if f.Anonymous && f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {
 					if p, ok := f.Tag.Lookup("path"); ok {
-						ot.RoutePath = p
+						ot.RoutePath = pathpattern.NormalizePath(p)
 					}
 				}
 			}

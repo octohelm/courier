@@ -84,11 +84,11 @@ func TestSchemaUnmarshal(t *testing.T) {
 
 func TestSchema(t *testing.T) {
 	t.Run("ref", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{}`))
+		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{"x-go-type":"any"}`))
 	})
 
 	t.Run("any", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{}`))
+		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{"x-go-type":"any"}`))
 	})
 
 	t.Run("string", func(t *testing.T) {

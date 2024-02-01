@@ -73,6 +73,10 @@ func (info *requestInfo) Values(in string, name string) []string {
 		if v == "" {
 			return []string{}
 		}
+		p, err := url.PathUnescape(v)
+		if err == nil {
+			return []string{p}
+		}
 		return []string{v}
 	case "query":
 		return info.QueryValues(name)

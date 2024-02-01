@@ -58,7 +58,7 @@ func TestNewValidatorLoader(t *testing.T) {
 		{
 			[]interface{}{
 				val,
-				reflect.ValueOf(someStruct).Elem().FieldByName("Value"),
+				reflect.ValueOf(someStruct).Elem().FieldByName("value"),
 				reflect.ValueOf(val),
 				ptr.Ptr("1"),
 			},

@@ -174,13 +174,17 @@ func (b *scanner) scan(r courier.Route) error {
 	return nil
 }
 
-var reHttpRouterPath = regexp.MustCompile("/[*:]([^/]+)")
+var reHttpRouterPath = regexp.MustCompile("/{([^/]+)(...)?}")
 
 func (b *scanner) patchPath(openapiPath string, operation *openapi.OperationObject) string {
 	return reHttpRouterPath.ReplaceAllStringFunc(openapiPath, func(str string) string {
 		name := reHttpRouterPath.FindAllStringSubmatch(str, -1)[0][1]
 
-		var isParameterDefined = false
+		if strings.HasSuffix(name, "...") {
+			name = name[0 : len(name)-3]
+		}
+
+		isParameterDefined := false
 
 		for _, parameter := range operation.Parameters {
 			if parameter.In == "path" && parameter.Name == name {

@@ -134,7 +134,7 @@ func (loader *ValidatorLoader) validate(v interface{}) error {
 	}
 
 	if loader.PreprocessStage == PreprocessString {
-		// make sure value over reflect.Value
+		// make sure value over reflect.value
 		if rv.CanInterface() {
 			v = rv.Interface()
 		}
