@@ -87,14 +87,32 @@ func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 func (v OrgDetail) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "OrgInfo":
-			return []string{}, true
 		case "CreatedAt":
 			return []string{}, true
+		case "Name":
+			return []string{
+				"组织名称",
+			}, true
+		case "Type":
+			return []string{
+				"组织类型",
+			}, true
 
 		}
-		if doc, ok := runtimeDoc(v.OrgInfo, names...); ok {
-			return doc, ok
+
+		return nil, false
+	}
+	return []string{}, true
+}
+
+func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+	if len(names) > 0 {
+		switch names[0] {
+		case "Scope":
+			return []string{}, true
+		case "Digest":
+			return []string{}, true
+
 		}
 
 		return nil, false
@@ -129,6 +147,8 @@ func (v OrgDataList) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Data":
 			return []string{}, true
+		case "Extra":
+			return []string{}, true
 		case "Total":
 			return []string{}, true
 
@@ -161,12 +181,30 @@ func (v OrgInfo) RuntimeDoc(names ...string) ([]string, bool) {
 func (OrgType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
-func (TimeTime) RuntimeDoc(names ...string) ([]string, bool) {
+func (Time) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 func (v UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
+		case "ReadCloser":
+			return []string{}, true
+
+		}
+		if doc, ok := runtimeDoc(v.ReadCloser, names...); ok {
+			return doc, ok
+		}
+
+		return nil, false
+	}
+	return []string{}, true
+}
+
+func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+	if len(names) > 0 {
+		switch names[0] {
+		case "Scope":
+			return []string{}, true
 		case "ReadCloser":
 			return []string{}, true
 

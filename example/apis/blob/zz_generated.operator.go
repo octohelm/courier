@@ -9,6 +9,14 @@ import (
 )
 
 func init() {
+	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&GetFile{}))
+}
+
+func (*GetFile) ResponseContent() any {
+	return new(string)
+}
+
+func init() {
 	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&UploadBlob{}))
 }
 

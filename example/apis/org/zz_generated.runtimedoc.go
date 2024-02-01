@@ -52,6 +52,8 @@ func (v DataList) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Total":
 			return []string{}, true
+		case "Extra":
+			return []string{}, true
 
 		}
 

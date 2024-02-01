@@ -222,49 +222,51 @@ func (g *group) Handler(contextInjects ...contextInject) (h http.Handler, err er
 					return nil, err
 				}
 
-				if c.PathMultiple() {
-					prefix := c.PathSegments
+				if len(c.ChildSegments) > 0 {
+					if c.PathMultiple() {
+						prefix := c.PathSegments
 
-					r.HandlerFunc(m, toPath(c.PathSegments), func(rw http.ResponseWriter, req *http.Request) {
-						values := pathpattern.Values{}
+						r.HandlerFunc(m, toPath(c.PathSegments), func(rw http.ResponseWriter, req *http.Request) {
+							values := pathpattern.Values{}
 
-						remain, ok := prefix.MatchTo(values, req.URL.Path)
-						if ok {
-							parts := strings.Split(remain, "/")
+							remain, ok := prefix.MatchTo(values, req.URL.Path)
+							if ok {
+								parts := strings.Split(remain, "/")
 
-							for i, p := range parts {
-								for _, seg := range c.ChildSegments {
-									if p == seg.String() {
-										multi := strings.Join(parts[0:i], "/")
-										value := url.PathEscape(multi)
+								for i, p := range parts {
+									for _, seg := range c.ChildSegments {
+										if p == seg.String() {
+											multi := strings.Join(parts[0:i], "/")
+											value := url.PathEscape(multi)
 
-										r := req.Clone(req.Context())
+											r := req.Clone(req.Context())
 
-										r.URL.Path = strings.Replace(req.URL.Path, multi, value, 1)
-										r.RequestURI = r.URL.RequestURI()
+											r.URL.Path = strings.Replace(req.URL.Path, multi, value, 1)
+											r.RequestURI = r.URL.RequestURI()
 
-										h.ServeHTTP(rw, r)
+											h.ServeHTTP(rw, r)
 
-										return
+											return
+										}
 									}
 								}
 							}
-						}
 
-						rw.WriteHeader(http.StatusNotFound)
-					})
-					continue
-				}
+							rw.WriteHeader(http.StatusNotFound)
+						})
+						continue
+					}
 
-				if len(c.ChildSegments) > 0 {
 					r.Handle(m, toPath(c.PathSegments)+"/*path", func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 						h.ServeHTTP(rw, req)
 					})
-				} else {
-					r.Handle(m, toPath(c.PathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-						h.ServeHTTP(rw, req)
-					})
+
+					continue
 				}
+
+				r.Handle(m, toPath(c.PathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+					h.ServeHTTP(rw, req)
+				})
 			}
 		}
 

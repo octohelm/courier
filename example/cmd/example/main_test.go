@@ -81,7 +81,7 @@ func TestAll(t *testing.T) {
 		resp, _, err := org.Invoke(client.ContextWithRoundTripperCreator(ctx, func() http.RoundTripper {
 			return &http2.Transport{
 				AllowHTTP: true,
-				DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
 					return net.Dial(network, addr)
 				},
 			}
@@ -96,5 +96,33 @@ func TestAll(t *testing.T) {
 		}
 		_, err := v.Invoke(ctx)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
+	})
+
+	t.Run("UploadStoreBlob", func(t *testing.T) {
+		v := example.UploadStoreBlob{
+			Scope:      "a/b/c",
+			ReadCloser: courierhttp.WrapReadCloser(bytes.NewBufferString("1234567")),
+		}
+		_, err := v.Invoke(ctx)
+		testingutil.Expect(t, err, testingutil.Be[error](nil))
+	})
+
+	t.Run("GetStoreBlob", func(t *testing.T) {
+		v := example.GetStoreBlob{
+			Scope:  "a/b/c",
+			Digest: "xxx",
+		}
+		resp, _, err := v.Invoke(ctx)
+		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingutil.Expect(t, *resp, testingutil.Be("a/b/c@xxx"))
+	})
+
+	t.Run("GetFile", func(t *testing.T) {
+		v := example.GetFile{
+			Path: "a/b/c",
+		}
+		resp, _, err := v.Invoke(ctx)
+		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingutil.Expect(t, *resp, testingutil.Be("/a/b/c"))
 	})
 }

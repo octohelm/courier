@@ -51,6 +51,10 @@ func init() {
 	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&ListOrg{}))
 }
 
+func (*ListOrg) ResponseStatusCode() int {
+	return 200
+}
+
 func (*ListOrg) ResponseContent() any {
 	return new(DataList)
 }
