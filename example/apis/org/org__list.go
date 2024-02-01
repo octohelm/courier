@@ -23,4 +23,5 @@ func (r *ListOrg) Output(ctx context.Context) (any, error) {
 type DataList struct {
 	Data  []Info `json:"data"`
 	Total int    `json:"total"`
+	Extra []any  `json:"extra"`
 }

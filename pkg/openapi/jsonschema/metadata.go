@@ -2,6 +2,7 @@ package jsonschema
 
 const (
 	XEnumLabels   = `x-enum-labels`
+	XGoType       = `x-go-type`
 	XGoVendorType = `x-go-vendor-type`
 	XGoStarLevel  = `x-go-star-level`
 	XGoFieldName  = `x-go-field-name`

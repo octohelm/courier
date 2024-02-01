@@ -3,7 +3,9 @@ package jsonschema
 import "io"
 
 func Any() *AnyType {
-	return &AnyType{}
+	a := &AnyType{}
+	a.AddExtension(XGoType, "any")
+	return a
 }
 
 type AnyType struct {

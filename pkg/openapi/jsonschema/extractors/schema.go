@@ -270,7 +270,11 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		if t.Elem().Kind() == reflect.Uint8 && t.Elem().PkgPath() == "" {
 			return jsonschema.Bytes()
 		}
-		return jsonschema.ArrayOf(SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
+		itemSchema := SchemaFromType(ctx, t.Elem(), opt.WithDecl(false))
+		if itemSchema == nil {
+			itemSchema = jsonschema.Any()
+		}
+		return jsonschema.ArrayOf(itemSchema)
 	case reflect.Map:
 		keySchema := SchemaFromType(ctx, t.Key(), opt.WithDecl(false))
 		switch keySchema.(type) {
@@ -283,7 +287,6 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 				panic(errors.Errorf("only support string of map key, but got %s", keySchema))
 			}
 		}
-
 		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
