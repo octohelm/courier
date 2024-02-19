@@ -327,6 +327,11 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 			return err
 		}
 	default:
+		if resp == nil {
+			// ship nil resp
+			rw.WriteHeader(r.statusCode)
+			return nil
+		}
 		tf, err := transformer.NewTransformer(ctx, typesutil.FromRType(reflect.TypeOf(resp)), transformer.Option{
 			MIME: r.contentType,
 		})
