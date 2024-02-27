@@ -194,14 +194,25 @@ func (g *group) Handler(contextInjects ...contextInject) (h http.Handler, err er
 
 				//fmt.Println("!", hh.Method(), toPath(hh.PathSegments()))
 
-				r.Handle(hh.Method(), toPath(hh.PathSegments()), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-					ctx := req.Context()
-					for _, inject := range ctxInjects {
-						ctx = inject(ctx)
+				m := map[string]string{}
+				if method := hh.Method(); method == "ALL" {
+					for _, met := range allMethods {
+						m[met] = met
 					}
-					ctx = handler.ContextWithParamGetter(ctx, params)
-					hh.ServeHTTP(rw, req.WithContext(ctx))
-				})
+				} else {
+					m[method] = method
+				}
+
+				for method := range m {
+					r.Handle(method, toPath(hh.PathSegments()), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+						ctx := req.Context()
+						for _, inject := range ctxInjects {
+							ctx = inject(ctx)
+						}
+						ctx = handler.ContextWithParamGetter(ctx, params)
+						hh.ServeHTTP(rw, req.WithContext(ctx))
+					})
+				}
 			} else {
 				panic(errors.Errorf("invalid router %v", h))
 			}
