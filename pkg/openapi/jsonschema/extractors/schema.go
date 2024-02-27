@@ -190,6 +190,24 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			return s
 		}
 
+		if g, ok := inst.(jsonschema.OpenAPISchemaTypeGetter); ok {
+			typ := g.OpenAPISchemaType()
+			if len(typ) > 0 && typ[0] != "" {
+				p := jsonschema.Payload{}
+
+				_ = p.UnmarshalJSON([]byte(fmt.Sprintf(`{"type":%q}`, typ[0])))
+
+				if p.Schema != nil {
+					return p.Schema
+				}
+			}
+		}
+
+		if g, ok := inst.(jsonschema.OpenAPISchemaGetter); ok {
+			s := g.OpenAPISchema()
+			return s
+		}
+
 		defer func() {
 			if s != nil {
 				if !(strings.Contains(typeRef, "/internal/") || strings.Contains(typeRef, "/internal.")) {
