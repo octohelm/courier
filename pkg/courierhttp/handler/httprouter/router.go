@@ -1,7 +1,6 @@
 package httprouter
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"sort"
@@ -16,8 +15,8 @@ import (
 
 type RouteHandler = request.RouteHandler
 
-func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) {
-	return request.NewRouteHandler(route, service)
+func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, error) {
+	return request.NewRouteHandlers(route, service)
 }
 
 func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddleware) (http.Handler, error) {
@@ -49,11 +48,11 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 	handlers := make([]request.RouteHandler, 0, len(routes))
 
 	for i := range routes {
-		rh, err := request.NewRouteHandler(routes[i], service)
+		rh, err := NewRouteHandlers(routes[i], service)
 		if err != nil {
 			return nil, err
 		}
-		handlers = append(handlers, rh)
+		handlers = append(handlers, rh...)
 	}
 
 	sort.Slice(handlers, func(i, j int) bool {
@@ -65,25 +64,17 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		_ = w.Flush()
 	}()
 
-	t := &mux{
-		oas:              oas,
+	m := &mux{
 		globalMiddleware: handler.ApplyHandlerMiddlewares(append(middlewares, methodOverride)...),
+		oas:              oas,
+		w:                w,
 	}
 
 	for i := range handlers {
-		h := handlers[i]
-
-		_, _ = fmt.Fprintf(w, "%s\t%s", h.Method()[0:3], h.PathSegments())
-		_, _ = fmt.Fprintf(w, "\t%s", h.Summary())
-		for _, o := range h.Operators() {
-			_, _ = fmt.Fprintf(w, "\t%s", o.String())
-		}
-		_, _ = fmt.Fprintf(w, "\n")
-
-		t.register(h)
+		m.register(handlers[i])
 	}
 
-	return t.Handler()
+	return m.Handler()
 }
 
 var methodOverride = func(n http.Handler) http.Handler {

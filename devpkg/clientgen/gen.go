@@ -99,17 +99,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	}
 
 	for p, oo := range g.oas.Paths {
-		for method, o := range map[string]*openapi.OperationObject{
-			"GET":    oo.GET,
-			"PUT":    oo.PUT,
-			"POST":   oo.POST,
-			"PATCH":  oo.PATCH,
-			"DELETE": oo.DELETE,
-
-			"HEAD":   oo.HEAD,
-			"OPTION": oo.OPTIONS,
-			"TRACE":  oo.TRACE,
-		} {
+		for method, o := range oo.Operations {
 			if shouldGenerate(o) {
 				if err := g.genOperation(c, toColonPath(p), gengo.UpperCamelCase(strings.ToLower(method)), o); err != nil {
 					return err

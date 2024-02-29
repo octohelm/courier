@@ -2,18 +2,26 @@ package org
 
 import (
 	"context"
+	"github.com/octohelm/courier/example/apis/org/operator"
+	"github.com/octohelm/courier/pkg/courier"
 	"net/http"
 	"time"
 
-	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/statuserror"
 )
+
+func (GetOrg) MiddleOperators() courier.MiddleOperators {
+	return courier.MiddleOperators{
+		&operator.GroupOrgs{},
+	}
+}
 
 // 查询组织信息
 type GetOrg struct {
-	courierhttp.MethodGet `path:"/orgs/:orgName"`
+	courierhttp.MethodGet `path:"/:orgName"`
 	OrgName               string `name:"orgName" in:"path" `
 }
 

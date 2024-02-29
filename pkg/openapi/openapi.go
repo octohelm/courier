@@ -51,22 +51,9 @@ func (p *OpenAPI) AddOperation(method string, path string, op *OperationObject) 
 		p.Paths[path] = &PathItemObject{}
 	}
 
-	switch strings.ToLower(method) {
-	case "get":
-		p.Paths[path].GET = op
-	case "post":
-		p.Paths[path].POST = op
-	case "put":
-		p.Paths[path].PUT = op
-	case "patch":
-		p.Paths[path].PATCH = op
-	case "delete":
-		p.Paths[path].DELETE = op
-	case "trace":
-		p.Paths[path].TRACE = op
-	case "head":
-		p.Paths[path].HEAD = op
-	case "options":
-		p.Paths[path].OPTIONS = op
+	if p.Paths[path].Operations == nil {
+		p.Paths[path].Operations = map[string]*OperationObject{}
 	}
+
+	p.Paths[path].Operations[strings.ToLower(method)] = op
 }

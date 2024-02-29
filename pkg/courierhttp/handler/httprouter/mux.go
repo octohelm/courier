@@ -3,6 +3,14 @@ package httprouter
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"sort"
+	"strings"
+	"text/tabwriter"
+
+	"github.com/fatih/color"
 	"github.com/julienschmidt/httprouter"
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/internal/request"
@@ -10,15 +18,12 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	openapispec "github.com/octohelm/courier/pkg/openapi"
 	"github.com/pkg/errors"
-	"io"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 type mux struct {
 	oas              *openapispec.OpenAPI
 	globalMiddleware handler.HandlerMiddleware
+	w                *tabwriter.Writer
 	tree             *pathpattern.Tree[RouteHandler]
 }
 
@@ -42,13 +47,18 @@ func (m *mux) Handler() (http.Handler, error) {
 		}
 	})
 
-	h, err := g.Handler(func(ctx context.Context) context.Context {
+	_, _ = fmt.Fprintln(m.w)
+
+	h, err := g.createHandler(m.w, func(ctx context.Context) context.Context {
 		// FIXME only inject for openapi
 		return openapispec.InjectContext(ctx, m.oas)
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	_, _ = fmt.Fprintln(m.w)
+
 	return m.globalMiddleware(h), nil
 }
 
@@ -99,42 +109,29 @@ func (g *group) addHandler(h RouteHandler, parents []*pathpattern.Route) {
 	child.addHandler(h, parents[1:])
 }
 
-var allMethods = []string{
-	http.MethodGet,
-	http.MethodHead,
-	http.MethodPost,
-	http.MethodPut,
-	http.MethodDelete,
-	http.MethodPatch,
-	http.MethodConnect,
-	http.MethodOptions,
-	http.MethodTrace,
-}
-
-func (g *group) Methods() map[string]string {
-	m := map[string]string{}
+func (g *group) Methods() []string {
+	m := map[string]bool{}
 
 	for _, h := range g.handlers {
 		if rh, ok := h.(RouteHandler); ok {
-			method := rh.Method()
-
-			if method == "ALL" {
-				for _, met := range allMethods {
-					m[met] = met
-				}
-			} else {
-				m[method] = method
-			}
+			met := rh.Method()
+			m[met] = true
 		}
 	}
 
 	for _, child := range g.children {
 		for _, method := range child.Methods() {
-			m[method] = method
+			m[method] = true
 		}
 	}
 
-	return m
+	methods := make([]string, 0, len(m))
+	for met := range m {
+		methods = append(methods, met)
+	}
+	sort.Strings(methods)
+
+	return methods
 }
 
 type contextInject = func(ctx context.Context) context.Context
@@ -170,7 +167,7 @@ func toPath(pathSegments pathpattern.Segments) string {
 	return s.String()
 }
 
-func (g *group) Handler(contextInjects ...contextInject) (h http.Handler, err error) {
+func (g *group) createHandler(w *tabwriter.Writer, contextInjects ...contextInject) (h http.Handler, err error) {
 	if len(g.handlers) > 0 {
 		r := httprouter.New()
 
@@ -192,27 +189,35 @@ func (g *group) Handler(contextInjects ...contextInject) (h http.Handler, err er
 					})
 				}
 
-				//fmt.Println("!", hh.Method(), toPath(hh.PathSegments()))
+				method := hh.Method()
 
-				m := map[string]string{}
-				if method := hh.Method(); method == "ALL" {
-					for _, met := range allMethods {
-						m[met] = met
+				if method == "" {
+					continue
+				}
+
+				pathSegments := hh.PathSegments()
+
+				_, _ = colorForMethod(method).Fprintf(w, "%s\t  %s", method, pathSegments)
+				_, _ = fmt.Fprintf(w, "\t    \t%s", hh.Summary())
+
+				p := color.New(color.FgWhite)
+				_, _ = p.Fprintf(w, "  {{ ")
+				for i, o := range hh.Operators() {
+					if i > 0 {
+						_, _ = p.Fprint(w, " | ")
 					}
-				} else {
-					m[method] = method
+					_, _ = p.Fprintf(w, "%s", o.String())
 				}
+				_, _ = p.Fprintf(w, " }}\n")
 
-				for method := range m {
-					r.Handle(method, toPath(hh.PathSegments()), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-						ctx := req.Context()
-						for _, inject := range ctxInjects {
-							ctx = inject(ctx)
-						}
-						ctx = handler.ContextWithParamGetter(ctx, params)
-						hh.ServeHTTP(rw, req.WithContext(ctx))
-					})
-				}
+				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+					ctx := req.Context()
+					for _, inject := range ctxInjects {
+						ctx = inject(ctx)
+					}
+					ctx = handler.ContextWithParamGetter(ctx, params)
+					hh.ServeHTTP(rw, req.WithContext(ctx))
+				})
 			} else {
 				panic(errors.Errorf("invalid router %v", h))
 			}
@@ -221,18 +226,24 @@ func (g *group) Handler(contextInjects ...contextInject) (h http.Handler, err er
 		return r, nil
 	}
 
-	if len(g.children) != 0 {
+	if n := len(g.children); n != 0 {
 		r := httprouter.New()
 
-		for i := range g.children {
-			c := g.children[i]
+		keys := make([]string, 0, n)
+		for k := range g.children {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
 
-			for m := range c.Methods() {
-				h, err := c.Handler(contextInjects...)
-				if err != nil {
-					return nil, err
-				}
+		for _, k := range keys {
+			c := g.children[k]
 
+			h, err := c.createHandler(w, contextInjects...)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, m := range c.Methods() {
 				if len(c.ChildSegments) > 0 {
 					if c.PathMultiple() {
 						prefix := c.PathSegments
@@ -297,4 +308,23 @@ func (g *group) PathMultiple() bool {
 		}
 	}
 	return false
+}
+
+func colorForMethod(method string) *color.Color {
+	switch method {
+	case http.MethodHead:
+		return color.New(color.FgCyan)
+	case http.MethodGet:
+		return color.New(color.FgBlue)
+	case http.MethodPost:
+		return color.New(color.FgGreen)
+	case http.MethodPut:
+		return color.New(color.FgYellow)
+	case http.MethodPatch:
+		return color.New(color.FgMagenta)
+	case http.MethodDelete:
+		return color.New(color.FgRed)
+	default:
+		return color.New(color.FgWhite)
+	}
 }

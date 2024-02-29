@@ -2,7 +2,9 @@ package request
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"
@@ -28,7 +30,7 @@ type RouteHandler interface {
 	Operators() []*courier.OperatorFactory
 }
 
-func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) {
+func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, error) {
 	h := &handler{
 		service: service,
 	}
@@ -77,11 +79,23 @@ func NewRouteHandler(route courier.Route, service string) (RouteHandler, error) 
 
 	h.segments = pathpattern.Parse(pathpattern.NormalizePath(basePath + path))
 
-	if h.method == "" {
-		h.method = "ALL"
+	methods := strings.Split(h.method, ",")
+
+	handlers := make([]RouteHandler, 0, len(methods))
+
+	for _, m := range methods {
+		if m == "" {
+			continue
+		}
+
+		if h.method == m {
+			handlers = append(handlers, h)
+		} else {
+			handlers = append(handlers, h.cloneWithMethod(m))
+		}
 	}
 
-	return h, nil
+	return handlers, nil
 }
 
 type handler struct {
@@ -113,6 +127,9 @@ func (h *handler) PathSegments() Segments {
 }
 
 func (h *handler) Summary() string {
+	if h.summary == "" {
+		return h.OperationID()
+	}
 	return h.summary
 }
 
@@ -170,4 +187,10 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		t.WriteResponse(ctx, rw, result, info)
 	}
+}
+
+func (h handler) cloneWithMethod(m string) RouteHandler {
+	h.method = m
+	h.operationID = fmt.Sprintf("%s_%s", m, h.operationID)
+	return &h
 }

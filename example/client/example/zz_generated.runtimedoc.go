@@ -71,6 +71,19 @@ func (v DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
+func (v GetFile) RuntimeDoc(names ...string) ([]string, bool) {
+	if len(names) > 0 {
+		switch names[0] {
+		case "Path":
+			return []string{}, true
+
+		}
+
+		return nil, false
+	}
+	return []string{}, true
+}
+
 func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {

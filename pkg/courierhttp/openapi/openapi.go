@@ -139,37 +139,39 @@ func tag(pkgPath string) string {
 }
 
 func (b *scanner) scan(r courier.Route) error {
-	rh, err := request.NewRouteHandler(r, "openapi")
+	handlers, err := request.NewRouteHandlers(r, "openapi")
 	if err != nil {
 		return err
 	}
 
-	op := openapi.NewOperation(rh.OperationID())
+	for _, rh := range handlers {
+		op := openapi.NewOperation(rh.OperationID())
 
-	op.Summary = rh.Summary()
-	op.Description = rh.Description()
+		op.Summary = rh.Summary()
+		op.Description = rh.Description()
 
-	if rh.Deprecated() {
-		op.Deprecated = ptr.Ptr(true)
-	}
-
-	ctx := context.Background()
-
-	for _, o := range rh.Operators() {
-		b.scanParameterOrRequestBody(ctx, op, o.Type)
-
-		if o.IsLast {
-			/// response
-			// FIXME make configurable
-			op.Tags = []string{
-				tag(o.Type.PkgPath()),
-			}
-
-			b.scanResponse(ctx, op, o)
+		if rh.Deprecated() {
+			op.Deprecated = ptr.Ptr(true)
 		}
-	}
 
-	b.o.AddOperation(rh.Method(), b.patchPath(rh.Path(), op), op)
+		ctx := context.Background()
+
+		for _, o := range rh.Operators() {
+			b.scanParameterOrRequestBody(ctx, op, o.Type)
+
+			if o.IsLast {
+				/// response
+				// FIXME make configurable
+				op.Tags = []string{
+					tag(o.Type.PkgPath()),
+				}
+
+				b.scanResponse(ctx, op, o)
+			}
+		}
+
+		b.o.AddOperation(rh.Method(), b.patchPath(rh.Path(), op), op)
+	}
 
 	return nil
 }

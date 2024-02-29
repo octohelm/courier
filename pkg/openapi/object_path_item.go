@@ -6,14 +6,7 @@ type PathItemObject struct {
 	Summary     string `json:"summary,omitempty"`
 	Description string `json:"description,omitempty"`
 
-	GET     *OperationObject `json:"get,omitempty"`
-	PUT     *OperationObject `json:"put,omitempty"`
-	POST    *OperationObject `json:"post,omitempty"`
-	DELETE  *OperationObject `json:"delete,omitempty"`
-	OPTIONS *OperationObject `json:"options,omitempty"`
-	HEAD    *OperationObject `json:"head,omitempty"`
-	PATCH   *OperationObject `json:"patch,omitempty"`
-	TRACE   *OperationObject `json:"trace,omitempty"`
+	Operations map[string]*OperationObject `json:",inline"`
 }
 
 type CallbacksObject struct {

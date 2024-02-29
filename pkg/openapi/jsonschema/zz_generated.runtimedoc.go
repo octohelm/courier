@@ -421,7 +421,7 @@ func (v URIReferenceString) RuntimeDoc(names ...string) ([]string, bool) {
 			}, true
 		case "Path":
 			return []string{
-				"host or host:port",
+				"host or host:port (see Hostname and Port methods)",
 			}, true
 		case "RawPath":
 			return []string{
@@ -474,7 +474,7 @@ func (v URIString) RuntimeDoc(names ...string) ([]string, bool) {
 			}, true
 		case "Path":
 			return []string{
-				"host or host:port",
+				"host or host:port (see Hostname and Port methods)",
 			}, true
 		case "RawPath":
 			return []string{
