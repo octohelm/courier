@@ -4,10 +4,10 @@ go 1.22
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fatih/color v1.16.0
 	github.com/go-courier/logr v0.3.0
 	github.com/go-json-experiment/json v0.0.0-20231102232822-2e55bd4e08b0
 	github.com/go-openapi/jsonpointer v0.20.2
+	github.com/juju/ansiterm v1.0.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/octohelm/gengo v0.0.0-20240227021734-f42e02623187
 	github.com/octohelm/storage v0.0.0-20240226052856-f09f7d514eac
@@ -21,6 +21,7 @@ require (
 	github.com/go-openapi/swag v0.22.9 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

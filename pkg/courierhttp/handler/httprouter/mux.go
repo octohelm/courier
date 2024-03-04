@@ -6,24 +6,24 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
-	"text/tabwriter"
 
-	"github.com/fatih/color"
+	"github.com/juju/ansiterm"
 	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
+
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	openapispec "github.com/octohelm/courier/pkg/openapi"
-	"github.com/pkg/errors"
 )
 
 type mux struct {
 	oas              *openapispec.OpenAPI
 	globalMiddleware handler.HandlerMiddleware
-	w                *tabwriter.Writer
 	tree             *pathpattern.Tree[RouteHandler]
 }
 
@@ -35,7 +35,9 @@ func (m *mux) register(h request.RouteHandler) {
 }
 
 func (m *mux) Handler() (http.Handler, error) {
-	g := &group{}
+	g := &group{
+		mux: m,
+	}
 
 	m.tree.EachRoute(func(h RouteHandler, parents []*pathpattern.Route) {
 		if len(parents) == 0 {
@@ -47,22 +49,27 @@ func (m *mux) Handler() (http.Handler, error) {
 		}
 	})
 
-	_, _ = fmt.Fprintln(m.w)
+	w := ansiterm.NewTabWriter(os.Stdout, 0, 4, 2, ' ', 0)
+	defer func() {
+		_ = w.Flush()
+	}()
 
-	h, err := g.createHandler(m.w, func(ctx context.Context) context.Context {
-		// FIXME only inject for openapi
-		return openapispec.InjectContext(ctx, m.oas)
-	})
+	_, _ = fmt.Fprintln(w)
+	defer func() {
+		_, _ = fmt.Fprintln(w)
+	}()
+
+	h, err := g.createHandler(w)
 	if err != nil {
 		return nil, err
 	}
-
-	_, _ = fmt.Fprintln(m.w)
 
 	return m.globalMiddleware(h), nil
 }
 
 type group struct {
+	*mux
+
 	pathpattern.Route
 	handlers []http.Handler
 	children map[string]*group
@@ -102,7 +109,10 @@ func (g *group) addHandler(h RouteHandler, parents []*pathpattern.Route) {
 
 	child, ok := g.children[route.PathSegments.String()]
 	if !ok {
-		child = &group{Route: *route}
+		child = &group{
+			mux:   g.mux,
+			Route: *route,
+		}
 		g.children[route.PathSegments.String()] = child
 	}
 
@@ -167,7 +177,7 @@ func toPath(pathSegments pathpattern.Segments) string {
 	return s.String()
 }
 
-func (g *group) createHandler(w *tabwriter.Writer, contextInjects ...contextInject) (h http.Handler, err error) {
+func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...contextInject) (h http.Handler, err error) {
 	if len(g.handlers) > 0 {
 		r := httprouter.New()
 
@@ -187,6 +197,12 @@ func (g *group) createHandler(w *tabwriter.Writer, contextInjects ...contextInje
 					ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
 						return courierhttp.ContextWithOperationInfo(ctx, info)
 					})
+
+					if info.Method == "GET" && info.ID == "OpenAPI" {
+						ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
+							return openapispec.InjectContext(ctx, g.oas)
+						})
+					}
 				}
 
 				method := hh.Method()
@@ -197,18 +213,21 @@ func (g *group) createHandler(w *tabwriter.Writer, contextInjects ...contextInje
 
 				pathSegments := hh.PathSegments()
 
-				_, _ = colorForMethod(method).Fprintf(w, "%s\t  %s", method, pathSegments)
-				_, _ = fmt.Fprintf(w, "\t    \t%s", hh.Summary())
+				colorFmt := colorFmtForMethod(method)
 
-				p := color.New(color.FgWhite)
-				_, _ = p.Fprintf(w, "  {{ ")
+				_, _ = colorFmt.Fprint(printer, "%s", method)
+				_, _ = colorFmt.Fprint(printer, "\t%s", pathSegments)
+				_, _ = fmt.Fprintf(printer, "\t%s", hh.Summary())
+
+				p := colorFormatter(ansiterm.Gray)
+				_, _ = p.Fprint(printer, "\t{{ ")
 				for i, o := range hh.Operators() {
 					if i > 0 {
-						_, _ = p.Fprint(w, " | ")
+						_, _ = p.Fprint(printer, " | ")
 					}
-					_, _ = p.Fprintf(w, "%s", o.String())
+					_, _ = p.Fprint(printer, "%s", o.String())
 				}
-				_, _ = p.Fprintf(w, " }}\n")
+				_, _ = p.Fprint(printer, " }}\n")
 
 				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 					ctx := req.Context()
@@ -238,7 +257,7 @@ func (g *group) createHandler(w *tabwriter.Writer, contextInjects ...contextInje
 		for _, k := range keys {
 			c := g.children[k]
 
-			h, err := c.createHandler(w, contextInjects...)
+			h, err := c.createHandler(printer, contextInjects...)
 			if err != nil {
 				return nil, err
 			}
@@ -310,21 +329,35 @@ func (g *group) PathMultiple() bool {
 	return false
 }
 
-func colorForMethod(method string) *color.Color {
+func colorFmtForMethod(method string) colorFormatter {
 	switch method {
 	case http.MethodHead:
-		return color.New(color.FgCyan)
+		return colorFormatter(ansiterm.Cyan)
 	case http.MethodGet:
-		return color.New(color.FgBlue)
+		return colorFormatter(ansiterm.Blue)
 	case http.MethodPost:
-		return color.New(color.FgGreen)
+		return colorFormatter(ansiterm.Green)
 	case http.MethodPut:
-		return color.New(color.FgYellow)
+		return colorFormatter(ansiterm.Yellow)
 	case http.MethodPatch:
-		return color.New(color.FgMagenta)
+		return colorFormatter(ansiterm.Magenta)
 	case http.MethodDelete:
-		return color.New(color.FgRed)
+		return colorFormatter(ansiterm.Red)
 	default:
-		return color.New(color.FgWhite)
+		return colorFormatter(ansiterm.Gray)
 	}
+}
+
+type colorFormatter ansiterm.Color
+
+func (color colorFormatter) Fprint(w io.Writer, f string, args ...any) (int, error) {
+	if x, ok := w.(interface {
+		SetForeground(c ansiterm.Color)
+	}); ok {
+		x.SetForeground(ansiterm.Color(color))
+		defer func() {
+			x.SetForeground(ansiterm.Default)
+		}()
+	}
+	return fmt.Fprintf(w, f, args...)
 }

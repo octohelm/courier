@@ -1,16 +1,13 @@
 package httprouter
 
 import (
-	"net/http"
-	"os"
-	"sort"
-	"strings"
-	"text/tabwriter"
-
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/openapi"
+	"net/http"
+	"sort"
+	"strings"
 )
 
 type RouteHandler = request.RouteHandler
@@ -59,15 +56,9 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 		return handlers[i].Path() < handlers[j].Path()
 	})
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.TabIndent)
-	defer func() {
-		_ = w.Flush()
-	}()
-
 	m := &mux{
 		globalMiddleware: handler.ApplyHandlerMiddlewares(append(middlewares, methodOverride)...),
 		oas:              oas,
-		w:                w,
 	}
 
 	for i := range handlers {
