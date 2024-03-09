@@ -2,11 +2,9 @@ package core
 
 import (
 	"context"
-	"reflect"
-
 	"github.com/octohelm/courier/pkg/validator"
-
 	typesx "github.com/octohelm/x/types"
+	"reflect"
 )
 
 type RequestParameter struct {
@@ -29,9 +27,9 @@ func EachRequestParameter(ctx context.Context, tpe typesx.Type, each func(rp *Re
 			rp.TransformerOption.Omitempty = flagTags.HasFlag("omitempty")
 		}
 
-		if tagFlags, ok := rp.Tags["mime"]; ok {
-			rp.TransformerOption.MIME = tagFlags.Name()
-			rp.TransformerOption.Strict = tagFlags.HasFlag("strict")
+		if mimeFlags, ok := rp.Tags["mime"]; ok {
+			rp.TransformerOption.MIME = mimeFlags.Name()
+			rp.TransformerOption.Strict = mimeFlags.HasFlag("strict")
 			rp.TransformerOption.Omitempty = rp.TransformerOption.Strict
 		}
 
@@ -41,9 +39,15 @@ func EachRequestParameter(ctx context.Context, tpe typesx.Type, each func(rp *Re
 
 		switch rp.Type.Kind() {
 		case reflect.Array, reflect.Slice:
-			if !(rp.Type.Elem().PkgPath() == "" && rp.Type.Elem().Kind() == reflect.Uint8) {
+			if !isBytes(rp.Type) {
 				rp.TransformerOption.Explode = true
 			}
+			_, ok := typesx.EncodingTextMarshalerTypeReplacer(rp.Type)
+			if ok {
+				rp.TransformerOption.Explode = false
+			}
+		default:
+
 		}
 
 		getTransformer := func() (Transformer, error) {
@@ -77,4 +81,8 @@ func EachRequestParameter(ctx context.Context, tpe typesx.Type, each func(rp *Re
 	}
 
 	return errSet.Err()
+}
+
+func isBytes(t typesx.Type) bool {
+	return t.PkgPath() == "" && t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
 }
