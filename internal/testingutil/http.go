@@ -2,7 +2,7 @@ package testingutil
 
 import (
 	"bytes"
-	"fmt"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 
@@ -13,22 +13,12 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
-func Serve(t testing.TB, handler http.Handler) int {
-	port := 8089
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: h2c.NewHandler(handler, &http2.Server{}),
-	}
-
+func Serve(t testing.TB, handler http.Handler) *httptest.Server {
+	srv := httptest.NewServer(h2c.NewHandler(handler, &http2.Server{}))
 	t.Cleanup(func() {
 		srv.Close()
 	})
-
-	go func() {
-		_ = srv.ListenAndServe()
-	}()
-
-	return port
+	return srv
 }
 
 func RequestEqual(t testing.TB, req *http.Request, expect string) {

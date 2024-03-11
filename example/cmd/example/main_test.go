@@ -56,10 +56,10 @@ var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.Roun
 func TestAll(t *testing.T) {
 	h, err := httprouter.New(apis.R, "example")
 	testingutil.Expect(t, err, testingutil.Be[error](nil))
-	port := testingutil.Serve(t, h)
+	srv := testingutil.Serve(t, h)
 
 	c := &example.Client{
-		Endpoint:       fmt.Sprintf("http://0.0.0.0:%d", port),
+		Endpoint:       srv.URL,
 		HttpTransports: []client.HttpTransport{htLogger},
 	}
 	ctx := c.InjectContext(context.Background())
