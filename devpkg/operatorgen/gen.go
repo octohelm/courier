@@ -199,30 +199,22 @@ func dePtr(t types.Type) types.Type {
 var typeResponseWithSettingPkgPath = reflect.TypeOf((*courierhttp.Response[any])(nil)).Elem()
 
 func (g *operatorGen) generateRegister(c gengo.Context, named *types.Named) {
-	register := ""
-
 	tags, _ := c.Doc(named.Obj())
 
-	if r, ok := tags["gengo:operator:register"]; ok {
-		if len(r) > 0 {
-			register = r[0]
+	if registers, ok := tags["gengo:operator:register"]; ok {
+		for _, register := range registers {
+			c.Render(gengo.Snippet{gengo.T: `
+			func init() {
+				@R.Register(@courierNewRouter(&@Operator{}))
+			}
+			
+			`,
+				"R":                gengo.ID(register),
+				"courierNewRouter": gengo.ID("github.com/octohelm/courier/pkg/courier.NewRouter"),
+				"Operator":         gengo.ID(named.Obj()),
+			})
 		}
 	}
-
-	if register == "" {
-		return
-	}
-
-	c.Render(gengo.Snippet{gengo.T: `
-func init() {
-	@R.Register(@courierNewRouter(&@Operator{}))
-}
-
-`,
-		"R":                gengo.ID(register),
-		"courierNewRouter": gengo.ID("github.com/octohelm/courier/pkg/courier.NewRouter"),
-		"Operator":         gengo.ID(named.Obj()),
-	})
 }
 
 func (g *operatorGen) resolvePkg(c gengo.Context, importPath string) *types.Package {
