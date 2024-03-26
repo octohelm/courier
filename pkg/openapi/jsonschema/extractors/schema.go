@@ -128,10 +128,8 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			ctx = RuntimeDocerContext.Inject(ctx, docer)
 
 			defer func() {
-				if opt.Decl {
-					if lines, ok := docer.RuntimeDoc(); ok {
-						s.GetMetadata().Description = strings.Join(lines, "\n")
-					}
+				if lines, ok := docer.RuntimeDoc(); ok {
+					s.GetMetadata().Description = strings.Join(lines, "\n")
 				}
 			}()
 		}
