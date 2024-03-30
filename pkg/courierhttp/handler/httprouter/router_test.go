@@ -92,7 +92,7 @@ HTTP/0.0 204 No Content
 HTTP/0.0 400 Bad Request
 Content-Type: application/json; charset=utf-8
 
-{"code":400,"key":"badRequest","msg":"invalid parameters","desc":"","canBeTalkError":false,"sources":["test"],"errorFields":[{"field":"name","msg":"string length should be less than 5, but got invalid value 7","in":"body"}]}
+{"code":400,"key":"badRequest","msg":"invalid parameters","sources":["test"],"errorFields":[{"field":"name","msg":"string length should be less than 5, but got invalid value 7","in":"body"}]}
 `)
 		})
 	})
