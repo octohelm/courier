@@ -5,11 +5,41 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 )
+
+type ErrorWithStatusCode interface {
+	StatusCode() int
+}
+
+func New(err error) *StatusErr {
+	t := reflect.TypeOf(err)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	key := "InternalError"
+	if name := t.Name(); name != "" {
+		if p := t.PkgPath(); p != "" {
+			key = filepath.Base(t.PkgPath()) + "." + name
+		} else {
+			key = name
+		}
+	}
+
+	statusCode := http.StatusInternalServerError
+
+	if canStatusCode, ok := err.(interface{ StatusCode() int }); ok {
+		statusCode = canStatusCode.StatusCode()
+	}
+
+	return Wrap(err, statusCode, key)
+}
 
 func IsStatusErr(err error) (*StatusErr, bool) {
 	if err == nil {
@@ -26,10 +56,12 @@ func FromErr(err error) *StatusErr {
 	if err == nil {
 		return nil
 	}
+
 	if statusErr, ok := IsStatusErr(err); ok {
 		return statusErr
 	}
-	return Wrap(err, http.StatusInternalServerError, "UnknownError", "未知错误")
+
+	return New(err)
 }
 
 func Wrap(err error, code int, key string, msgAndDesc ...string) *StatusErr {
@@ -37,17 +69,23 @@ func Wrap(err error, code int, key string, msgAndDesc ...string) *StatusErr {
 		err = errors.New(key)
 	}
 
-	msg := key
-
+	msg := ""
 	if len(msgAndDesc) > 0 {
 		msg = msgAndDesc[0]
 	}
 
 	desc := ""
-
 	if len(msgAndDesc) > 1 {
 		desc = strings.Join(msgAndDesc[1:], "\n")
-	} else {
+	}
+
+	if msg == "" {
+		if code == http.StatusInternalServerError {
+			msg = fmt.Sprintf("%+v", err)
+		} else {
+			msg = err.Error()
+		}
+	} else if desc == "" {
 		if code == http.StatusInternalServerError {
 			desc = fmt.Sprintf("%+v", err)
 		} else {
@@ -55,15 +93,13 @@ func Wrap(err error, code int, key string, msgAndDesc ...string) *StatusErr {
 		}
 	}
 
-	s := &StatusErr{
+	return &StatusErr{
 		Key:   key,
 		Code:  code,
 		Msg:   msg,
 		Desc:  desc,
 		error: errors.WithStack(err),
 	}
-
-	return s
 }
 
 type StatusErr struct {
@@ -74,14 +110,14 @@ type StatusErr struct {
 	// msg of err
 	Msg string `json:"msg" xml:"msg"`
 	// desc of err
-	Desc string `json:"desc" xml:"desc"`
+	Desc string `json:"desc,omitempty" xml:"desc,omitempty"`
 	// can be task error
 	// for client to should error msg to end user
-	CanBeTalkError bool `json:"canBeTalkError" xml:"canBeTalkError"`
+	CanBeTalkError bool `json:"canBeTalkError,omitempty" xml:"canBeTalkError,omitempty"`
 	// error tracing
-	Sources []string `json:"sources" xml:"sources"`
+	Sources []string `json:"sources,omitempty" xml:"sources,omitempty"`
 	// error in where fields
-	ErrorFields ErrorFields `json:"errorFields" xml:"errorFields"`
+	ErrorFields ErrorFields `json:"errorFields,omitempty" xml:"errorFields,omitempty"`
 
 	error error
 }
