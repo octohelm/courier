@@ -299,6 +299,7 @@ type CanRuntimeDoc interface {
 
 func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.OperationObject, t reflect.Type) {
 	var docer CanRuntimeDoc
+
 	if d, ok := reflect.New(t).Interface().(CanRuntimeDoc); ok {
 		docer = d
 	}
@@ -321,6 +322,12 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 
 		schema := b.SchemaFromType(ctx, v.Interface(), false)
 
+		if schema != nil && docer != nil {
+			if lines, ok := docer.RuntimeDoc(field.Name()); ok {
+				schema.GetMetadata().Description = strings.Join(lines, "\n")
+			}
+		}
+
 		switch location {
 		case "body":
 			reqBody := op.RequestBody
@@ -329,14 +336,6 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 					Required: true,
 				}
 				op.SetRequestBody(reqBody)
-			}
-
-			if docer != nil {
-				if schema != nil {
-					if lines, ok := docer.RuntimeDoc(field.Name()); ok {
-						schema.GetMetadata().Description = strings.Join(lines, "\n")
-					}
-				}
 			}
 
 			reqBody.AddContent(tf.Names()[0], &openapi.MediaTypeObject{

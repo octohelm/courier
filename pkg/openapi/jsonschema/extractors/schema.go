@@ -2,6 +2,7 @@ package extractors
 
 import (
 	"context"
+	"encoding"
 	"fmt"
 	"go/ast"
 	"reflect"
@@ -59,6 +60,8 @@ func must[T any](ret T, err error) T {
 func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.Schema) {
 	sr := SchemaRegisterContext.From(ctx)
 
+	inst := reflect.New(t).Interface()
+
 	// named type
 	if pkgPath := t.PkgPath(); pkgPath != "" {
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
@@ -91,8 +94,6 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 				}
 			}()
 		}
-
-		inst := reflect.New(t).Interface()
 
 		if canDoc, ok := inst.(jsonschema.CanSwaggerDoc); ok {
 			opt = opt.WithDoc(canDoc.SwaggerDoc())
@@ -214,18 +215,15 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			}
 		}()
 
-		for i := 0; i < t.NumMethod(); i++ {
-			if t.Method(i).Name == "Bytes" {
-				return jsonschema.Binary()
-			}
-			if t.Method(i).Name == "MarshalText" {
-				return jsonschema.String()
-			}
+		// TODO find better way
+		if typeRef == "mime/multipart.FileHeader" || typeRef == "io.ReadCloser" {
+			return jsonschema.Binary()
 		}
 
-		// TODO find better way
-		if typeRef == "mime/multipart.FileHeader" {
-			return jsonschema.Binary()
+		if _, ok := inst.(encoding.TextUnmarshaler); ok {
+			if _, ok := inst.(encoding.TextMarshaler); ok {
+				return jsonschema.String()
+			}
 		}
 	}
 
