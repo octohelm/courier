@@ -16,7 +16,7 @@ func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, erro
 	return request.NewRouteHandlers(route, service)
 }
 
-func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddleware) (http.Handler, error) {
+func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerMiddleware) (http.Handler, error) {
 	customOpenApiRouter := false
 
 	for _, r := range cr.Routes() {
@@ -57,15 +57,20 @@ func New(cr courier.Router, service string, middlewares ...handler.HandlerMiddle
 	})
 
 	m := &mux{
-		globalMiddleware: handler.ApplyHandlerMiddlewares(append(middlewares, methodOverride)...),
-		oas:              oas,
+		oas:             oas,
+		routeMiddleware: handler.ApplyHandlerMiddlewares(routeMiddlewares...),
 	}
 
 	for i := range handlers {
 		m.register(handlers[i])
 	}
 
-	return m.Handler()
+	h, err := m.Handler()
+	if err != nil {
+		return nil, err
+	}
+
+	return methodOverride(h), nil
 }
 
 var methodOverride = func(n http.Handler) http.Handler {

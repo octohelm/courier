@@ -22,9 +22,10 @@ import (
 )
 
 type mux struct {
-	oas              *openapispec.OpenAPI
-	globalMiddleware handler.HandlerMiddleware
-	tree             *pathpattern.Tree[RouteHandler]
+	oas  *openapispec.OpenAPI
+	tree *pathpattern.Tree[RouteHandler]
+	// middleware for each route
+	routeMiddleware handler.HandlerMiddleware
 }
 
 func (m *mux) register(h request.RouteHandler) {
@@ -59,12 +60,12 @@ func (m *mux) Handler() (http.Handler, error) {
 		_, _ = fmt.Fprintln(w)
 	}()
 
-	h, err := g.createHandler(w)
+	h, err := g.createHandler(w, m.routeMiddleware)
 	if err != nil {
 		return nil, err
 	}
 
-	return m.globalMiddleware(h), nil
+	return h, nil
 }
 
 type group struct {
@@ -177,7 +178,7 @@ func toPath(pathSegments pathpattern.Segments) string {
 	return s.String()
 }
 
-func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...contextInject) (h http.Handler, err error) {
+func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handler.HandlerMiddleware, contextInjects ...contextInject) (h http.Handler, err error) {
 	if len(g.handlers) > 0 {
 		r := httprouter.New()
 
@@ -229,13 +230,21 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 				}
 				_, _ = p.Fprint(printer, " }}\n")
 
+				var finalHandler http.Handler = hh
+
+				if routeMiddleware != nil {
+					finalHandler = routeMiddleware(finalHandler)
+				}
+
 				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 					ctx := req.Context()
 					for _, inject := range ctxInjects {
 						ctx = inject(ctx)
 					}
+
 					ctx = handler.ContextWithParamGetter(ctx, params)
-					hh.ServeHTTP(rw, req.WithContext(ctx))
+
+					finalHandler.ServeHTTP(rw, req.WithContext(ctx))
 				})
 			} else {
 				panic(errors.Errorf("invalid router %v", h))
@@ -257,7 +266,7 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 		for _, k := range keys {
 			c := g.children[k]
 
-			h, err := c.createHandler(printer, contextInjects...)
+			h, err := c.createHandler(printer, routeMiddleware, contextInjects...)
 			if err != nil {
 				return nil, err
 			}
