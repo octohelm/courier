@@ -84,5 +84,5 @@ func EachRequestParameter(ctx context.Context, tpe typesx.Type, each func(rp *Re
 }
 
 func isBytes(t typesx.Type) bool {
-	return t.PkgPath() == "" && t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
+	return t.PkgPath() == "" && t.Kind() == reflect.Slice && t.Elem().PkgPath() == "" && t.Elem().Kind() == reflect.Uint8
 }
