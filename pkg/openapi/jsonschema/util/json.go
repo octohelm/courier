@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/go-openapi/jsonpointer"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	validatorerrors "github.com/octohelm/courier/pkg/validator"
 	"github.com/pkg/errors"
@@ -61,20 +60,15 @@ func UnmarshalTaggedUnionFromJSON(data []byte, ut jsonschema.GoTaggedUnionType) 
 	return errors.Errorf("Unsupported Kind %s", discriminatorValue)
 }
 
-func keyPathFromJSONPointer(jsonPointer string) []any {
-	p, _ := jsonpointer.New(jsonPointer)
-	keys := p.DecodedTokens()
+func keyPathFromJSONPointer(jsonPointer jsontext.Pointer) []any {
+	final := make([]any, 0)
 
-	final := make([]any, len(keys))
-
-	for i := range final {
-		key := keys[i]
-
+	for key := range jsonPointer.Tokens() {
 		d, err := strconv.ParseInt(key, 10, 64)
 		if err == nil {
-			final[i] = int(d)
+			final = append(final, int(d))
 		} else {
-			final[i] = key
+			final = append(final, key)
 		}
 	}
 
