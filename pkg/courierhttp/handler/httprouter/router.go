@@ -36,6 +36,7 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerM
 
 	if !customOpenApiRouter {
 		cr.Register(courier.NewRouter(&OpenAPI{}))
+		cr.Register(courier.NewRouter(&OpenAPIView{}))
 	}
 
 	routes := cr.Routes()
