@@ -2,31 +2,103 @@ package expression
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/octohelm/courier/pkg/expression/raw"
 	"github.com/pkg/errors"
 )
 
-// Each
+// Every
 //
 // Syntax
 //
-//		each(
-//	   key(len(), gt(1)),
-//	   elem(len(), gt(1)),
-//		)
-var Each = Register(func(b ExprBuilder) func(ex Expression) Expression {
+//	    some(
+//		        key(len(), gt(1)),
+//		        elem(len(), gt(1)),
+//	    )
+var Some = Register(func(b ExprBuilder) func(ex Expression) Expression {
 	return func(ex Expression) Expression {
 		return b.BuildExpression(ex)
 	}
-}, &each{})
+}, &some{})
 
-type each struct {
+type some struct {
+	E
+
+	Rules []any `arg:"..."`
+}
+
+func (e *some) Exec(ctx context.Context, in any) (any, error) {
+	switch x := raw.ValueOf(in).(type) {
+	case raw.MapValue:
+		iter := x.Iter()
+
+		for iter.Next() {
+			val := iter.Val()
+
+			for j := range e.Rules {
+				switch r := e.Rules[j].(type) {
+				case Expr:
+					ret, err := r.Exec(ctx, val)
+					if err != nil {
+						return nil, err
+					}
+					if raw.ToBool(raw.ValueOf(ret)) {
+						return true, nil
+					}
+				}
+			}
+		}
+
+		return false, nil
+	case raw.ArrayValue:
+		iter := x.Iter()
+
+		for iter.Next() {
+			val := iter.Val()
+
+			fmt.Println(val)
+
+			for j := range e.Rules {
+				switch r := e.Rules[j].(type) {
+				case Expr:
+					ret, err := r.Exec(ctx, val)
+					if err != nil {
+						return nil, err
+					}
+
+					if raw.ToBool(raw.ValueOf(ret)) {
+						return true, nil
+					}
+				}
+			}
+		}
+
+		return false, nil
+	}
+	return false, nil
+}
+
+// Every
+//
+// Syntax
+//
+//	    every(
+//		        key(len(), gt(1)),
+//		        elem(len(), gt(1)),
+//	    )
+var Every = Register(func(b ExprBuilder) func(ex Expression) Expression {
+	return func(ex Expression) Expression {
+		return b.BuildExpression(ex)
+	}
+}, &every{})
+
+type every struct {
 	E
 	Rules []any `arg:"..."`
 }
 
-func (e *each) Exec(ctx context.Context, in any) (any, error) {
+func (e *every) Exec(ctx context.Context, in any) (any, error) {
 	switch x := raw.ValueOf(in).(type) {
 	case raw.MapValue:
 		iter := x.Iter()
@@ -47,6 +119,8 @@ func (e *each) Exec(ctx context.Context, in any) (any, error) {
 				}
 			}
 		}
+
+		return true, nil
 	case raw.ArrayValue:
 		iter := x.Iter()
 
@@ -66,8 +140,10 @@ func (e *each) Exec(ctx context.Context, in any) (any, error) {
 				}
 			}
 		}
+
+		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
 
 // Elem

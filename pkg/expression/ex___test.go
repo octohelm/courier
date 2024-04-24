@@ -11,12 +11,9 @@ import (
 )
 
 func TestExpr(t *testing.T) {
-	t.Run("array", func(t *testing.T) {
-		e, _ := From(AllOf(
-			Pipe(Len(), Gte(3)),
-			Each(
-				Elem(Pipe(Len(), Gte(3))),
-			),
+	t.Run("array every", func(t *testing.T) {
+		e, _ := From(Every(
+			Elem(Pipe(Len(), Gte(3))),
 		))
 
 		t.Run("should pass", func(t *testing.T) {
@@ -31,6 +28,27 @@ func TestExpr(t *testing.T) {
 
 		t.Run("should failed cause elem len", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "11", "123"})
+			testingx.Expect(t, ret, testingx.Be[any](false))
+		})
+	})
+
+	t.Run("array some", func(t *testing.T) {
+		e, _ := From(Some(
+			Elem(Pipe(Len(), Gte(3))),
+		))
+
+		t.Run("should pass", func(t *testing.T) {
+			ret, _ := e.Exec(context.Background(), []any{"123", "123", "123"})
+			testingx.Expect(t, ret, testingx.Be[any](true))
+		})
+
+		t.Run("should pass when some array item match", func(t *testing.T) {
+			ret, _ := e.Exec(context.Background(), []any{"123", "11", "1"})
+			testingx.Expect(t, ret, testingx.Be[any](true))
+		})
+
+		t.Run("should failed when nothing match", func(t *testing.T) {
+			ret, _ := e.Exec(context.Background(), []any{"12", "11", "1"})
 			testingx.Expect(t, ret, testingx.Be[any](false))
 		})
 	})
