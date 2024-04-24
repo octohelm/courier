@@ -2,9 +2,10 @@ package jsonschema
 
 import (
 	"bytes"
+	"io"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"io"
 )
 
 type OpenAPISchemaGetter interface {

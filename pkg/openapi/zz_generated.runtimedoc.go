@@ -80,7 +80,7 @@ func (v EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "HeadersObject":
 			return []string{}, true
-		case "Color":
+		case "Style":
 			return []string{}, true
 		case "Explode":
 			return []string{}, true
@@ -113,7 +113,7 @@ func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Deprecated":
 			return []string{}, true
-		case "Color":
+		case "Style":
 			return []string{
 				"https://spec.openapis.org/oas/latest.html#parameter-object",
 			}, true
@@ -310,21 +310,7 @@ func (v PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Description":
 			return []string{}, true
-		case "GET":
-			return []string{}, true
-		case "PUT":
-			return []string{}, true
-		case "POST":
-			return []string{}, true
-		case "DELETE":
-			return []string{}, true
-		case "OPTIONS":
-			return []string{}, true
-		case "HEAD":
-			return []string{}, true
-		case "PATCH":
-			return []string{}, true
-		case "TRACE":
+		case "Operations":
 			return []string{}, true
 
 		}

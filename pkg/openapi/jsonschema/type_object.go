@@ -1,10 +1,11 @@
 package jsonschema
 
 import (
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
 	"io"
 	"sort"
+
+	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
 )
 
 func ObjectOf(props map[string]Schema, required ...string) *ObjectType {

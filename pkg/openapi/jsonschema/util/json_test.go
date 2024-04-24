@@ -1,11 +1,12 @@
 package util
 
 import (
+	"testing"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-json-experiment/json"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	testingx "github.com/octohelm/x/testing"
-	"testing"
 )
 
 func TestUnmarshalTaggedUnionFromJSON(t *testing.T) {

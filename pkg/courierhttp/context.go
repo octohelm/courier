@@ -31,17 +31,29 @@ func OperationInfoFromContext(ctx context.Context) OperationInfo {
 	return OperationInfo{}
 }
 
-// OperationIDFromContext
-// Deprecated use OperationInfoFromContext instead
-func OperationIDFromContext(ctx context.Context) string {
-	if info, ok := ctx.Value(contextOperationInfo{}).(OperationInfo); ok {
-		return info.ID
-	}
-	return ""
-}
-
 type OperationInfo struct {
+	Server
 	ID     string
 	Method string
 	Route  string
+}
+
+func (s OperationInfo) UserAgent() string {
+	id := s.ID
+	if id == "" {
+		id = "Unknown"
+	}
+	return s.Server.UserAgent() + " (" + id + ")"
+}
+
+type Server struct {
+	Name    string
+	Version string
+}
+
+func (s Server) UserAgent() string {
+	if s.Version == "" {
+		return s.Name
+	}
+	return s.Name + "/" + s.Version
 }

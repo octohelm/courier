@@ -1,10 +1,11 @@
 package jsonschema
 
 import (
-	"github.com/pkg/errors"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // openapi:strfmt uri

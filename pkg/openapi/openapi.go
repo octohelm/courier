@@ -1,9 +1,10 @@
 package openapi
 
 import (
+	"strings"
+
 	"github.com/go-json-experiment/json"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"strings"
 )
 
 type Payload struct {

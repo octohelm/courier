@@ -2,9 +2,10 @@ package core
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/octohelm/courier/pkg/validator"
 	typesx "github.com/octohelm/x/types"
-	"reflect"
 )
 
 type RequestParameter struct {

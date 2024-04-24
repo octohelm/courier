@@ -2,12 +2,13 @@ package util
 
 import (
 	"bytes"
+	"strconv"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	validatorerrors "github.com/octohelm/courier/pkg/validator"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 func UnmarshalTaggedUnionFromJSON(data []byte, ut jsonschema.GoTaggedUnionType) error {

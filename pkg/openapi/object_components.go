@@ -1,10 +1,11 @@
 package openapi
 
 import (
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
 	"net/url"
 	"strings"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+	"github.com/octohelm/courier/pkg/ptr"
 )
 
 // https://spec.openapis.org/oas/latest.html#components-object

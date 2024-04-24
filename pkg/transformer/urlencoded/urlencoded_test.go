@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding"
 	"fmt"
-	encodingx "github.com/octohelm/x/encoding"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"reflect"
 	"testing"
+
+	encodingx "github.com/octohelm/x/encoding"
+	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/transformer"

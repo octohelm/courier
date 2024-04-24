@@ -1,13 +1,14 @@
 package httprouter
 
 import (
+	"net/http"
+	"sort"
+	"strings"
+
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/openapi"
-	"net/http"
-	"sort"
-	"strings"
 )
 
 type RouteHandler = request.RouteHandler
@@ -60,6 +61,13 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerM
 	m := &mux{
 		oas:             oas,
 		routeMiddleware: handler.ApplyHandlerMiddlewares(routeMiddlewares...),
+	}
+
+	nameVersion := strings.Split(service, "@")
+
+	m.server.Name = nameVersion[0]
+	if len(nameVersion) >= 2 {
+		m.server.Version = nameVersion[1]
 	}
 
 	for i := range handlers {

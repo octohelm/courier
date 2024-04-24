@@ -2,13 +2,14 @@ package transport
 
 import (
 	"context"
-	"github.com/go-courier/logr"
 	"io"
 	"net/http"
 	"net/textproto"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/go-courier/logr"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/statuserror"

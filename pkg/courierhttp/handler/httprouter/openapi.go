@@ -2,6 +2,7 @@ package httprouter
 
 import (
 	"context"
+
 	"github.com/octohelm/courier/pkg/openapi"
 
 	"github.com/octohelm/courier/pkg/courierhttp"

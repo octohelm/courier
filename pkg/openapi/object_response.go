@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"fmt"
+
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 

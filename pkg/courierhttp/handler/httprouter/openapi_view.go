@@ -3,11 +3,12 @@ package httprouter
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 var openapiView transport.Upgrader

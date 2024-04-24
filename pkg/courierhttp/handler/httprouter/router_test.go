@@ -25,6 +25,7 @@ func TestNew(t *testing.T) {
 HTTP/0.0 302 Found
 Content-Type: text/html; charset=utf-8
 Location: /orgs
+Server: test (ListOrgOld)
 
 <a href="/orgs">Found</a>.
 `)
@@ -46,6 +47,7 @@ Location: /orgs
 			Token: cookie.Value,
 		}, `
 HTTP/0.0 204 No Content
+Server: test (Cookie)
 Set-Cookie: `+cookie.String()+`
 
 `)
@@ -61,6 +63,7 @@ Set-Cookie: `+cookie.String()+`
 			Name: "hello",
 		}, `HTTP/0.0 200 OK
 Content-Type: application/json; charset=utf-8
+Server: test (GetOrg)
 
 {"name":"hello","type":"GOV"}
 `)
@@ -80,6 +83,7 @@ Content-Type: application/json; charset=utf-8
 				},
 			}, `
 HTTP/0.0 204 No Content
+Server: test (CreateOrg)
 `)
 		})
 
@@ -91,6 +95,7 @@ HTTP/0.0 204 No Content
 			}, `
 HTTP/0.0 400 Bad Request
 Content-Type: application/json; charset=utf-8
+Server: test (CreateOrg)
 
 {"code":400,"key":"badRequest","msg":"invalid parameters","sources":["test"],"errorFields":[{"field":"name","msg":"string length should be less than 5, but got invalid value 7","in":"body"}]}
 `)

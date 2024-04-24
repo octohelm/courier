@@ -2,6 +2,7 @@ package jsonschema
 
 import (
 	"bytes"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/pkg/errors"

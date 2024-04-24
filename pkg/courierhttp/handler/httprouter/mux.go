@@ -22,8 +22,9 @@ import (
 )
 
 type mux struct {
-	oas  *openapispec.OpenAPI
-	tree *pathpattern.Tree[RouteHandler]
+	server courierhttp.Server
+	oas    *openapispec.OpenAPI
+	tree   *pathpattern.Tree[RouteHandler]
 	// middleware for each route
 	routeMiddleware handler.HandlerMiddleware
 }
@@ -187,12 +188,16 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 
 			if hh, ok := h.(RouteHandler); ok {
 				ctxInjects := contextInjects[:]
+				info := courierhttp.OperationInfo{
+					Server: g.mux.server,
+				}
 
 				if rh, ok := h.(RouteHandler); ok {
-					info := courierhttp.OperationInfo{
+					info = courierhttp.OperationInfo{
+						Server: g.mux.server,
 						Route:  rh.Path(),
-						ID:     rh.OperationID(),
 						Method: hh.Method(),
+						ID:     rh.OperationID(),
 					}
 
 					ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
@@ -236,6 +241,8 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 					finalHandler = routeMiddleware(finalHandler)
 				}
 
+				serverInfo := info.UserAgent()
+
 				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
 					ctx := req.Context()
 					for _, inject := range ctxInjects {
@@ -243,6 +250,8 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 					}
 
 					ctx = handler.ContextWithParamGetter(ctx, params)
+
+					rw.Header().Set("Server", serverInfo)
 
 					finalHandler.ServeHTTP(rw, req.WithContext(ctx))
 				})
