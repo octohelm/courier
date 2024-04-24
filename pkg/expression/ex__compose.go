@@ -167,7 +167,7 @@ func (e *elem) Exec(ctx context.Context, in any) (any, error) {
 	case raw.IterVal:
 		return e.Elem.Exec(ctx, x.Value())
 	}
-	return nil, errors.New("`elem` must be used in `each`")
+	return nil, errors.New("`elem` must be used in `every` or `some`")
 }
 
 // Key
@@ -191,5 +191,5 @@ func (e *key) Exec(ctx context.Context, in any) (any, error) {
 	case raw.IterVal:
 		return e.Key.Exec(ctx, x.Key())
 	}
-	return nil, errors.New("`key` must be used in `each`")
+	return nil, errors.New("`key` must be used in `every` or `some`")
 }
