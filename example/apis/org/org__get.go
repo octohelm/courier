@@ -2,16 +2,11 @@ package org
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/octohelm/courier/example/apis/org/operator"
 	"github.com/octohelm/courier/pkg/courier"
-
-	"github.com/pkg/errors"
-
 	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/statuserror"
 )
 
 func (GetOrg) MiddleOperators() courier.MiddleOperators {
@@ -23,12 +18,13 @@ func (GetOrg) MiddleOperators() courier.MiddleOperators {
 // 查询组织信息
 type GetOrg struct {
 	courierhttp.MethodGet `path:"/:orgName"`
-	OrgName               string `name:"orgName" in:"path" `
+
+	OrgName string `name:"orgName" in:"path" `
 }
 
 func (c *GetOrg) Output(ctx context.Context) (any, error) {
 	if c.OrgName == "NotFound" {
-		return nil, statuserror.Wrap(errors.New("NotFound"), http.StatusNotFound, "NotFound")
+		return nil, &ErrNotFound{OrgName: c.OrgName}
 	}
 
 	return &Detail{

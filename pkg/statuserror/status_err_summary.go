@@ -8,6 +8,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ErrorWithSummary interface {
+	Summary() string
+}
+
+func Summary(err error) (string, bool) {
+	if s, ok := err.(ErrorWithSummary); ok {
+		return s.Summary(), true
+	}
+	e := FromErr(err)
+	if e == nil {
+		return "", false
+	}
+	return e.Summary(), true
+}
+
 func ParseStatusErrSummary(str string) (*StatusErr, error) {
 	s := &scanner.Scanner{}
 	s.Init(bytes.NewBufferString(str))

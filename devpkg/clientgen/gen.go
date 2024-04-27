@@ -1,4 +1,4 @@
-package openapi
+package clientgen
 
 import (
 	"context"
@@ -428,11 +428,11 @@ const (
 `,
 			"enums": gengo.MapSnippet(enumType.Enum, func(enum any) gengo.Snippet {
 				return gengo.Snippet{gengo.T: `
-@NamePrefix'__@Name @Type = @value
+@NamePrefix'__@OrgName @Type = @value
 `,
 					"Type":       gengo.ID(gengo.UpperCamelCase(name)),
 					"NamePrefix": gengo.ID(gengo.UpperSnakeCase(name)),
-					"Name":       gengo.ID(gengo.UpperCamelCase(enum.(string))),
+					"OrgName":    gengo.ID(gengo.UpperCamelCase(enum.(string))),
 					"value":      enum,
 				}
 			}),

@@ -3,6 +3,7 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -18,7 +19,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
-	"github.com/octohelm/courier/pkg/statuserror"
 	transformer "github.com/octohelm/courier/pkg/transformer/core"
 	"github.com/octohelm/gengo/pkg/gengo"
 	typesx "github.com/octohelm/x/types"
@@ -169,6 +169,8 @@ func (b *scanner) scan(r courier.Route) error {
 
 				b.scanResponse(ctx, op, o)
 			}
+
+			b.scanResponseError(ctx, op, o)
 		}
 
 		b.o.AddOperation(rh.Method(), b.patchPath(rh.Path(), op), op)
@@ -265,19 +267,33 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.OperationObject,
 	}
 
 	op.AddResponse(statusCode, resp)
+}
 
+func (b *scanner) scanResponseError(ctx context.Context, op *openapi.OperationObject, o *courier.OperatorFactory) {
 	if can, ok := o.Operator.(CanResponseErrors); ok {
 		returnErrors := can.ResponseErrors()
 
 		codes := map[int][]string{}
 
-		for i := range returnErrors {
-			e := statuserror.FromErr(returnErrors[i])
-			codes[e.StatusCode()] = append(codes[e.StatusCode()], e.Summary())
+		for _, err := range returnErrors {
+			if e, ok := err.(statuserror.ErrorWithStatusCode); ok {
+				s, ok := statuserror.Summary(err)
+				if ok {
+					codes[e.StatusCode()] = append(codes[e.StatusCode()], s)
+				}
+			}
+		}
+
+		if op.Responses == nil {
+			op.Responses = map[string]*openapi.ResponseObject{}
 		}
 
 		for statusCode := range codes {
-			errResp := &openapi.ResponseObject{}
+			errResp, ok := op.Responses[fmt.Sprintf("%d", statusCode)]
+			if !ok {
+				errResp = &openapi.ResponseObject{}
+			}
+
 			mt := &openapi.MediaTypeObject{}
 			mt.Schema = b.SchemaFromType(
 				ctx,
@@ -286,12 +302,16 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.OperationObject,
 			)
 
 			errResp.AddContent("application/json", mt)
-			errResp.AddExtension("x-status-return-errors", codes[statusCode])
+
+			if found, ok := errResp.GetExtension("x-status-return-errors"); ok {
+				errResp.AddExtension("x-status-return-errors", append(found.([]string), codes[statusCode]...))
+			} else {
+				errResp.AddExtension("x-status-return-errors", codes[statusCode])
+			}
 
 			op.AddResponse(statusCode, errResp)
 		}
 	}
-
 }
 
 type CanRuntimeDoc interface {

@@ -1,4 +1,4 @@
-package openapi
+package operatorgen
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
-	typesutil "github.com/octohelm/x/types"
+	typex "github.com/octohelm/x/types"
 )
 
 func init() {
@@ -36,7 +36,7 @@ func (g *operatorGen) GenerateType(c gengo.Context, named *types.Named) error {
 		return gengo.ErrSkip
 	}
 
-	if !isCourierOperator(c, typesutil.FromTType(types.NewPointer(named)), g.resolvePkg) {
+	if !isCourierOperator(c, typex.FromTType(types.NewPointer(named)), g.resolvePkg) {
 		return gengo.ErrSkip
 	}
 
@@ -46,12 +46,12 @@ func (g *operatorGen) GenerateType(c gengo.Context, named *types.Named) error {
 }
 
 func (g *operatorGen) generateReturns(c gengo.Context, named *types.Named) {
-	method, ok := typesutil.FromTType(types.NewPointer(named)).MethodByName("Output")
+	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("Output")
 	if ok {
-		results, n := c.Package(named.Obj().Pkg().Path()).ResultsOf(method.(*typesutil.TMethod).Func)
+		results, n := c.Package(named.Obj().Pkg().Path()).ResultsOf(method.(*typex.TMethod).Func)
 		if n == 2 {
 			g.generateSuccessReturn(c, named, results[0])
-			g.generateErrorsReturn(c, named, method.(*typesutil.TMethod).Func)
+			g.generateErrorsReturn(c, named, method.(*typex.TMethod).Func)
 		}
 	}
 }
@@ -222,9 +222,9 @@ func (g *operatorGen) resolvePkg(c gengo.Context, importPath string) *types.Pack
 }
 
 func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name string) (interface{}, bool) {
-	method, ok := typesutil.FromTType(types.NewPointer(named)).MethodByName(name)
+	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName(name)
 	if ok {
-		fn := method.(*typesutil.TMethod).Func
+		fn := method.(*typex.TMethod).Func
 		results, n := c.Package(fn.Pkg().Path()).ResultsOf(fn)
 		if n == 1 {
 			for _, r := range results[0] {
@@ -240,11 +240,11 @@ func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name
 
 var typOperator = reflect.TypeOf((*courier.Operator)(nil)).Elem()
 
-func isCourierOperator(c gengo.Context, tpe typesutil.Type, lookup func(c gengo.Context, importPath string) *types.Package) bool {
+func isCourierOperator(c gengo.Context, tpe typex.Type, lookup func(c gengo.Context, importPath string) *types.Package) bool {
 	switch tpe.(type) {
-	case *typesutil.RType:
-		return tpe.Implements(typesutil.FromRType(typOperator))
-	case *typesutil.TType:
+	case *typex.RType:
+		return tpe.Implements(typex.FromRType(typOperator))
+	case *typex.TType:
 		pkg := lookup(c, typOperator.PkgPath())
 		if pkg == nil {
 			return false
@@ -253,7 +253,7 @@ func isCourierOperator(c gengo.Context, tpe typesutil.Type, lookup func(c gengo.
 		if t == nil {
 			return false
 		}
-		return types.Implements(tpe.(*typesutil.TType).Type, t.Type().Underlying().(*types.Interface))
+		return types.Implements(tpe.(*typex.TType).Type, t.Type().Underlying().(*types.Interface))
 	}
 	return false
 }

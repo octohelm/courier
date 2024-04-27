@@ -87,7 +87,7 @@ func (op Option) String() string {
 	values := url.Values{}
 
 	if op.Name != "" {
-		values.Add("Name", op.Name)
+		values.Add("OrgName", op.Name)
 	}
 
 	if op.MIME != "" {

@@ -8,10 +8,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GOEXPERIMENT: "rangefunc"
+
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: '^1.22'
 
       - run: make test.race
+
+
