@@ -244,10 +244,9 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		statusErr, ok := statuserror.IsStatusErr(err)
 		if !ok {
 			if errors.Is(err, context.Canceled) {
-				// https://httpstatuses.com/499
-				statusErr = statuserror.Wrap(err, 499, "ContextCanceled")
+				statusErr = statuserror.New(&ErrContextCanceled{Reason: err.Error()})
 			} else {
-				statusErr = statuserror.Wrap(err, http.StatusInternalServerError, "InternalServerError")
+				statusErr = statuserror.New(err)
 			}
 		}
 		resp = statusErr.AppendSource(req.ServiceName())

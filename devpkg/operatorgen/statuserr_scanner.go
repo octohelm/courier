@@ -1,9 +1,14 @@
-package openapi
+package operatorgen
 
 import (
 	"fmt"
+	typex "github.com/octohelm/x/types"
 	"go/ast"
+	"go/constant"
+	"go/token"
 	"go/types"
+	"net/http"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -74,6 +79,10 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 				tpe = p.Elem()
 			}
 			if named, ok := tpe.(*types.Named); ok {
+				if isErrWithStatusCodeInterface(named) {
+					return s.scanErrWithStatusCodeInterface(ctx, named)
+				}
+
 				if isTypeStatusErr(named) {
 					ast.Inspect(r.Expr, func(node ast.Node) bool {
 						switch x := node.(type) {
@@ -128,7 +137,6 @@ func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*
 
 func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengotypes.Package, obj types.Object, callIdent *ast.Ident, x *ast.CallExpr) bool {
 	if callIdent.Name == "Wrap" && obj.Pkg().Path() == statusErr.PkgPath() {
-
 		code := 0
 		key := ""
 		msg := ""
@@ -169,6 +177,126 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 	}
 
 	return false
+}
+
+var (
+	rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.ErrorWithStatusCode)(nil)).Elem())
+)
+
+func isErrWithStatusCodeInterface(named *types.Named) bool {
+	if named != nil {
+		return typex.FromTType(types.NewPointer(named)).Implements(rtypeErrorWithStatusCode)
+	}
+	return false
+}
+
+func (s *statusErrScanner) resolveStateCode(ctx gengo.Context, named *types.Named) (int, bool) {
+	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("StatusCode")
+	if ok {
+		m := method.(*typex.TMethod)
+		if m.Func.Pkg() == nil {
+			return 0, false
+		}
+
+		results, n := ctx.Package(m.Func.Pkg().Path()).ResultsOf(m.Func)
+		if n == 1 {
+			for _, r := range results[0] {
+				if r.Value != nil && r.Value.Kind() == constant.Int {
+					v, err := strconv.ParseInt(r.Value.String(), 10, 64)
+					if err == nil {
+						return int(v), true
+					}
+				}
+			}
+		}
+	}
+
+	return 0, false
+}
+
+func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.StatusErr) {
+	if named.Obj() == nil {
+		return nil
+	}
+
+	serr := &statuserror.StatusErr{
+		Key:  filepath.Base(named.Obj().Pkg().Path()) + "." + named.Obj().Name(),
+		Code: http.StatusInternalServerError,
+	}
+
+	code, ok := s.resolveStateCode(ctx, named)
+	if ok {
+		serr.Code = code
+	}
+
+	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("Error")
+	if ok {
+		m := method.(*typex.TMethod)
+		if m.Func.Pkg() == nil {
+			return
+		}
+
+		results, n := ctx.Package(m.Func.Pkg().Path()).ResultsOf(m.Func)
+		if n == 1 {
+			for _, r := range results[0] {
+				switch x := r.Expr.(type) {
+				case *ast.BasicLit:
+					str, err := strconv.Unquote(x.Value)
+					if err == nil {
+						e := &(*serr)
+						e.Msg = str
+						list = append(list, e)
+					}
+				case *ast.CallExpr:
+					if selectExpr, ok := x.Fun.(*ast.SelectorExpr); ok {
+						if selectExpr.Sel.Name == "Sprintf" {
+							e := &(*serr)
+							e.Msg = fmtSprintfArgsAsTemplate(x.Args)
+							list = append(list, e)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func fmtSprintfArgsAsTemplate(args []ast.Expr) string {
+	if len(args) == 0 {
+		return ""
+	}
+
+	f := ""
+	fArgs := make([]any, 0, len(args))
+
+	toString := func(a *ast.BasicLit) string {
+		switch a.Kind {
+		case token.STRING:
+			v, _ := strconv.Unquote(a.Value)
+			return v
+		default:
+			return a.Value
+		}
+	}
+
+	for i, arg := range args {
+		switch a := arg.(type) {
+		case *ast.BasicLit:
+			if i == 0 {
+				f = toString(a)
+			} else {
+				fArgs = append(fArgs, toString(a))
+			}
+		case *ast.SelectorExpr:
+			fArgs = append(fArgs, fmt.Sprintf("{%s}", a.Sel.Name))
+		case *ast.Ident:
+			fArgs = append(fArgs, fmt.Sprintf("{%s}", a.Name))
+		}
+	}
+
+	return fmt.Sprintf(normalizeFormat(f), fArgs...)
 }
 
 func pickStatusErrorsFromDoc(lines []string) []*statuserror.StatusErr {

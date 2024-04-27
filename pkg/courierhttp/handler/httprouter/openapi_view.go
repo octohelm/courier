@@ -2,7 +2,6 @@ package httprouter
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
@@ -22,8 +21,6 @@ type OpenAPIView struct {
 }
 
 func (o *OpenAPIView) Output(ctx context.Context) (any, error) {
-	fmt.Println("OpenAPIView")
-
 	if openapiView == nil {
 		return nil, statuserror.Wrap(
 			errors.New("openapi view not found"),

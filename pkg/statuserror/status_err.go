@@ -14,6 +14,7 @@ import (
 )
 
 type ErrorWithStatusCode interface {
+	Error() string
 	StatusCode() int
 }
 
@@ -34,7 +35,7 @@ func New(err error) *StatusErr {
 
 	statusCode := http.StatusInternalServerError
 
-	if canStatusCode, ok := err.(interface{ StatusCode() int }); ok {
+	if canStatusCode, ok := err.(ErrorWithStatusCode); ok {
 		statusCode = canStatusCode.StatusCode()
 	}
 
