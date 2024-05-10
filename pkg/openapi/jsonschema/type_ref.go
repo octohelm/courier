@@ -22,7 +22,7 @@ func (t RefType) RefName() string {
 	return "invalid"
 }
 
-func (t RefType) PrintTo(w io.Writer) {
+func (t RefType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		if t.Ref != nil {
 			p.Printf("#%s", t.Ref.RefName())

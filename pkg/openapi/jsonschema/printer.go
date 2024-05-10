@@ -1,23 +1,44 @@
 package jsonschema
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 )
 
+func PrintWithDoc() SchemaPrintOption {
+	return func(o *printOption) {
+		o.WithDoc = true
+	}
+}
+
+type SchemaPrintOption func(o *printOption)
+
+type printOption struct {
+	WithDoc bool
+}
+
+func (o *printOption) Build(optionFns ...SchemaPrintOption) {
+	for _, fn := range optionFns {
+		fn(o)
+	}
+}
+
 type Printer interface {
 	io.Writer
 
-	PrintFrom(pt PrinterTo)
+	PrintFrom(pt PrinterTo, optionFns ...SchemaPrintOption)
 	Print(values ...any)
 	Printf(fmt string, values ...any)
 
 	Indent() func()
 	Return()
+	PrintDoc(desc string)
 }
 
 type PrinterTo interface {
-	PrintTo(w io.Writer)
+	PrintTo(w io.Writer, optionFns ...SchemaPrintOption)
 }
 
 func Print(w io.Writer, fn func(p Printer)) {
@@ -40,6 +61,17 @@ type printer struct {
 	io.Writer
 }
 
+func (p *printer) PrintDoc(desc string) {
+	if len(desc) > 0 {
+		scanner := bufio.NewScanner(bytes.NewBufferString(desc))
+		for scanner.Scan() {
+			p.Print("// ", scanner.Text())
+			p.Return()
+		}
+	}
+
+}
+
 func (p *printer) printIndent() {
 	if p.newline {
 		for i := 0; i < p.indent; i++ {
@@ -49,8 +81,8 @@ func (p *printer) printIndent() {
 	}
 }
 
-func (p *printer) PrintFrom(pt PrinterTo) {
-	pt.PrintTo(p)
+func (p *printer) PrintFrom(pt PrinterTo, optionFns ...SchemaPrintOption) {
+	pt.PrintTo(p, optionFns...)
 }
 
 func (p *printer) Print(values ...any) {

@@ -35,7 +35,7 @@ type StringType struct {
 	Metadata
 }
 
-func (t StringType) PrintTo(w io.Writer) {
+func (t StringType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		if t.Format == "bytes" || t.Format == "binary" {
 			p.Print("[]byte")

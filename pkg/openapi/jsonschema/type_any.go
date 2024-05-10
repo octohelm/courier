@@ -13,7 +13,7 @@ type AnyType struct {
 	Metadata
 }
 
-func (AnyType) PrintTo(w io.Writer) {
+func (AnyType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		p.Print("_")
 	})

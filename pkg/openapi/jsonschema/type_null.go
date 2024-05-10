@@ -9,7 +9,7 @@ type NullType struct {
 	Metadata
 }
 
-func (NullType) PrintTo(w io.Writer) {
+func (NullType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		p.Print("null")
 	})

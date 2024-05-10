@@ -15,7 +15,7 @@ type BooleanType struct {
 	Metadata
 }
 
-func (BooleanType) PrintTo(w io.Writer) {
+func (BooleanType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		p.Print("bool")
 	})

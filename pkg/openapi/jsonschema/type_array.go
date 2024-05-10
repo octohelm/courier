@@ -24,10 +24,10 @@ type ArrayType struct {
 	Metadata
 }
 
-func (s ArrayType) PrintTo(w io.Writer) {
+func (s ArrayType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		p.Print("[...")
-		p.PrintFrom(s.Items)
+		p.PrintFrom(s.Items, optionFns...)
 		p.Print("]")
 	})
 }

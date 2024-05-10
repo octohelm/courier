@@ -336,13 +336,19 @@ func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Sch
 	fieldDoc := ""
 
 	if opt.Doc != nil {
-		if fieldDesc := opt.Doc[sf.Name]; fieldDesc != "" {
-			fieldDoc = fieldDesc
-			stringEnum := pickStringEnumFromDesc(fieldDesc)
-			if len(stringEnum) > 0 {
-				opt = opt.WithEnumInDoc(stringEnum)
+		for _, name := range []string{
+			sf.Name,
+			sf.DisplayName,
+		} {
+			if fieldDesc := opt.Doc[name]; fieldDesc != "" {
+				fieldDoc = fieldDesc
+				stringEnum := pickStringEnumFromDesc(fieldDesc)
+				if len(stringEnum) > 0 {
+					opt = opt.WithEnumInDoc(stringEnum)
+				}
 			}
 		}
+
 	}
 
 	propSchema := SchemaFromType(ctx, sf.Type, opt.WithDecl(false))

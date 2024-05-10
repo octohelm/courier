@@ -33,7 +33,7 @@ type Discriminator struct {
 	Mapping      map[string]Schema `json:"mapping,omitempty"`
 }
 
-func (t UnionType) PrintTo(w io.Writer) {
+func (t UnionType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		for i, s := range t.OneOf {
 			if i > 0 {

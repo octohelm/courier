@@ -76,7 +76,10 @@ func (props Props) MarshalJSONV2(encoder *jsontext.Encoder, options json.Options
 
 var _ json.MarshalerV2 = Props{}
 
-func (t ObjectType) PrintTo(w io.Writer) {
+func (t ObjectType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
+	opt := printOption{}
+	opt.Build(optionFns...)
+
 	Print(w, func(p Printer) {
 		if dynamicAnchor := t.DynamicAnchor; dynamicAnchor != "" {
 			p.Printf("#%s: ", dynamicAnchor)
@@ -96,15 +99,30 @@ func (t ObjectType) PrintTo(w io.Writer) {
 		defer end()
 
 		propIdx := 0
-		for prop, s := range t.Properties {
+
+		propNames := make([]string, 0, len(t.Properties))
+		for name := range t.Properties {
+			propNames = append(propNames, name)
+		}
+		sort.Strings(propNames)
+
+		for propIdx, propName := range propNames {
+			prop := t.Properties[propName]
 			if propIdx > 0 {
 				p.Return()
 			}
-			p.Printf("%q", prop)
+
+			if opt.WithDoc {
+				if desc := prop.GetMetadata().Description; desc != "" {
+					p.PrintDoc(desc)
+				}
+			}
+
+			p.Printf("%q", propName)
 
 			required := false
 			for _, r := range t.Required {
-				if r == prop {
+				if r == propName {
 					required = true
 					break
 				}
@@ -115,13 +133,11 @@ func (t ObjectType) PrintTo(w io.Writer) {
 			}
 
 			p.Print(": ")
-			p.PrintFrom(s)
-
-			propIdx++
+			p.PrintFrom(prop, optionFns...)
 		}
 
 		if additionalProperties := t.AdditionalProperties; additionalProperties != nil {
-			if propIdx > 0 {
+			if len(propNames) > 0 {
 				p.Return()
 			}
 
@@ -131,9 +147,9 @@ func (t ObjectType) PrintTo(w io.Writer) {
 			}
 
 			p.Print("[X=")
-			p.PrintFrom(propSchema)
+			p.PrintFrom(propSchema, optionFns...)
 			p.Print("]: ")
-			p.PrintFrom(additionalProperties)
+			p.PrintFrom(additionalProperties, optionFns...)
 		}
 
 		for name, d := range t.Defs {
@@ -145,7 +161,7 @@ func (t ObjectType) PrintTo(w io.Writer) {
 			} else {
 				p.Printf("#%s: ", name)
 			}
-			p.PrintFrom(d)
+			p.PrintFrom(d, optionFns...)
 			propIdx++
 		}
 	})

@@ -61,5 +61,5 @@ func (p *Payload) UnmarshalJSON(data []byte) (err error) {
 type Schema interface {
 	GetCore() *Core
 	GetMetadata() *Metadata
-	PrintTo(w io.Writer)
+	PrintTo(w io.Writer, optionFns ...SchemaPrintOption)
 }

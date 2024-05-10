@@ -2,6 +2,7 @@ package jsonschema
 
 import (
 	"io"
+	"reflect"
 )
 
 type GoEnumValues interface {
@@ -15,13 +16,19 @@ type EnumType struct {
 	Metadata
 }
 
-func (t EnumType) PrintTo(w io.Writer) {
+func (t EnumType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		for i, v := range t.Enum {
 			if i > 0 {
 				p.Printf(" | ")
 			}
-			p.Printf("%v", v)
+			
+			switch reflect.TypeOf(v).Kind() {
+			case reflect.String:
+				p.Printf("%q", v)
+			default:
+				p.Printf("%v", v)
+			}
 		}
 	})
 }

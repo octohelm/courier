@@ -17,7 +17,7 @@ type IntersectionType struct {
 	Metadata
 }
 
-func (t IntersectionType) PrintTo(w io.Writer) {
+func (t IntersectionType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		for i, s := range t.AllOf {
 			// skip any
@@ -28,7 +28,7 @@ func (t IntersectionType) PrintTo(w io.Writer) {
 			if i > 0 {
 				p.Print(" & ")
 			}
-			p.PrintFrom(s)
+			p.PrintFrom(s, optionFns...)
 		}
 	})
 }

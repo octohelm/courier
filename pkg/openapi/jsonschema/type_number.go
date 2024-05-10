@@ -39,7 +39,7 @@ type NumberType struct {
 	Metadata
 }
 
-func (t NumberType) PrintTo(w io.Writer) {
+func (t NumberType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	Print(w, func(p Printer) {
 		if t.Type == "integer" {
 			p.Print("int")
