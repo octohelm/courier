@@ -14,7 +14,11 @@ import (
 func ListenAndServe(ctx context.Context, addr string, handler http.Handler) error {
 	logger := logr.FromContext(ctx)
 
-	srv := &http.Server{Addr: addr, Handler: handler}
+	srv := &http.Server{
+		ReadHeaderTimeout: 30 * time.Second,
+		Addr:              addr,
+		Handler:           handler,
+	}
 
 	go func() {
 		logger.Info("listen on %s", addr)

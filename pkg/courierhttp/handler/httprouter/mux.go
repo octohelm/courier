@@ -118,7 +118,9 @@ func (g *group) addHandler(h RouteHandler, parents []*pathpattern.Route) {
 		g.children[route.PathSegments.String()] = child
 	}
 
-	child.addHandler(h, parents[1:])
+	if len(parents) > 0 {
+		child.addHandler(h, parents[1:])
+	}
 }
 
 func (g *group) Methods() []string {
