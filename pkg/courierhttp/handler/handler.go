@@ -2,7 +2,7 @@ package handler
 
 import "net/http"
 
-func ApplyHandlerMiddlewares(mw ...HandlerMiddleware) HandlerMiddleware {
+func ApplyMiddlewares(mw ...Middleware) Middleware {
 	return func(final http.Handler) http.Handler {
 		last := final
 		for i := len(mw) - 1; i >= 0; i-- {
@@ -12,4 +12,4 @@ func ApplyHandlerMiddlewares(mw ...HandlerMiddleware) HandlerMiddleware {
 	}
 }
 
-type HandlerMiddleware = func(http.Handler) http.Handler
+type Middleware = func(http.Handler) http.Handler

@@ -38,7 +38,7 @@ func (h *httpTransportFunc) RoundTrip(request *http.Request) (*http.Response, er
 	return h.round(request, h.rt.RoundTrip)
 }
 
-type HttpTransport func(rt http.RoundTripper) http.RoundTripper
+type HttpTransport = func(rt http.RoundTripper) http.RoundTripper
 
 type Client struct {
 	Endpoint       string `flag:""`

@@ -3,8 +3,10 @@ package request
 import (
 	"context"
 	"fmt"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"
@@ -30,9 +32,10 @@ type RouteHandler interface {
 	Operators() []*courier.OperatorFactory
 }
 
-func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, error) {
-	h := &handler{
-		service: service,
+func NewRouteHandlers(route courier.Route, service string, routeMiddlewares ...handler.Middleware) ([]RouteHandler, error) {
+	h := &routeHandler{
+		service:    service,
+		middleware: handler.ApplyMiddlewares(routeMiddlewares...),
 	}
 
 	basePath := "/"
@@ -98,7 +101,7 @@ func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, erro
 	return handlers, nil
 }
 
-type handler struct {
+type routeHandler struct {
 	service      string
 	operationID  string
 	method       string
@@ -108,44 +111,79 @@ type handler struct {
 	description  string
 	operators    []*courier.OperatorFactory
 	transformers []transport.IncomingTransport
+	middleware   handler.Middleware
+
+	once         sync.Once
+	finalHandler http.Handler
 }
 
-func (h *handler) OperationID() string {
+func (h *routeHandler) OperationID() string {
 	return h.operationID
 }
 
-func (h *handler) Method() string {
+func (h *routeHandler) Method() string {
 	return h.method
 }
 
-func (h *handler) Path() string {
+func (h *routeHandler) Path() string {
 	return h.segments.String()
 }
 
-func (h *handler) PathSegments() Segments {
+func (h *routeHandler) PathSegments() Segments {
 	return h.segments
 }
 
-func (h *handler) Summary() string {
+func (h *routeHandler) Summary() string {
 	if h.summary == "" {
 		return h.OperationID()
 	}
 	return h.summary
 }
 
-func (h *handler) Description() string {
+func (h *routeHandler) Description() string {
 	return h.description
 }
 
-func (h *handler) Deprecated() bool {
+func (h *routeHandler) Deprecated() bool {
 	return h.deprecated
 }
 
-func (h *handler) Operators() []*courier.OperatorFactory {
+func (h *routeHandler) Operators() []*courier.OperatorFactory {
 	return h.operators
 }
 
-func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (h routeHandler) cloneWithMethod(m string) RouteHandler {
+	h.method = m
+	h.operationID = fmt.Sprintf("%s_%s", m, h.operationID)
+	return &h
+}
+
+func (h *routeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	h.once.Do(func() {
+		var hh http.Handler = &routeHttpHandler{
+			routeHandler: h,
+		}
+
+		if h.middleware != nil {
+			hh = h.middleware(hh)
+		}
+
+		for _, o := range h.operators {
+			if x, ok := o.Operator.(WithPreHandlerMiddleware); ok {
+				hh = x.PreHandlerMiddleware(hh)
+			}
+		}
+
+		h.finalHandler = hh
+	})
+	h.finalHandler.ServeHTTP(rw, r)
+}
+
+type routeHttpHandler struct {
+	*routeHandler
+}
+
+func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	ctx = courierhttp.ContextWithHttpRequest(ctx, r)
@@ -189,8 +227,6 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h handler) cloneWithMethod(m string) RouteHandler {
-	h.method = m
-	h.operationID = fmt.Sprintf("%s_%s", m, h.operationID)
-	return &h
+type WithPreHandlerMiddleware interface {
+	PreHandlerMiddleware(h http.Handler) http.Handler
 }

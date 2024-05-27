@@ -371,6 +371,9 @@ func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
+func (SchemaPrintOption) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {

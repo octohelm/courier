@@ -13,11 +13,11 @@ import (
 
 type RouteHandler = request.RouteHandler
 
-func NewRouteHandlers(route courier.Route, service string) ([]RouteHandler, error) {
-	return request.NewRouteHandlers(route, service)
+func NewRouteHandlers(route courier.Route, service string, routeMiddlewares ...handler.Middleware) ([]RouteHandler, error) {
+	return request.NewRouteHandlers(route, service, routeMiddlewares...)
 }
 
-func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerMiddleware) (http.Handler, error) {
+func New(cr courier.Router, service string, routeMiddlewares ...handler.Middleware) (http.Handler, error) {
 	customOpenApiRouter := false
 
 	for _, r := range cr.Routes() {
@@ -47,7 +47,8 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerM
 	handlers := make([]request.RouteHandler, 0, len(routes))
 
 	for i := range routes {
-		rh, err := NewRouteHandlers(routes[i], service)
+		// middleware for each route
+		rh, err := NewRouteHandlers(routes[i], service, routeMiddlewares...)
 		if err != nil {
 			return nil, err
 		}
@@ -59,8 +60,7 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.HandlerM
 	})
 
 	m := &mux{
-		oas:             oas,
-		routeMiddleware: handler.ApplyHandlerMiddlewares(routeMiddlewares...),
+		oas: oas,
 	}
 
 	nameVersion := strings.Split(service, "@")

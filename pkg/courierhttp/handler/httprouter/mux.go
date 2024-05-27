@@ -25,8 +25,6 @@ type mux struct {
 	server courierhttp.Server
 	oas    *openapispec.OpenAPI
 	tree   *pathpattern.Tree[RouteHandler]
-	// middleware for each route
-	routeMiddleware handler.HandlerMiddleware
 }
 
 func (m *mux) register(h request.RouteHandler) {
@@ -61,7 +59,7 @@ func (m *mux) Handler() (http.Handler, error) {
 		_, _ = fmt.Fprintln(w)
 	}()
 
-	h, err := g.createHandler(w, m.routeMiddleware)
+	h, err := g.createHandler(w)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +179,7 @@ func toPath(pathSegments pathpattern.Segments) string {
 	return s.String()
 }
 
-func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handler.HandlerMiddleware, contextInjects ...contextInject) (h http.Handler, err error) {
+func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...contextInject) (h http.Handler, err error) {
 	if len(g.handlers) > 0 {
 		r := httprouter.New()
 
@@ -237,12 +235,6 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 				}
 				_, _ = p.Fprint(printer, " }}\n")
 
-				var finalHandler http.Handler = hh
-
-				if routeMiddleware != nil {
-					finalHandler = routeMiddleware(finalHandler)
-				}
-
 				serverInfo := info.UserAgent()
 
 				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -255,7 +247,7 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 
 					rw.Header().Set("Server", serverInfo)
 
-					finalHandler.ServeHTTP(rw, req.WithContext(ctx))
+					hh.ServeHTTP(rw, req.WithContext(ctx))
 				})
 			} else {
 				panic(errors.Errorf("invalid router %v", h))
@@ -277,7 +269,7 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, routeMiddleware handl
 		for _, k := range keys {
 			c := g.children[k]
 
-			h, err := c.createHandler(printer, routeMiddleware, contextInjects...)
+			h, err := c.createHandler(printer, contextInjects...)
 			if err != nil {
 				return nil, err
 			}

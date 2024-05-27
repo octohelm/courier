@@ -46,6 +46,15 @@ func (t *jsonTransformer) EncodeTo(ctx context.Context, w io.Writer, v any) erro
 		"charset": "utf-8",
 	})
 
+	if m, ok := v.(json.Marshaler); ok {
+		data, err := m.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		_, err = w.Write(data)
+		return err
+	}
+
 	return json.NewEncoder(w).Encode(v)
 }
 

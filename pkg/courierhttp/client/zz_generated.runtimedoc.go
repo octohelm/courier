@@ -28,7 +28,3 @@ func (v Client) RuntimeDoc(names ...string) ([]string, bool) {
 	}
 	return []string{}, true
 }
-
-func (HttpTransport) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}

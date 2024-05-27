@@ -183,10 +183,13 @@ func (c *transformerFactory) NewTransformer(ctx context.Context, typ typesx.Type
 
 func WriteHeader(ctx context.Context, w io.Writer, contentType string, param map[string]string) {
 	if rw, ok := w.(interface{ Header() http.Header }); ok {
-		if len(param) == 0 {
-			rw.Header().Set("Content-Type", contentType)
-		} else {
-			rw.Header().Set("Content-Type", mime.FormatMediaType(contentType, param))
+		// only set content when empty
+		if ct := rw.Header().Get("Content-Type"); ct == "" {
+			if len(param) == 0 {
+				rw.Header().Set("Content-Type", contentType)
+			} else {
+				rw.Header().Set("Content-Type", mime.FormatMediaType(contentType, param))
+			}
 		}
 	}
 
