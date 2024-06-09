@@ -42,6 +42,7 @@ type HttpTransport = func(rt http.RoundTripper) http.RoundTripper
 
 type Client struct {
 	Endpoint       string `flag:""`
+	NewError       func() error
 	HttpTransports []HttpTransport
 }
 
@@ -51,6 +52,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		r, err := c.newRequest(ctx, req, metas...)
 		if err != nil {
 			return &result{
+				c:   c,
 				err: statuserror.Wrap(err, http.StatusInternalServerError, "RequestFailed"),
 			}
 		}
@@ -66,16 +68,19 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 	if err != nil {
 		if errors.Unwrap(err) == context.Canceled {
 			return &result{
+				c:   c,
 				err: statuserror.Wrap(err, 499, "ClientClosedRequest"),
 			}
 		}
 
 		return &result{
+			c:   c,
 			err: statuserror.Wrap(err, http.StatusInternalServerError, "RequestFailed"),
 		}
 	}
 
 	return &result{
+		c:        c,
 		Response: resp,
 	}
 }
@@ -107,6 +112,7 @@ func (c *Client) newRequest(ctx context.Context, r any, metas ...courier.Metadat
 }
 
 type result struct {
+	c *Client
 	*http.Response
 	err error
 }
@@ -139,10 +145,14 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 	meta := courier.Metadata(r.Response.Header)
 
 	if !isOk(r.Response.StatusCode) {
-		body = &statuserror.StatusErr{
-			Code:    r.Response.StatusCode,
-			Msg:     r.Response.Status,
-			Sources: []string{r.Response.Request.Host},
+		if r.c.NewError != nil {
+			body = r.c.NewError()
+		} else {
+			body = &statuserror.StatusErr{
+				Code:    r.Response.StatusCode,
+				Msg:     r.Response.Status,
+				Sources: []string{r.Response.Request.Host},
+			}
 		}
 	}
 
