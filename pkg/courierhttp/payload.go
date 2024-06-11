@@ -283,6 +283,14 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 	if r.meta != nil {
 		header := rw.Header()
 		for key, values := range r.meta {
+			if len(values) == 1 {
+				if v := values[0]; len(v) > 0 && v[0] == ',' {
+					if hv := header.Get(key); hv != "" {
+						header.Set(key, hv+v)
+						continue
+					}
+				}
+			}
 			header[textproto.CanonicalMIMEHeaderKey(key)] = values
 		}
 	}
