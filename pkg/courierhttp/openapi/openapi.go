@@ -86,6 +86,29 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 				"domain":   true,
 			}
 
+			if i := strings.Index(t, "["); i > 0 {
+				base := t[0:i]
+
+				str := &strings.Builder{}
+
+				for k, x := range strings.Split(t[i+1:len(t)-1], ",") {
+					if k > 0 {
+						str.WriteString("And")
+					}
+					str.WriteString(b.opt.naming(x))
+				}
+
+				str.WriteString("As")
+
+				if j := strings.LastIndex(base, "."); j > 0 {
+					str.WriteString(base[j+1:])
+				} else {
+					str.WriteString(base)
+				}
+
+				return gengo.UpperCamelCase(str.String())
+			}
+
 			parts := strings.Split(t, "/")
 
 			idx := 0
@@ -106,6 +129,7 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 			if len(parts) == 2 && strings.ToLower(parts[0]) == strings.ToLower(parts[1]) {
 				return gengo.UpperCamelCase(parts[0])
 			}
+
 			return gengo.UpperCamelCase(t)
 		}
 	}

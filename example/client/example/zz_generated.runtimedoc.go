@@ -19,6 +19,8 @@ func (v Client) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Endpoint":
 			return []string{}, true
+		case "NewError":
+			return []string{}, true
 		case "HttpTransports":
 			return []string{}, true
 
@@ -155,7 +157,7 @@ func (v ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v OrgDataList) RuntimeDoc(names ...string) ([]string, bool) {
+func (v OrgInfoAsDataList) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Data":

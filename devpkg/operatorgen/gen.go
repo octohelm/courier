@@ -176,7 +176,7 @@ func (*@Type) ResponseContentType() string {
 		if _, ok := tpe.(*types.Interface); ok {
 			return
 		}
-
+		
 		c.Render(gengo.Snippet{gengo.T: `
 func (*@Type) ResponseContent() any {
 	return new(@ReturnType)
@@ -276,9 +276,9 @@ func valueOf(v constant.Value) interface{} {
 	case constant.Int:
 		v, _ := strconv.ParseInt(v.String(), 10, 64)
 		return v
+	default:
+		return nil
 	}
-
-	return nil
 }
 
 func isNil(typ types.Type) bool {

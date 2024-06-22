@@ -52,7 +52,7 @@ func init() {
 }
 
 func (*ListOrg) ResponseContent() any {
-	return new(DataList)
+	return new(DataList[Info])
 }
 
 func init() {

@@ -307,14 +307,14 @@ func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 		if v, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XGoVendorType); ok {
 			imports := c.Package("").Imports()
 
-			pkgPath, expose := gengo.PkgImportPathAndExpose(v.(string))
+			pkgPath, _ := gengo.PkgImportPathAndExpose(v.(string))
 
 			if _, ok := imports[pkgPath]; ok {
 				c.Render(gengo.Snippet{gengo.T: `
 type @Type = @TypeRef
 `,
 					"Type":    gengo.ID(name),
-					"TypeRef": gengo.ID(pkgPath + "." + expose),
+					"TypeRef": gengo.ID(v),
 				})
 
 				return nil

@@ -21,7 +21,7 @@ func (in *Metadata) DeepCopyInto(out *Metadata) {
 	out.ReadOnly = in.ReadOnly
 	if in.Examples != nil {
 		i, o := &in.Examples, &out.Examples
-		*o = make([]interface{}, len(*i))
+		*o = make([]any, len(*i))
 		copy(*o, *i)
 	}
 	out.Deprecated = in.Deprecated
