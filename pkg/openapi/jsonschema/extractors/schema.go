@@ -136,12 +136,16 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		}
 
 		if g, ok := inst.(jsonschema.GoUnionType); ok {
-			types := g.OneOf()
-			schemas := make([]jsonschema.Schema, len(types))
-			for i := range schemas {
-				schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), opt.WithDecl(false))
+			if types := g.OneOf(); len(types) != 0 {
+				schemas := make([]jsonschema.Schema, len(types))
+				for i := range schemas {
+					schemas[i] = SchemaFromType(ctx, reflectx.Deref(reflect.TypeOf(types[i])), opt.WithDecl(false))
+				}
+				if len(schemas) == 1 {
+					return schemas[0]
+				}
+				return jsonschema.OneOf(schemas...)
 			}
-			return jsonschema.OneOf(schemas...)
 		}
 
 		if g, ok := inst.(jsonschema.GoTaggedUnionType); ok {
