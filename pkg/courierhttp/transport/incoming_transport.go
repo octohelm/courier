@@ -159,8 +159,13 @@ func (t *incomingTransport) decodeFromRequestInfo(ctx context.Context, info cour
 			}
 
 			if len(values) > 0 {
+				paramValue := param.FieldValue(rv)
+				if paramValue.Kind() != reflect.Ptr {
+					paramValue = paramValue.Addr()
+				}
+
 				err := core.Wrap(param.Transformer, &param.TransformerOption.CommonOption).
-					DecodeFrom(ctx, core.NewStringReaders(values), param.FieldValue(rv).Addr())
+					DecodeFrom(ctx, core.NewStringReaders(values), paramValue)
 
 				if err != nil {
 					errSet.AddErr(err, validator.Location(param.In), param.Name)

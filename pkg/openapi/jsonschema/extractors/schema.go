@@ -370,7 +370,7 @@ func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Sch
 		metadata := propSchema.GetMetadata()
 		metadata.Description = fieldDoc
 
-		if canRuntimeDoc := RuntimeDocerContext.From(ctx); canRuntimeDoc != nil {
+		if canRuntimeDoc, ok := RuntimeDocerContext.MayFrom(ctx); ok {
 			if lines, ok := canRuntimeDoc.RuntimeDoc(sf.Name); ok {
 				metadata.Description = strings.Join(lines, "\n")
 			}

@@ -25,27 +25,29 @@ type Parameter struct {
 func (p *Parameter) FieldValue(structReflectValue reflect.Value) reflect.Value {
 	structReflectValue = reflectx.Indirect(structReflectValue)
 
+	f := structReflectValue
+
 	n := len(p.Loc)
-
-	fieldValue := structReflectValue
-
 	for i := 0; i < n; i++ {
 		loc := p.Loc[i]
-		fieldValue = fieldValue.Field(loc)
+
+		f = f.Field(loc)
+
+		if f.Kind() == reflect.Ptr && f.IsNil() {
+			if f.CanSet() {
+				f.Set(reflect.New(f.Type().Elem()))
+			}
+		}
 
 		// last loc should keep ptr value
 		if i < n-1 {
-			for fieldValue.Kind() == reflect.Ptr {
-				// notice the ptr struct ensure only for Ptr Anonymous Field
-				if fieldValue.IsNil() {
-					fieldValue.Set(reflectx.New(fieldValue.Type()))
-				}
-				fieldValue = fieldValue.Elem()
+			if f.Kind() == reflect.Ptr {
+				f = f.Elem()
 			}
 		}
 	}
 
-	return fieldValue
+	return f
 }
 
 type Tag string
