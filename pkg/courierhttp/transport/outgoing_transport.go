@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/internal/pathpattern"
 	"io"
 	"mime"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/transformer"
 
 	"github.com/julienschmidt/httprouter"
@@ -42,6 +42,26 @@ func NewRequest(ctx context.Context, v any) (*http.Request, error) {
 var outgoingTransports = sync.Map{}
 var courierHttpPkgPath = reflect.TypeOf(courierhttp.Method{}).PkgPath()
 
+func resolvePathInTag(tpe reflect.Type) string {
+	for i := 0; i < tpe.NumField(); i++ {
+		f := tpe.Field(i)
+
+		if f.Anonymous {
+			if f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {
+				if p, ok := f.Tag.Lookup("path"); ok {
+					return pathpattern.NormalizePath(p)
+				}
+			}
+
+			// deep walk
+			if f.Type.Kind() == reflect.Struct {
+				return resolvePathInTag(f.Type)
+			}
+		}
+	}
+	return ""
+}
+
 func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error) {
 	typ := reflectx.Deref(reflect.TypeOf(r))
 
@@ -65,15 +85,7 @@ func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error)
 
 	if ot.RoutePath == "" {
 		if ot.Type.Kind() == reflect.Struct {
-			for i := 0; i < ot.Type.NumField(); i++ {
-				f := ot.Type.Field(i)
-
-				if f.Anonymous && f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {
-					if p, ok := f.Tag.Lookup("path"); ok {
-						ot.RoutePath = pathpattern.NormalizePath(p)
-					}
-				}
-			}
+			ot.RoutePath = resolvePathInTag(ot.Type)
 		}
 	}
 
