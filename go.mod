@@ -11,7 +11,7 @@ require (
 	github.com/octohelm/gengo v0.0.0-20240622092313-cc61f99ecd84
 	github.com/octohelm/storage v0.0.0-20240713110520-d426670e6796
 	github.com/octohelm/x v0.0.0-20240622073357-3fcb5294a9e0
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.0
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.27.0
 )
