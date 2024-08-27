@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -108,6 +109,9 @@ func (info *requestInfo) QueryValues(name string) []string {
 				if e == nil {
 					info.query = query
 				}
+
+				// put back to body for custom parse
+				info.request.Body = io.NopCloser(bytes.NewBuffer(data))
 			}
 		}
 	}

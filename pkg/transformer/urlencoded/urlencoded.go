@@ -54,6 +54,15 @@ func (transformer *urlEncodedTransformer) EncodeTo(ctx context.Context, w io.Wri
 	}
 	rv = reflectx.Indirect(rv)
 
+	if v, ok := rv.Interface().(Marshaller); ok {
+		data, err := v.MarshalUrlEncoded()
+		if err != nil {
+			return err
+		}
+		_, err = w.Write(data)
+		return err
+	}
+
 	values := url.Values{}
 	errSet := verrors.NewErrorSet()
 
@@ -96,7 +105,11 @@ func (transformer *urlEncodedTransformer) DecodeFrom(ctx context.Context, r io.R
 
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "url-encoded: read failed")
+	}
+
+	if u, ok := rv.Interface().(Unmarshaler); ok {
+		return u.UnmarshalUrlEncoded(data)
 	}
 
 	values, err := url.ParseQuery(string(data))
@@ -124,4 +137,12 @@ func (transformer *urlEncodedTransformer) DecodeFrom(ctx context.Context, r io.R
 	}
 
 	return es.Err()
+}
+
+type Unmarshaler interface {
+	UnmarshalUrlEncoded(v []byte) error
+}
+
+type Marshaller interface {
+	MarshalUrlEncoded() ([]byte, error)
 }
