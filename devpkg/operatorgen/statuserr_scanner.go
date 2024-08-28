@@ -2,7 +2,6 @@ package operatorgen
 
 import (
 	"fmt"
-	typex "github.com/octohelm/x/types"
 	"go/ast"
 	"go/constant"
 	"go/token"
@@ -12,6 +11,8 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+
+	typex "github.com/octohelm/x/types"
 
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"

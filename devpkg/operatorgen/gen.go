@@ -112,8 +112,12 @@ func (*@Type) ResponseContent() any {
 	return nil
 }
 
+func (*@Type) ResponseData() *@courierNoContent {
+	return new(@courierNoContent)
+}
 `,
-			"Type": gengo.ID(named.Obj()),
+			"Type":             gengo.ID(named.Obj()),
+			"courierNoContent": gengo.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 		})
 
 	} else if types.IsInterface(tpe) && !strings.Contains(tpe.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
@@ -176,12 +180,15 @@ func (*@Type) ResponseContentType() string {
 		if _, ok := tpe.(*types.Interface); ok {
 			return
 		}
-		
+
 		c.Render(gengo.Snippet{gengo.T: `
 func (*@Type) ResponseContent() any {
 	return new(@ReturnType)
 }
 
+func (*@Type) ResponseData() *@ReturnType {
+	return new(@ReturnType)
+}
 `,
 			"Type":       gengo.ID(named.Obj()),
 			"ReturnType": gengo.ID(tpe),

@@ -22,7 +22,7 @@ func (t EnumType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 			if i > 0 {
 				p.Printf(" | ")
 			}
-			
+
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
 				p.Printf("%q", v)

@@ -1,8 +1,9 @@
 package defaultergen
 
 import (
-	"github.com/octohelm/gengo/pkg/gengo"
 	"go/types"
+
+	"github.com/octohelm/gengo/pkg/gengo"
 )
 
 func init() {

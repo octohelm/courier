@@ -3,7 +3,6 @@ package transport
 import (
 	"bytes"
 	"context"
-	"github.com/octohelm/courier/internal/pathpattern"
 	"io"
 	"mime"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/octohelm/courier/internal/pathpattern"
 
 	"github.com/octohelm/courier/pkg/transformer"
 

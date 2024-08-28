@@ -3,10 +3,11 @@ package request
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"

@@ -17,6 +17,8 @@ import (
 	typesutil "github.com/octohelm/x/types"
 )
 
+type NoContent struct{}
+
 type ContentTypeDescriber interface {
 	ContentType() string
 }

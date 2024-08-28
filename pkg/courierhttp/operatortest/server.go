@@ -2,13 +2,14 @@ package operatortest
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
-	"net/http"
-	"net/http/httptest"
 )
 
 func Serve(ctx context.Context, o courier.Operator, middlewares ...handler.Middleware) *Server {

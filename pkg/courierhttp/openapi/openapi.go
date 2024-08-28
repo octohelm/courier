@@ -3,12 +3,13 @@ package openapi
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/statuserror"
 	"net/http"
 	"reflect"
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/octohelm/courier/pkg/statuserror"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/ptr"

@@ -26,3 +26,18 @@ func ClientFromContext(ctx context.Context, name string) Client {
 func ContextWithClient(ctx context.Context, name string, client Client) context.Context {
 	return contextx.WithValue(ctx, clientContext{name: name}, client)
 }
+
+func DoWith[Data any, Op interface{ ResponseData() *Data }](ctx context.Context, c Client, req Op, metas ...Metadata) (*Data, error) {
+	resp := new(Data)
+
+	if _, ok := any(resp).(*NoContent); ok {
+		_, err := c.Do(ctx, req, metas...).Into(nil)
+		return resp, err
+	}
+
+	_, err := c.Do(ctx, req, metas...).Into(resp)
+	return resp, err
+}
+
+type NoContent struct {
+}
