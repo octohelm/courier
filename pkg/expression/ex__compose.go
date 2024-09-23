@@ -2,8 +2,6 @@ package expression
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/octohelm/courier/pkg/expression/raw"
 	"github.com/pkg/errors"
 )
@@ -56,8 +54,6 @@ func (e *some) Exec(ctx context.Context, in any) (any, error) {
 
 		for iter.Next() {
 			val := iter.Val()
-
-			fmt.Println(val)
 
 			for j := range e.Rules {
 				switch r := e.Rules[j].(type) {
