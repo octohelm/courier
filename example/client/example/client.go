@@ -2,6 +2,7 @@ package example
 
 import (
 	"context"
+	contextx "github.com/octohelm/x/context"
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
@@ -16,5 +17,11 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 }
 
 func (c *Client) InjectContext(ctx context.Context) context.Context {
-	return courier.ContextWithClient(ctx, "example", c)
+	return ClientContext.Inject(ctx, c)
+}
+
+var ClientContext = contextx.New[*Client]()
+
+func Do[Data any, Op interface{ ResponseData() *Data }](ctx context.Context, req Op, metas ...courier.Metadata) (*Data, error) {
+	return courier.DoWith[Data, Op](ctx, ClientContext.From(ctx), req, metas...)
 }

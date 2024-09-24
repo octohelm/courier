@@ -152,11 +152,7 @@ type @Operation struct {
 	@requestBody
 }
 
-func (r *@Operation) Do(ctx @contextContext, metas ...@courierMetadata) (@courierResult) {
-	return @courierClientFromContext(ctx, @pkgName).Do(ctx, r, metas...)
-}
-
-@Invoke
+@ResponseData
 `,
 
 		"contextContext":           gengo.ID("context.Context"),
@@ -169,31 +165,25 @@ func (r *@Operation) Do(ctx @contextContext, metas ...@courierMetadata) (@courie
 		"path":                     path,
 		"pkgName":                  c.Package("").Pkg().Name(),
 		"doc":                      gengo.Comment(operation.Description),
-		"Invoke": func() gengo.Snippet {
+		"ResponseData": func() gengo.Snippet {
 			if hasResponse {
 				return gengo.Snippet{gengo.T: `
-func (r *@Operation) Invoke(ctx @contextContext, metas ...@courierMetadata) (*@Operation'Response, @courierMetadata, error) {
-	var resp @Operation'Response
-	meta, err := r.Do(ctx, metas...).Into(&resp)
-	return &resp, meta, err
+func (r *@Operation) ResponseData() (*@Operation'Response) {
+	return new(@Operation'Response)
 }
 `,
 					"Operation": gengo.ID(operation.OperationId),
-
-					"contextContext":  gengo.ID("context.Context"),
-					"courierMetadata": gengo.ID("github.com/octohelm/courier/pkg/courier.Metadata"),
 				}
 			}
 
 			return gengo.Snippet{gengo.T: `
-func (r *@Operation) Invoke(ctx @contextContext, metas ...@courierMetadata) (@courierMetadata, error) {
-	return r.Do(ctx, metas...).Into(nil)
+func (r *@Operation) ResponseData() (*@courierNoContent) {
+	return new(@courierNoContent)
 }
 
 `,
-				"Operation":       gengo.ID(operation.OperationId),
-				"contextContext":  gengo.ID("context.Context"),
-				"courierMetadata": gengo.ID("github.com/octohelm/courier/pkg/courier.Metadata"),
+				"Operation":        gengo.ID(operation.OperationId),
+				"courierNoContent": gengo.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 			}
 		}(),
 		"parameters": gengo.MapSnippet(operation.Parameters, func(p *openapi.ParameterObject) gengo.Snippet {

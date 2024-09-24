@@ -66,62 +66,62 @@ func TestAll(t *testing.T) {
 	ctx = logr.WithLogger(ctx, slog.Logger(slog.Default()))
 
 	t.Run("Do Some Request", func(t *testing.T) {
-		org := example.GetOrg{
+		org := &example.GetOrg{
 			OrgName: "test",
 		}
-		resp, _, err := org.Invoke(ctx)
+		resp, err := example.Do(ctx, org)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 		testingutil.Expect(t, resp.Name, testingutil.Be(org.OrgName))
 	})
 
 	t.Run("Do Some Request with h2", func(t *testing.T) {
-		org := example.GetOrg{
+		org := &example.GetOrg{
 			OrgName: "test",
 		}
-		resp, _, err := org.Invoke(client.ContextWithRoundTripperCreator(ctx, func() http.RoundTripper {
+		resp, err := example.Do(client.ContextWithRoundTripperCreator(ctx, func() http.RoundTripper {
 			return &http2.Transport{
 				AllowHTTP: true,
 				DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
 					return net.Dial(network, addr)
 				},
 			}
-		}))
+		}), org)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 		testingutil.Expect(t, resp.Name, testingutil.Be(org.OrgName))
 	})
 
 	t.Run("Upload", func(t *testing.T) {
-		v := example.UploadBlob{
+		v := &example.UploadBlob{
 			ReadCloser: courierhttp.WrapReadCloser(bytes.NewBufferString("1234567")),
 		}
-		_, err := v.Invoke(ctx)
+		_, err := example.Do(ctx, v)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 	})
 
 	t.Run("UploadStoreBlob", func(t *testing.T) {
-		v := example.UploadStoreBlob{
+		v := &example.UploadStoreBlob{
 			Scope:      "a/b/c",
 			ReadCloser: courierhttp.WrapReadCloser(bytes.NewBufferString("1234567")),
 		}
-		_, err := v.Invoke(ctx)
+		_, err := example.Do(ctx, v)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 	})
 
 	t.Run("GetStoreBlob", func(t *testing.T) {
-		v := example.GetStoreBlob{
+		v := &example.GetStoreBlob{
 			Scope:  "a/b/c",
 			Digest: "xxx",
 		}
-		resp, _, err := v.Invoke(ctx)
+		resp, err := example.Do(ctx, v)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 		testingutil.Expect(t, *resp, testingutil.Be("a/b/c@xxx"))
 	})
 
 	t.Run("GetFile", func(t *testing.T) {
-		v := example.GetFile{
+		v := &example.GetFile{
 			Path: "a/b/c",
 		}
-		resp, _, err := v.Invoke(ctx)
+		resp, err := example.Do(ctx, v)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
 		testingutil.Expect(t, *resp, testingutil.Be("/a/b/c"))
 	})
