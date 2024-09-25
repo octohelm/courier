@@ -1,6 +1,7 @@
 package httprouter
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/juju/ansiterm"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
-
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courierhttp"
@@ -39,7 +38,7 @@ func (m *mux) Handler() (http.Handler, error) {
 		mux: m,
 	}
 
-	m.tree.EachRoute(func(h RouteHandler, parents []*pathpattern.Route) {
+	for h, parents := range m.tree.Route() {
 		if len(parents) == 0 {
 			g.addHandler(h, []*pathpattern.Route{{
 				PathSegments: h.PathSegments(),
@@ -47,7 +46,7 @@ func (m *mux) Handler() (http.Handler, error) {
 		} else {
 			g.addHandler(h, parents)
 		}
-	})
+	}
 
 	w := ansiterm.NewTabWriter(os.Stdout, 0, 4, 2, ' ', 0)
 	defer func() {
@@ -69,10 +68,38 @@ func (m *mux) Handler() (http.Handler, error) {
 
 type group struct {
 	*mux
-
+	parent *group
 	pathpattern.Route
-	handlers []http.Handler
+	handlers []RouteHandler
 	children map[string]*group
+}
+
+func (g *group) String() string {
+	b := bytes.NewBuffer(nil)
+	g.debugTo(b, 0)
+	return b.String()
+}
+
+func (g *group) debugTo(w io.Writer, level int) {
+	_, _ = fmt.Fprint(w, strings.Repeat("....", level))
+	_, _ = fmt.Fprintf(w, g.Route.PathSegments.String())
+	_, _ = fmt.Fprintf(w, "\n")
+
+	if len(g.children) > 0 {
+		for _, child := range g.children {
+			child.debugTo(w, level+1)
+		}
+	} else {
+		for _, h := range g.handlers {
+			if hh, ok := h.(RouteHandler); ok {
+				_, _ = fmt.Fprint(w, strings.Repeat("....", level+1))
+				_, _ = fmt.Fprintf(w, hh.PathSegments().String())
+				_, _ = fmt.Fprintf(w, " ")
+				_, _ = fmt.Fprintf(w, hh.Method())
+				_, _ = fmt.Fprintf(w, "\n")
+			}
+		}
+	}
 }
 
 func (g *group) PrintTo(w io.Writer, level int) {
@@ -95,26 +122,43 @@ func (g *group) PrintTo(w io.Writer, level int) {
 	}
 }
 
-func (g *group) addHandler(h RouteHandler, parents []*pathpattern.Route) {
-	if g.children == nil {
-		g.children = map[string]*group{}
+func (g *group) child(route *pathpattern.Route) *group {
+	path := route.PathSegments.String()
+
+	child, ok := g.children[path]
+	if ok {
+		return child
 	}
 
+	child = &group{
+		mux:    g.mux,
+		parent: g,
+		Route:  *route,
+	}
+
+	g.children[path] = child
+	return child
+}
+
+func (g *group) addHandler(h RouteHandler, parents []*pathpattern.Route) {
 	if len(parents) == 0 {
+		if len(g.children) > 0 {
+			child := g.child(&pathpattern.Route{
+				PathSegments: h.PathSegments()[0 : len(g.PathSegments)+1],
+			})
+			child.addHandler(h, parents)
+			return
+		}
+
 		g.handlers = append(g.handlers, h)
 		return
 	}
 
-	route := parents[0]
-
-	child, ok := g.children[route.PathSegments.String()]
-	if !ok {
-		child = &group{
-			mux:   g.mux,
-			Route: *route,
-		}
-		g.children[route.PathSegments.String()] = child
+	if g.children == nil {
+		g.children = map[string]*group{}
 	}
+
+	child := g.child(parents[0])
 
 	if len(parents) > 0 {
 		child.addHandler(h, parents[1:])
@@ -179,84 +223,77 @@ func toPath(pathSegments pathpattern.Segments) string {
 	return s.String()
 }
 
-func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...contextInject) (h http.Handler, err error) {
-	if len(g.handlers) > 0 {
-		r := httprouter.New()
+func (g *group) newHandler(printer *ansiterm.TabWriter, handlers []RouteHandler, contextInjects ...contextInject) (h http.Handler, err error) {
+	r := httprouter.New()
 
-		for i := range g.handlers {
-			h := g.handlers[i]
+	for _, hh := range handlers {
 
-			if hh, ok := h.(RouteHandler); ok {
-				ctxInjects := contextInjects[:]
-				info := courierhttp.OperationInfo{
-					Server: g.mux.server,
-				}
-
-				if rh, ok := h.(RouteHandler); ok {
-					info = courierhttp.OperationInfo{
-						Server: g.mux.server,
-						Route:  rh.Path(),
-						Method: hh.Method(),
-						ID:     rh.OperationID(),
-					}
-
-					ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
-						return courierhttp.ContextWithOperationInfo(ctx, info)
-					})
-
-					if info.Method == "GET" && info.ID == "OpenAPI" {
-						ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
-							return openapispec.InjectContext(ctx, g.oas)
-						})
-					}
-				}
-
-				method := hh.Method()
-
-				if method == "" {
-					continue
-				}
-
-				pathSegments := hh.PathSegments()
-
-				colorFmt := colorFmtForMethod(method)
-
-				_, _ = colorFmt.Fprint(printer, "%s", method)
-				_, _ = colorFmt.Fprint(printer, "\t%s", pathSegments)
-				_, _ = fmt.Fprintf(printer, "\t%s", hh.Summary())
-
-				p := colorFormatter(ansiterm.Gray)
-				_, _ = p.Fprint(printer, "\t{{ ")
-				for i, o := range hh.Operators() {
-					if i > 0 {
-						_, _ = p.Fprint(printer, " | ")
-					}
-					_, _ = p.Fprint(printer, "%s", o.String())
-				}
-				_, _ = p.Fprint(printer, " }}\n")
-
-				serverInfo := info.UserAgent()
-
-				r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-					ctx := req.Context()
-					for _, inject := range ctxInjects {
-						ctx = inject(ctx)
-					}
-
-					ctx = handler.ContextWithParamGetter(ctx, params)
-
-					rw.Header().Set("Server", serverInfo)
-
-					hh.ServeHTTP(rw, req.WithContext(ctx))
-				})
-			} else {
-				panic(errors.Errorf("invalid router %v", h))
-			}
+		ctxInjects := contextInjects[:]
+		info := courierhttp.OperationInfo{
+			Server: g.mux.server,
 		}
 
-		return r, nil
+		info = courierhttp.OperationInfo{
+			Server: g.mux.server,
+			Route:  hh.Path(),
+			Method: hh.Method(),
+			ID:     hh.OperationID(),
+		}
+
+		ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
+			return courierhttp.ContextWithOperationInfo(ctx, info)
+		})
+
+		if info.Method == "GET" && info.ID == "OpenAPI" {
+			ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
+				return openapispec.InjectContext(ctx, g.oas)
+			})
+		}
+
+		method := hh.Method()
+
+		if method == "" {
+			continue
+		}
+
+		pathSegments := hh.PathSegments()
+
+		colorFmt := colorFmtForMethod(method)
+
+		_, _ = colorFmt.Fprint(printer, "%s", method)
+		_, _ = colorFmt.Fprint(printer, "\t%s", pathSegments)
+		_, _ = fmt.Fprintf(printer, "\t%s", hh.Summary())
+
+		p := colorFormatter(ansiterm.Gray)
+		_, _ = p.Fprint(printer, "\t{{ ")
+		for i, o := range hh.Operators() {
+			if i > 0 {
+				_, _ = p.Fprint(printer, " | ")
+			}
+			_, _ = p.Fprint(printer, "%s", o.String())
+		}
+		_, _ = p.Fprint(printer, " }}\n")
+
+		serverInfo := info.UserAgent()
+
+		r.Handle(method, toPath(pathSegments), func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
+			ctx := req.Context()
+			for _, inject := range ctxInjects {
+				ctx = inject(ctx)
+			}
+
+			ctx = handler.ContextWithParamGetter(ctx, params)
+
+			rw.Header().Set("Server", serverInfo)
+
+			hh.ServeHTTP(rw, req.WithContext(ctx))
+		})
 	}
 
+	return r, nil
+}
+
+func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...contextInject) (h http.Handler, err error) {
 	if n := len(g.children); n != 0 {
 		r := httprouter.New()
 
@@ -274,8 +311,11 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 				return nil, err
 			}
 
+			childSegments := c.AllChildSegments()
+
 			for _, m := range c.Methods() {
-				if len(c.ChildSegments) > 0 {
+
+				if len(childSegments) > 0 {
 					if c.PathMultiple() {
 						prefix := c.PathSegments
 
@@ -287,15 +327,18 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 								parts := strings.Split(remain, "/")
 
 								for i, p := range parts {
-									for _, seg := range c.ChildSegments {
+									for _, seg := range childSegments {
 										if p == seg.String() {
 											multi := strings.Join(parts[0:i], "/")
 											value := url.PathEscape(multi)
 
 											r := req.Clone(req.Context())
 
-											r.URL.Path = strings.Replace(req.URL.Path, multi, value, 1)
-											r.RequestURI = r.URL.RequestURI()
+											u := *r.URL
+											u.Path = strings.Replace(req.URL.Path, multi, value, 1)
+
+											r.RequestURI = u.RequestURI()
+											r.URL = &u
 
 											h.ServeHTTP(rw, r)
 
@@ -307,6 +350,7 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 
 							rw.WriteHeader(http.StatusNotFound)
 						})
+
 						continue
 					}
 
@@ -326,6 +370,10 @@ func (g *group) createHandler(printer *ansiterm.TabWriter, contextInjects ...con
 		return r, nil
 	}
 
+	if len(g.handlers) > 0 {
+		return g.newHandler(printer, g.handlers, contextInjects...)
+	}
+
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusNotFound)
 	}), nil
@@ -339,6 +387,25 @@ func (g *group) PathMultiple() bool {
 		}
 	}
 	return false
+}
+
+func (g *group) AllChildSegments() (segments []pathpattern.Segment) {
+	idx := len(g.PathSegments)
+
+	if len(g.children) != 0 {
+		for _, child := range g.children {
+			segments = append(segments, child.PathSegments[idx])
+		}
+		return
+	}
+
+	for _, h := range g.handlers {
+		if p := h.PathSegments(); idx < len(p) {
+			segments = append(segments, p[idx])
+		}
+	}
+
+	return
 }
 
 func colorFmtForMethod(method string) colorFormatter {

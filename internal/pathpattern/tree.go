@@ -3,6 +3,7 @@ package pathpattern
 import (
 	"fmt"
 	"io"
+	"iter"
 	"sort"
 	"strings"
 )
@@ -27,74 +28,66 @@ func (t *Tree[N]) String() string {
 }
 
 type group[N Node] struct {
-	seg          Segment
-	parent       *group[N]
-	childExactly map[Segment]*group[N]
-	childWild    *group[N]
-	nodes        map[string]*N
+	seg       Segment
+	parent    *group[N]
+	childWild *group[N]
+
+	childExactly orderedMap[Segment, *group[N]]
+
+	nodes orderedMap[string, *N]
 }
 
 type Route struct {
-	Method        string
-	PathSegments  Segments
-	ChildSegments []Segment
+	Method       string
+	PathSegments Segments
 }
 
 func (r *Route) String() string {
 	b := &strings.Builder{}
 	b.WriteString(r.PathSegments.String())
-
-	if len(r.ChildSegments) > 0 {
-		b.WriteString("/(")
-		for i, c := range r.ChildSegments {
-			if i > 0 {
-				b.WriteString("|")
-			}
-			b.WriteString(c.String())
-		}
-		b.WriteString(")")
-	}
-
 	return b.String()
 }
 
-func (g *group[N]) EachRoute(each func(n N, parents []*Route), parents ...*Route) {
-	for _, node := range g.nodes {
-		each(*node, parents)
-	}
-
-	var route *Route
-
-	if named, ok := g.seg.(NamedSegment); ok && named.Multiple() {
-		route = &Route{
-			PathSegments: g.PathSegments(),
+func (g *group[N]) Route(parents ...*Route) iter.Seq2[N, []*Route] {
+	return func(yield func(N, []*Route) bool) {
+		for node := range g.nodes.Values() {
+			if !(yield(*node, parents)) {
+				return
+			}
 		}
-	} else if len(g.childExactly) > 0 && g.childWild != nil {
-		route = &Route{
-			PathSegments: g.PathSegments(),
-		}
-	}
 
-	if route != nil {
-		for _, c := range g.childExactly {
-			route.ChildSegments = append(route.ChildSegments, c.seg)
+		var route *Route
+
+		if named, ok := g.seg.(NamedSegment); ok && named.Multiple() {
+			route = &Route{
+				PathSegments: g.PathSegments(),
+			}
+		} else if g.childExactly.Len() > 0 && g.childWild != nil {
+			route = &Route{
+				PathSegments: g.PathSegments(),
+			}
+		}
+
+		if route != nil {
+			parents = append(parents, route)
+		}
+
+		for c := range g.childExactly.Values() {
+			for node, pp := range c.Route(parents...) {
+				if !(yield(node, pp)) {
+					return
+				}
+			}
 		}
 
 		if c := g.childWild; c != nil {
-			route.ChildSegments = append(route.ChildSegments, c.seg)
+			for node, pp := range c.Route(parents...) {
+				if !(yield(node, pp)) {
+					return
+				}
+			}
 		}
-
-		parents = append(parents, route)
 	}
-
-	for _, c := range g.childExactly {
-		c.EachRoute(each, parents...)
-	}
-
-	if c := g.childWild; c != nil {
-		c.EachRoute(each, parents...)
-	}
-
 }
 
 func (g *group[N]) PathSegments() Segments {
@@ -109,10 +102,7 @@ func (g *group[N]) PathSegments() Segments {
 
 func (g *group[N]) add(method string, segs Segments, node N) {
 	if len(segs) == 0 {
-		if g.nodes == nil {
-			g.nodes = map[string]*N{}
-		}
-		g.nodes[method] = &node
+		g.nodes.Add(method, &node)
 		return
 	}
 
@@ -138,17 +128,13 @@ func (g *group[N]) add(method string, segs Segments, node N) {
 		return
 	}
 
-	if g.childExactly == nil {
-		g.childExactly = map[Segment]*group[N]{}
-	}
-
-	child, ok := g.childExactly[seg]
+	child, ok := g.childExactly.Get(seg)
 	if !ok {
 		child = &group[N]{
 			seg:    seg,
 			parent: g,
 		}
-		g.childExactly[seg] = child
+		g.childExactly.Add(seg, child)
 	}
 
 	child.add(method, segs[1:], node)
@@ -163,8 +149,8 @@ func (g *group[N]) PrintTo(w io.Writer, level int) {
 		_, _ = fmt.Fprintf(w, g.seg.String())
 	}
 
-	if len(g.nodes) > 0 {
-		for _, node := range g.nodes {
+	if g.nodes.Len() > 0 {
+		for node := range g.nodes.Values() {
 			_, _ = fmt.Fprintf(w, "\n")
 			if level > 0 {
 				_, _ = fmt.Fprintf(w, strings.Repeat("  ", level+1))
@@ -177,16 +163,18 @@ func (g *group[N]) PrintTo(w io.Writer, level int) {
 		_, _ = fmt.Fprintf(w, "\n")
 	}
 
-	if g.childExactly != nil {
-		exactlySegments := make([]Segment, 0, len(g.childExactly))
-		for s := range g.childExactly {
+	if n := g.childExactly.Len(); n > 0 {
+		exactlySegments := make([]Segment, 0, n)
+		for s := range g.childExactly.Keys() {
 			exactlySegments = append(exactlySegments, s)
 		}
 		sort.Slice(exactlySegments, func(i, j int) bool {
 			return exactlySegments[i].String() < exactlySegments[j].String()
 		})
+
 		for _, seg := range exactlySegments {
-			g.childExactly[seg].PrintTo(w, level+1)
+			v, _ := g.childExactly.Get(seg)
+			v.PrintTo(w, level+1)
 		}
 	}
 

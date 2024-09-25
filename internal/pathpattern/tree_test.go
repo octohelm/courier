@@ -9,18 +9,18 @@ import (
 func TestTree(t *testing.T) {
 	tree := &Tree[*operation]{}
 
-	tree.Add(Path(http.MethodGet, lit("v0"), lit("xxx")))
-	tree.Add(Path(http.MethodPost, lit("v0"), lit("xxx")))
-	tree.Add(Path(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("blobs"), lit("uploads")))
-	tree.Add(Path(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("blobs"), named("digest")))
-	tree.Add(Path(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("manifests"), named("reference")))
+	tree.Add(createPath(http.MethodGet, lit("v0"), lit("xxx")))
+	tree.Add(createPath(http.MethodPost, lit("v0"), lit("xxx")))
+	tree.Add(createPath(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("blobs"), lit("uploads")))
+	tree.Add(createPath(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("blobs"), named("digest")))
+	tree.Add(createPath(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("manifests"), named("reference")))
 
-	tree.EachRoute(func(n *operation, parents []*Route) {
+	for n, parents := range tree.Route() {
 		fmt.Println(n.Method(), n.PathSegments(), parents)
-	})
+	}
 }
 
-func Path(m string, segments ...Segment) *operation {
+func createPath(m string, segments ...Segment) *operation {
 	return &operation{method: m, segments: segments}
 }
 
