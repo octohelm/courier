@@ -211,9 +211,10 @@ func (g *operatorGen) generateRegister(c gengo.Context, named *types.Named) {
 	if registers, ok := tags["gengo:operator:register"]; ok {
 		for _, register := range registers {
 			c.Render(gengo.Snippet{gengo.T: `
-			func init() {
-				@R.Register(@courierNewRouter(&@Operator{}))
-			}
+			
+func init() {
+	@R.Register(@courierNewRouter(&@Operator{}))
+}
 			
 			`,
 				"R":                gengo.ID(register),

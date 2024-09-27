@@ -123,6 +123,6 @@ func TestAll(t *testing.T) {
 		}
 		resp, err := example.Do(ctx, v)
 		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, *resp, testingutil.Be("/a/b/c"))
+		testingutil.Expect(t, *resp, testingutil.Be("a/b/c"))
 	})
 }

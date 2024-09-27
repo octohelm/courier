@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"path"
 	"reflect"
 	"strings"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/statuserror"
@@ -99,7 +99,7 @@ func (c *Client) newRequest(ctx context.Context, r any, metas ...courier.Metadat
 		uu, _ := url.Parse(c.Endpoint)
 		req.URL.Scheme = uu.Scheme
 		req.URL.Host = uu.Host
-		req.URL.Path = httprouter.CleanPath(uu.Path + req.URL.Path)
+		req.URL.Path = path.Clean(uu.Path + req.URL.Path)
 	}
 
 	for k, vs := range courier.FromMetas(metas...) {

@@ -2,28 +2,29 @@ package handler
 
 import (
 	"context"
+	contextx "github.com/octohelm/x/context"
 )
 
-type ParamGetter interface {
-	ByName(k string) string
+type PathValueGetter interface {
+	PathValue(k string) string
 }
 
-type paramGetterCtx struct{}
+var paramGetterContext = contextx.New[PathValueGetter]()
 
-func ParamGetterFromContext(ctx context.Context) ParamGetter {
-	if g, ok := ctx.Value(paramGetterCtx{}).(ParamGetter); ok {
+func PathValueGetterFromContext(ctx context.Context) PathValueGetter {
+	if g, ok := paramGetterContext.MayFrom(ctx); ok {
 		return g
 	}
 	return Params{}
 }
 
-func ContextWithParamGetter(ctx context.Context, p ParamGetter) context.Context {
-	return context.WithValue(ctx, paramGetterCtx{}, p)
+func ContextWithPathValueGetter(ctx context.Context, p PathValueGetter) context.Context {
+	return paramGetterContext.Inject(ctx, p)
 }
 
 type Params map[string]string
 
-func (d Params) ByName(k string) string {
+func (d Params) PathValue(k string) string {
 	v, _ := d[k]
 	return v
 }

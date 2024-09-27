@@ -14,11 +14,8 @@ import (
 	"sync"
 
 	"github.com/octohelm/courier/internal/pathpattern"
-
-	"github.com/octohelm/courier/pkg/transformer"
-
-	"github.com/julienschmidt/httprouter"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/transformer"
 	"github.com/octohelm/courier/pkg/transformer/core"
 	verrors "github.com/octohelm/courier/pkg/validator"
 	contextx "github.com/octohelm/x/context"
@@ -213,7 +210,6 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 	}
 
 	if len(params) > 0 {
-		req = req.WithContext(contextx.WithValue(req.Context(), httprouter.ParamsKey, params))
 		req.URL.Path = core.StringifyPath(req.URL.Path, params)
 	}
 

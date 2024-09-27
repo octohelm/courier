@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
 )
 
 func FromHttpRequest(r *http.Request, service string) courierhttp.Request {
@@ -28,7 +28,7 @@ type requestInfo struct {
 	receivedAt time.Time
 	query      url.Values
 	cookies    []*http.Cookie
-	params     handler.ParamGetter
+	params     handler.PathValueGetter
 }
 
 func (info *requestInfo) ServiceName() string {
@@ -91,9 +91,9 @@ func (info *requestInfo) Values(in string, name string) []string {
 
 func (info *requestInfo) Param(name string) string {
 	if info.params == nil {
-		info.params = handler.ParamGetterFromContext(info.Context())
+		info.params = handler.PathValueGetterFromContext(info.Context())
 	}
-	return info.params.ByName(name)
+	return info.params.PathValue(name)
 }
 
 func (info *requestInfo) QueryValues(name string) []string {

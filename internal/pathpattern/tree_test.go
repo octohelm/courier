@@ -2,7 +2,9 @@ package pathpattern
 
 import (
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"net/http"
+	"slices"
 	"testing"
 )
 
@@ -15,8 +17,10 @@ func TestTree(t *testing.T) {
 	tree.Add(createPath(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("blobs"), named("digest")))
 	tree.Add(createPath(http.MethodGet, lit("v0"), lit("store"), namedMulti("scope"), lit("manifests"), named("reference")))
 
-	for n, parents := range tree.Route() {
-		fmt.Println(n.Method(), n.PathSegments(), parents)
+	for n := range tree.Route() {
+		fmt.Println(n.Method(), n.PathSegments())
+
+		spew.Dump(slices.Collect(n.PathSegments().Chunk()))
 	}
 }
 

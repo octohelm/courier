@@ -28,61 +28,32 @@ func (t *Tree[N]) String() string {
 }
 
 type group[N Node] struct {
-	seg       Segment
-	parent    *group[N]
-	childWild *group[N]
-
+	seg          Segment
+	parent       *group[N]
+	childWild    *group[N]
 	childExactly orderedMap[Segment, *group[N]]
-
-	nodes orderedMap[string, *N]
+	nodes        orderedMap[string, *N]
 }
 
-type Route struct {
-	Method       string
-	PathSegments Segments
-}
-
-func (r *Route) String() string {
-	b := &strings.Builder{}
-	b.WriteString(r.PathSegments.String())
-	return b.String()
-}
-
-func (g *group[N]) Route(parents ...*Route) iter.Seq2[N, []*Route] {
-	return func(yield func(N, []*Route) bool) {
+func (g *group[N]) Route() iter.Seq[N] {
+	return func(yield func(N) bool) {
 		for node := range g.nodes.Values() {
-			if !(yield(*node, parents)) {
+			if !(yield(*node)) {
 				return
 			}
 		}
 
-		var route *Route
-
-		if named, ok := g.seg.(NamedSegment); ok && named.Multiple() {
-			route = &Route{
-				PathSegments: g.PathSegments(),
-			}
-		} else if g.childExactly.Len() > 0 && g.childWild != nil {
-			route = &Route{
-				PathSegments: g.PathSegments(),
-			}
-		}
-
-		if route != nil {
-			parents = append(parents, route)
-		}
-
 		for c := range g.childExactly.Values() {
-			for node, pp := range c.Route(parents...) {
-				if !(yield(node, pp)) {
+			for node := range c.Route() {
+				if !(yield(node)) {
 					return
 				}
 			}
 		}
 
 		if c := g.childWild; c != nil {
-			for node, pp := range c.Route(parents...) {
-				if !(yield(node, pp)) {
+			for node := range c.Route() {
+				if !(yield(node)) {
 					return
 				}
 			}

@@ -2,6 +2,7 @@ package pathpattern
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	pkgerrors "github.com/pkg/errors"
@@ -97,6 +98,36 @@ func (ss Segments) MatchTo(setter ValueSetter, pathname string) (string, bool) {
 }
 
 type Segments []Segment
+
+func (ss Segments) Chunk() iter.Seq[Segments] {
+	return func(yield func(Segments) bool) {
+		lastOmit := 0
+
+		for i, s := range ss {
+			if named, ok := s.(NamedSegment); ok {
+				if named.Multiple() {
+					if !yield(ss[lastOmit : i+1]) {
+						return
+					}
+					lastOmit = i + 1
+				}
+			}
+		}
+
+		if lastOmit > 0 {
+			if lastOmit < len(ss) {
+				if !yield(ss[lastOmit:]) {
+					return
+				}
+			}
+		} else {
+			if !yield(ss[:]) {
+				return
+			}
+		}
+
+	}
+}
 
 func (ss Segments) String() string {
 	b := &strings.Builder{}

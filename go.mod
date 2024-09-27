@@ -7,7 +7,6 @@ require (
 	github.com/go-courier/logr v0.3.0
 	github.com/go-json-experiment/json v0.0.0-20240815175050-ebd3a8989ca1
 	github.com/juju/ansiterm v1.0.0
-	github.com/julienschmidt/httprouter v1.3.0
 	github.com/octohelm/gengo v0.0.0-20240919101245-4bc8a41dd2f4
 	github.com/octohelm/storage v0.0.0-20240923082032-9c037f4e0c05
 	github.com/octohelm/x v0.0.0-20240904081416-42a1ee2d28a9

@@ -186,12 +186,12 @@ Content-Type: application/json; charset=utf-8
 					testingutil.RequestEqual(t, req, c.expect)
 
 					t.Run("Unmarshal incoming request", func(t *testing.T) {
-						rv := reflectx.New(reflect.PtrTo(reflectx.Deref(reflect.TypeOf(c.req))))
+						rv := reflectx.New(reflect.PointerTo(reflectx.Deref(reflect.TypeOf(c.req))))
 
 						it, err := transport.NewIncomingTransport(context.Background(), rv.Interface())
 						testingutil.Expect(t, err, testingutil.Be[error](nil))
 
-						req = req.WithContext(handler.ContextWithParamGetter(req.Context(), handler.Params{"id": "1"}))
+						req = req.WithContext(handler.ContextWithPathValueGetter(req.Context(), handler.Params{"id": "1"}))
 
 						err = it.UnmarshalOperator(context.Background(), transport.FromHttpRequest(req, ""), rv)
 						testingutil.Expect(t, err, testingutil.Be[error](nil))
