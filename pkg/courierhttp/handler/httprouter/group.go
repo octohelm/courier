@@ -106,7 +106,7 @@ func (g *group) handler(m *mux) http.Handler {
 					}
 				}
 
-				rw.WriteHeader(http.StatusNotFound)
+				http.NotFound(rw, req)
 			})
 
 			continue

@@ -326,13 +326,14 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		if _, err := v.Into(rw); err != nil {
 			return err
 		}
+	case io.ReadCloser:
+		defer v.Close()
+		rw.WriteHeader(r.statusCode)
+		if _, err := io.Copy(rw, v); err != nil {
+			return err
+		}
 	case io.Reader:
 		rw.WriteHeader(r.statusCode)
-		defer func() {
-			if c, ok := v.(io.Closer); ok {
-				_ = c.Close()
-			}
-		}()
 		if _, err := io.Copy(rw, v); err != nil {
 			return err
 		}
