@@ -147,8 +147,6 @@ func (v Info) RuntimeDoc(names ...string) ([]string, bool) {
 func (v ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "Name":
-			return []string{}, true
 
 		}
 

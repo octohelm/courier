@@ -187,7 +187,7 @@ type routeHttpHandler struct {
 func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	ctx = courierhttp.ContextWithHttpRequest(ctx, r)
+	ctx = courierhttp.HttpRequestInjectContext(ctx, &courierhttp.HttpRequest{Request: r})
 
 	info := transport.FromHttpRequest(r, h.service)
 
@@ -197,14 +197,19 @@ func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		op := opFactory.New()
 
-		err := t.UnmarshalOperator(ctx, info, op)
-		if err != nil {
+		if err := t.UnmarshalOperator(ctx, info, op); err != nil {
 			t.WriteResponse(ctx, rw, err, info)
 			return
 		}
 
-		result, err := op.Output(ctx)
+		if canInit, ok := op.(courier.CanInit); ok {
+			if err := canInit.Init(ctx); err != nil {
+				t.WriteResponse(ctx, rw, err, info)
+				return
+			}
+		}
 
+		result, err := op.Output(ctx)
 		if err != nil {
 			t.WriteResponse(ctx, rw, err, info)
 			return

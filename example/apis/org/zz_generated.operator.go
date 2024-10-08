@@ -5,12 +5,12 @@ DON'T EDIT THIS FILE
 package org
 
 import (
-	github_com_octohelm_courier_pkg_courier "github.com/octohelm/courier/pkg/courier"
-	github_com_octohelm_courier_pkg_statuserror "github.com/octohelm/courier/pkg/statuserror"
+	courier "github.com/octohelm/courier/pkg/courier"
+	statuserror "github.com/octohelm/courier/pkg/statuserror"
 )
 
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&Cookie{}))
+	R.Register(courier.NewRouter(&Cookie{}))
 }
 
 func (*Cookie) ResponseContent() any {
@@ -20,30 +20,33 @@ func (*Cookie) ResponseContent() any {
 func (*Cookie) ResponseData() *any {
 	return new(any)
 }
+
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&CreateOrg{}))
+	R.Register(courier.NewRouter(&CreateOrg{}))
 }
 
 func (*CreateOrg) ResponseContent() any {
 	return nil
 }
 
-func (*CreateOrg) ResponseData() *github_com_octohelm_courier_pkg_courier.NoContent {
-	return new(github_com_octohelm_courier_pkg_courier.NoContent)
+func (*CreateOrg) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }
+
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&DeleteOrg{}))
+	R.Register(courier.NewRouter(&DeleteOrg{}))
 }
 
 func (*DeleteOrg) ResponseContent() any {
 	return nil
 }
 
-func (*DeleteOrg) ResponseData() *github_com_octohelm_courier_pkg_courier.NoContent {
-	return new(github_com_octohelm_courier_pkg_courier.NoContent)
+func (*DeleteOrg) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }
+
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&GetOrg{}))
+	R.Register(courier.NewRouter(&GetOrg{}))
 }
 
 func (*GetOrg) ResponseContent() any {
@@ -55,7 +58,7 @@ func (*GetOrg) ResponseData() *Detail {
 }
 func (*GetOrg) ResponseErrors() []error {
 	return []error{
-		&(github_com_octohelm_courier_pkg_statuserror.StatusErr{
+		&(statuserror.StatusErr{
 			Code: 404,
 			Key:  "org.ErrNotFound",
 			Msg:  "{OrgName}: 组织不存在",
@@ -64,7 +67,7 @@ func (*GetOrg) ResponseErrors() []error {
 }
 
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&ListOrg{}))
+	R.Register(courier.NewRouter(&ListOrg{}))
 }
 
 func (*ListOrg) ResponseContent() any {
@@ -74,8 +77,9 @@ func (*ListOrg) ResponseContent() any {
 func (*ListOrg) ResponseData() *DataList[Info] {
 	return new(DataList[Info])
 }
+
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&ListOrgOld{}))
+	R.Register(courier.NewRouter(&ListOrgOld{}))
 }
 
 func (*ListOrgOld) ResponseContent() any {

@@ -7,6 +7,10 @@ import (
 	"reflect"
 )
 
+type CanInit interface {
+	Init(ctx context.Context) error
+}
+
 type Operator interface {
 	Output(ctx context.Context) (any, error)
 }

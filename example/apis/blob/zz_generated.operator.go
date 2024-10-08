@@ -5,11 +5,11 @@ DON'T EDIT THIS FILE
 package blob
 
 import (
-	github_com_octohelm_courier_pkg_courier "github.com/octohelm/courier/pkg/courier"
+	courier "github.com/octohelm/courier/pkg/courier"
 )
 
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&GetFile{}))
+	R.Register(courier.NewRouter(&GetFile{}))
 }
 
 func (*GetFile) ResponseContent() any {
@@ -19,14 +19,15 @@ func (*GetFile) ResponseContent() any {
 func (*GetFile) ResponseData() *string {
 	return new(string)
 }
+
 func init() {
-	R.Register(github_com_octohelm_courier_pkg_courier.NewRouter(&UploadBlob{}))
+	R.Register(courier.NewRouter(&UploadBlob{}))
 }
 
 func (*UploadBlob) ResponseContent() any {
 	return nil
 }
 
-func (*UploadBlob) ResponseData() *github_com_octohelm_courier_pkg_courier.NoContent {
-	return new(github_com_octohelm_courier_pkg_courier.NoContent)
+func (*UploadBlob) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }

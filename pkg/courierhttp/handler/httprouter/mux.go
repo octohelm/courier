@@ -58,7 +58,7 @@ func (m *mux) addHandler(r *http.ServeMux, hh RouteHandler, contextInjects ...co
 		return
 	}
 
-	info := courierhttp.OperationInfo{
+	info := &courierhttp.OperationInfo{
 		Server: m.server,
 		Route:  hh.Path(),
 		Method: hh.Method(),
@@ -68,7 +68,7 @@ func (m *mux) addHandler(r *http.ServeMux, hh RouteHandler, contextInjects ...co
 	ctxInjects := contextInjects[:]
 
 	ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
-		return courierhttp.ContextWithOperationInfo(ctx, info)
+		return courierhttp.OperationInfoInjectContext(ctx, info)
 	})
 
 	if info.Method == "GET" && info.ID == "OpenAPI" {
