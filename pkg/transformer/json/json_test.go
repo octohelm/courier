@@ -3,23 +3,22 @@ package json
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
 	"testing"
 
 	"github.com/octohelm/courier/pkg/transformer/core"
-
 	verrors "github.com/octohelm/courier/pkg/validator"
 	typesutil "github.com/octohelm/x/types"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 )
 
 type S string
 
 func (s *S) UnmarshalText(data []byte) error {
-	return errors.Errorf("err")
+	return fmt.Errorf("err")
 }
 
 func TestJSONTransformer(t *testing.T) {

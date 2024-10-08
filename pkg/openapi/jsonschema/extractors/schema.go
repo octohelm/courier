@@ -12,7 +12,6 @@ import (
 
 	contextx "github.com/octohelm/x/context"
 	reflectx "github.com/octohelm/x/reflect"
-	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
@@ -302,7 +301,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			break
 		default:
 			if _, ok := keySchema.(*jsonschema.StringType); !ok {
-				panic(errors.Errorf("only support string of map key, but got %s", keySchema))
+				panic(fmt.Errorf("only support string of map key, but got %s", keySchema))
 			}
 		}
 		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
@@ -362,7 +361,7 @@ func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Sch
 		if hasValidate && validate != "-" {
 			s, err := PatchSchemaValidationByValidateBytes(propSchema, sf.Type, []byte(validate))
 			if err != nil {
-				panic(errors.Wrapf(err, "invalid validate %s", validate))
+				panic(fmt.Errorf("invalid validate %s: %w", validate, err))
 			}
 			propSchema = s
 		}

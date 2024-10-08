@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/net/http2"
 
+	"errors"
 	"github.com/go-courier/logr"
 	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
@@ -20,7 +21,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
-	"github.com/pkg/errors"
 )
 
 var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.RoundTrip) (*http.Response, error) {

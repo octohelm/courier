@@ -2,6 +2,7 @@ package clientgen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go/types"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"sync"
 
 	"github.com/octohelm/gengo/pkg/gengo"
-	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/openapi"
@@ -94,7 +94,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		req, _ := http.NewRequest("GET", u.String(), nil)
 		_, err := cc.Do(context.Background(), req).Into(&g.oas)
 		if err != nil {
-			return errors.Wrap(gengo.ErrIgnore, err.Error())
+			return errors.Join(gengo.ErrIgnore, err)
 		}
 	}
 
@@ -289,7 +289,7 @@ func fieldPropExtraTag(s jsonschema.Schema) func(sw gengo.SnippetWriter) {
 
 func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 	if name == "" {
-		return errors.Errorf("missing name of %s", t.Schema)
+		return fmt.Errorf("missing name of %s", t.Schema)
 	}
 
 	if t.Schema != nil {

@@ -3,7 +3,7 @@ package raw
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Div

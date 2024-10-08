@@ -7,8 +7,8 @@ import (
 	"github.com/octohelm/x/types"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
 	"github.com/octohelm/courier/pkg/validator"
+	"github.com/octohelm/x/ptr"
 )
 
 func PatchSchemaValidationByValidateBytes(s jsonschema.Schema, typ reflect.Type, validateBytes []byte) (jsonschema.Schema, error) {

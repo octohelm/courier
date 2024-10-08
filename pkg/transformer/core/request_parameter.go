@@ -16,8 +16,6 @@ type RequestParameter struct {
 }
 
 func EachRequestParameter(ctx context.Context, tpe typesx.Type, each func(rp *RequestParameter)) error {
-	errSet := validator.NewErrorSet()
-
 	EachParameter(ctx, tpe, func(p *Parameter) bool {
 		rp := &RequestParameter{}
 		rp.Parameter = *p

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"iter"
 	"strings"
-
-	pkgerrors "github.com/pkg/errors"
 )
 
 func NormalizePath(p string) string {
@@ -87,7 +85,7 @@ func (ss Segments) PathValues(pathname string) (Values, error) {
 
 	_, ok := ss.MatchTo(params, pathname)
 	if !ok {
-		return nil, pkgerrors.Errorf("pathname %s is not match %s", pathname, ss)
+		return nil, fmt.Errorf("pathname %s is not match %s", pathname, ss)
 	}
 
 	return params, nil

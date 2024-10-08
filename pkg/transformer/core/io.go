@@ -3,8 +3,6 @@ package core
 import (
 	"io"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type CanInterface interface {
@@ -52,7 +50,7 @@ func (v *StringReaders) Read(p []byte) (n int, err error) {
 	if v.idx < len(v.Readers) {
 		return v.Readers[v.idx].Read(p)
 	}
-	return -1, errors.Errorf("bounds out of range, %d", v.idx)
+	return -1, fmt.Errorf("bounds out of range, %d", v.idx)
 }
 
 func (v *StringReaders) NextReader() io.ReadCloser {

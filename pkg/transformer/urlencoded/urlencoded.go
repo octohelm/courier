@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"reflect"
 
+	"errors"
 	"github.com/octohelm/courier/pkg/transformer/core"
 	verrors "github.com/octohelm/courier/pkg/validator"
 	reflectx "github.com/octohelm/x/reflect"
 	typesutil "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 func init() {
@@ -35,7 +35,7 @@ func (urlEncodedTransformer) New(ctx context.Context, typ typesutil.Type) (core.
 
 	typ = typesutil.Deref(typ)
 	if typ.Kind() != reflect.Struct {
-		return nil, errors.Errorf("content transformer `%s` should be used for struct type", transformer)
+		return nil, fmt.Errorf("content transformer `%s` should be used for struct type", transformer)
 	}
 
 	transformer.FlattenParams = &core.FlattenParams{}

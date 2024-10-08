@@ -3,7 +3,7 @@ package jsonschema
 import (
 	"io"
 
-	"github.com/octohelm/courier/pkg/ptr"
+	"github.com/octohelm/x/ptr"
 )
 
 func Integer() Schema {

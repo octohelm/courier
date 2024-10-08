@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"strconv"
 
+	"errors"
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	validatorerrors "github.com/octohelm/courier/pkg/validator"
-	"github.com/pkg/errors"
 )
 
 func UnmarshalTaggedUnionFromJSON(data []byte, ut jsonschema.GoTaggedUnionType) error {
@@ -58,7 +58,7 @@ func UnmarshalTaggedUnionFromJSON(data []byte, ut jsonschema.GoTaggedUnionType) 
 		return nil
 	}
 
-	return errors.Errorf("Unsupported Kind %s", discriminatorValue)
+	return fmt.Errorf("Unsupported Kind %s", discriminatorValue)
 }
 
 func keyPathFromJSONPointer(jsonPointer jsontext.Pointer) []any {

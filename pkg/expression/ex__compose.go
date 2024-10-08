@@ -2,8 +2,8 @@ package expression
 
 import (
 	"context"
+	"errors"
 	"github.com/octohelm/courier/pkg/expression/raw"
-	"github.com/pkg/errors"
 )
 
 // Every

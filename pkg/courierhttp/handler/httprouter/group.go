@@ -80,8 +80,6 @@ func (g *group) handler(m *mux) http.Handler {
 
 				remain, ok := prefix.MatchTo(values, req.URL.Path)
 				if ok {
-					fmt.Println(remain)
-
 					parts := strings.Split(remain, "/")
 
 					for i, p := range parts {

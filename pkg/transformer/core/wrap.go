@@ -2,13 +2,13 @@ package core
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/textproto"
 	"reflect"
 
 	validatorerrors "github.com/octohelm/courier/pkg/validator"
 	reflectx "github.com/octohelm/x/reflect"
-	pkgerrors "github.com/pkg/errors"
 )
 
 func Wrap(t Transformer, opt *CommonOption) interface {
@@ -75,7 +75,7 @@ func (t *transformer) DecodeFrom(ctx context.Context, r io.ReadCloser, v any, he
 	}
 
 	if reflect.TypeOf(v).Kind() != reflect.Ptr {
-		return pkgerrors.Errorf("decode target must be ptr value")
+		return errors.New("decode target must be ptr value")
 	}
 
 	if t.Explode {

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -10,12 +11,12 @@ import (
 	"reflect"
 	"strings"
 
+	"errors"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/statuserror"
 	transformer "github.com/octohelm/courier/pkg/transformer/core"
 	typesutil "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type RoundTrip = func(request *http.Request) (*http.Response, error)
@@ -53,7 +54,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		if err != nil {
 			return &result{
 				c:   c,
-				err: statuserror.Wrap(err, http.StatusInternalServerError, "RequestFailed"),
+				err: statuserror.Wrap(err, http.StatusInternalServerError, "HttpRequestFailed"),
 			}
 		}
 		httpReq = r
@@ -66,7 +67,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 
 	resp, err := httpClient.Do(httpReq)
 	if err != nil {
-		if errors.Unwrap(err) == context.Canceled {
+		if errors.Is(err, context.Canceled) {
 			return &result{
 				c:   c,
 				err: statuserror.Wrap(err, 499, "ClientClosedRequest"),
@@ -148,10 +149,8 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 		if r.c.NewError != nil {
 			body = r.c.NewError()
 		} else {
-			body = &statuserror.StatusErr{
-				Code:    r.Response.StatusCode,
-				Msg:     r.Response.Status,
-				Sources: []string{r.Response.Request.Host},
+			body = &statuserror.ErrorResponse{
+				Source: r.Response.Request.Host,
 			}
 		}
 	}
@@ -161,6 +160,24 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 	}
 
 	switch x := body.(type) {
+	case interface {
+		error
+		UnmarshalResponse(statusCode int, respBody []byte) error
+	}:
+		if r.Response != nil && r.Response.Body != nil {
+			data, err := io.ReadAll(r.Response.Body)
+			if err != nil {
+				return meta, err
+			}
+			if err := x.UnmarshalResponse(r.Response.StatusCode, data); err != nil {
+				return nil, err
+			}
+			return meta, x
+		}
+		if err := x.UnmarshalResponse(r.Response.StatusCode, nil); err != nil {
+			return nil, err
+		}
+		return meta, x
 	case error:
 		// to unmarshal status error
 		if err := r.decode(x, meta); err != nil {
@@ -189,7 +206,7 @@ func (r *result) decode(body any, meta courier.Metadata) error {
 	}
 
 	if err := tf.DecodeFrom(context.Background(), r.Response.Body, rv, textproto.MIMEHeader(r.Response.Header)); err != nil {
-		return statuserror.Wrap(err, http.StatusInternalServerError, "DecodeFailed", errors.Wrapf(err, "decode failed to %v", body).Error())
+		return statuserror.Wrap(fmt.Errorf("decode failed to %T: %w", body, err), http.StatusInternalServerError, "ResponseDecodeFailed")
 	}
 
 	return nil

@@ -12,7 +12,7 @@ import (
 	"github.com/octohelm/courier/pkg/statuserror"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
+	"github.com/octohelm/x/ptr"
 
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courier"
@@ -23,7 +23,6 @@ import (
 	transformer "github.com/octohelm/courier/pkg/transformer/core"
 	"github.com/octohelm/gengo/pkg/gengo"
 	typesx "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type OpenAPIBuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
@@ -354,7 +353,7 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 		location, _ := tagValueAndFlagsByTagString(field.Tag().Get("in"))
 
 		if location == "" {
-			panic(errors.Errorf("missing tag `in` for %s of %s", field.Name(), op.OperationId))
+			panic(fmt.Errorf("missing tag `in` for %s of %s", field.Name(), op.OperationId))
 		}
 
 		tf, err := transformer.NewTransformer(ctx, field.Type(), transformer.Option{

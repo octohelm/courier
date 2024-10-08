@@ -8,9 +8,8 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20240815175050-ebd3a8989ca1
 	github.com/juju/ansiterm v1.0.0
 	github.com/octohelm/gengo v0.0.0-20241008032243-cafe22171bd5
-	github.com/octohelm/x v0.0.0-20240904081416-42a1ee2d28a9
+	github.com/octohelm/x v0.0.0-20241009020047-9323b2732ba9
 	github.com/onsi/gomega v1.34.2
-	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.30.0
 )
 

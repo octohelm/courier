@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"testing"
 
+	"errors"
 	encodingx "github.com/octohelm/x/encoding"
-	"github.com/pkg/errors"
 
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/transformer"

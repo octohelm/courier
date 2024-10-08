@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 
 	contextx "github.com/octohelm/x/context"
 	typesx "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type Mgr interface {
@@ -178,7 +178,7 @@ func (c *transformerFactory) NewTransformer(ctx context.Context, typ typesx.Type
 		return contentTransformer, nil
 	}
 
-	return nil, errors.Errorf("fmt %s is not supported for content transformer", key)
+	return nil, fmt.Errorf("fmt %s is not supported for content transformer", key)
 }
 
 func WriteHeader(ctx context.Context, w io.Writer, contentType string, param map[string]string) {

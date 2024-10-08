@@ -1,0 +1,80 @@
+-- simple_error.json --
+{
+  "code": 500,
+  "key": "InternalServerError",
+  "msg": "test error",
+  "source": "x@v1",
+  "errors": [
+    {
+      "code": 500,
+      "key": "InternalServerError",
+      "msg": "test error",
+      "source": "x@v1"
+    }
+  ]
+}
+-- status_code_wrap_error.json --
+{
+  "code": 409,
+  "key": "Conflict",
+  "msg": "test error",
+  "source": "x@v1",
+  "errors": [
+    {
+      "code": 409,
+      "key": "Conflict",
+      "msg": "test error",
+      "source": "x@v1"
+    },
+    {
+      "code": 500,
+      "key": "InternalServerError",
+      "msg": "test error",
+      "source": "x@v1"
+    }
+  ]
+}
+-- parameter_error.json --
+{
+  "code": 400,
+  "key": "InvalidParameter",
+  "msg": "test error",
+  "source": "x@v1",
+  "location": {
+    "in": "body",
+    "path": [
+      "path",
+      "to",
+      "key"
+    ]
+  },
+  "errors": [
+    {
+      "code": 400,
+      "key": "InvalidParameter",
+      "msg": "test error",
+      "source": "x@v1",
+      "location": {
+        "in": "body",
+        "path": [
+          "path",
+          "to",
+          "key"
+        ]
+      }
+    },
+    {
+      "code": 500,
+      "key": "InternalServerError",
+      "msg": "test error",
+      "source": "x@v1"
+    }
+  ],
+  "errorFields": [
+    {
+      "in": "body",
+      "field": "path.to.key",
+      "msg": "test error"
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
+	"github.com/octohelm/x/ptr"
 )
 
 // https://spec.openapis.org/oas/latest.html#components-object

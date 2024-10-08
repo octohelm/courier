@@ -1,0 +1,87 @@
+package statuserror
+
+import (
+	"fmt"
+)
+
+func Wrap(err error, statusCode int, key string) error {
+	if err == nil {
+		return nil
+	}
+
+	return &statusError{
+		statusCode: statusCode,
+		key:        key,
+		wrapError:  wrapError{err},
+	}
+}
+
+type statusError struct {
+	statusCode int
+	key        string
+
+	wrapError
+}
+
+var _ WithErrKey = &statusError{}
+
+func (e *statusError) ErrKey() string {
+	return e.key
+}
+
+var _ WithStatusCode = &statusError{}
+
+func (e *statusError) StatusCode() int {
+	return e.statusCode
+}
+
+func (e *statusError) Error() string {
+	return fmt.Sprintf("%s{ code=%d, msg=%q }", e.key, e.statusCode, e.err)
+}
+
+func Parameter(err error, in string, path ...any) error {
+	if err == nil {
+		return nil
+	}
+
+	return &errInvalidParameter{
+		location: Location{
+			In:   in,
+			Path: path,
+		},
+		wrapError: wrapError{err: err},
+	}
+}
+
+type errInvalidParameter struct {
+	location Location
+
+	BadRequest
+	wrapError
+}
+
+var _ WithErrKey = &errInvalidParameter{}
+
+func (e *errInvalidParameter) ErrKey() string {
+	return "InvalidParameter"
+}
+
+func (p *errInvalidParameter) Location() (string, []any) {
+	return p.location.In, p.location.Path
+}
+
+func (p *errInvalidParameter) Error() string {
+	return fmt.Sprintf("invalid parameter: %s: %s", p.wrapError, p.location)
+}
+
+type wrapError struct {
+	err error
+}
+
+func (e wrapError) Error() string {
+	return e.err.Error()
+}
+
+func (e wrapError) Unwrap() error {
+	return e.err
+}

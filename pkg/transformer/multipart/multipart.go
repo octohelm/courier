@@ -16,7 +16,6 @@ import (
 	"github.com/octohelm/courier/pkg/transformer/core"
 	verrors "github.com/octohelm/courier/pkg/validator"
 	typesutil "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 func init() {
@@ -44,7 +43,7 @@ func (*multipartTransformer) New(ctx context.Context, typ typesutil.Type) (core.
 
 	typ = typesutil.Deref(typ)
 	if typ.Kind() != reflect.Struct {
-		return nil, errors.Errorf("content transformer `%s` should be used for struct type", transformer)
+		return nil, fmt.Errorf("content transformer `%s` should be used for struct type", transformer)
 	}
 
 	transformer.FlattenParams = &core.FlattenParams{}

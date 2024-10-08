@@ -1,151 +1,151 @@
 package strfmt
 
 import (
-	github_com_go_courier_validator "github.com/octohelm/courier/pkg/validator"
+	validator "github.com/octohelm/courier/pkg/validator"
 )
 
-func init() { github_com_go_courier_validator.Register(ASCIIValidator) }
+func init() { validator.Register(ASCIIValidator) }
 
-var ASCIIValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringASCII, "ascii")
+var ASCIIValidator = validator.NewRegexpStrfmtValidator(regexpStringASCII, "ascii")
 
-func init() { github_com_go_courier_validator.Register(AlphaValidator) }
+func init() { validator.Register(AlphaValidator) }
 
-var AlphaValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringAlpha, "alpha")
+var AlphaValidator = validator.NewRegexpStrfmtValidator(regexpStringAlpha, "alpha")
 
-func init() { github_com_go_courier_validator.Register(AlphaNumericValidator) }
+func init() { validator.Register(AlphaNumericValidator) }
 
-var AlphaNumericValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringAlphaNumeric, "alpha-numeric", "alphaNumeric")
+var AlphaNumericValidator = validator.NewRegexpStrfmtValidator(regexpStringAlphaNumeric, "alpha-numeric", "alphaNumeric")
 
-func init() { github_com_go_courier_validator.Register(AlphaUnicodeValidator) }
+func init() { validator.Register(AlphaUnicodeValidator) }
 
-var AlphaUnicodeValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringAlphaUnicode, "alpha-unicode", "alphaUnicode")
+var AlphaUnicodeValidator = validator.NewRegexpStrfmtValidator(regexpStringAlphaUnicode, "alpha-unicode", "alphaUnicode")
 
 func init() {
-	github_com_go_courier_validator.Register(AlphaUnicodeNumericValidator)
+	validator.Register(AlphaUnicodeNumericValidator)
 }
 
-var AlphaUnicodeNumericValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringAlphaUnicodeNumeric, "alpha-unicode-numeric", "alphaUnicodeNumeric")
+var AlphaUnicodeNumericValidator = validator.NewRegexpStrfmtValidator(regexpStringAlphaUnicodeNumeric, "alpha-unicode-numeric", "alphaUnicodeNumeric")
 
-func init() { github_com_go_courier_validator.Register(Base64Validator) }
+func init() { validator.Register(Base64Validator) }
 
-var Base64Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringBase64, "base64")
+var Base64Validator = validator.NewRegexpStrfmtValidator(regexpStringBase64, "base64")
 
-func init() { github_com_go_courier_validator.Register(Base64URLValidator) }
+func init() { validator.Register(Base64URLValidator) }
 
-var Base64URLValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringBase64URL, "base64-url", "base64URL")
+var Base64URLValidator = validator.NewRegexpStrfmtValidator(regexpStringBase64URL, "base64-url", "base64URL")
 
-func init() { github_com_go_courier_validator.Register(BtcAddressValidator) }
+func init() { validator.Register(BtcAddressValidator) }
 
-var BtcAddressValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringBtcAddress, "btc-address", "btcAddress")
+var BtcAddressValidator = validator.NewRegexpStrfmtValidator(regexpStringBtcAddress, "btc-address", "btcAddress")
 
-func init() { github_com_go_courier_validator.Register(BtcAddressLowerValidator) }
+func init() { validator.Register(BtcAddressLowerValidator) }
 
-var BtcAddressLowerValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringBtcAddressLower, "btc-address-lower", "btcAddressLower")
+var BtcAddressLowerValidator = validator.NewRegexpStrfmtValidator(regexpStringBtcAddressLower, "btc-address-lower", "btcAddressLower")
 
-func init() { github_com_go_courier_validator.Register(BtcAddressUpperValidator) }
+func init() { validator.Register(BtcAddressUpperValidator) }
 
-var BtcAddressUpperValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringBtcAddressUpper, "btc-address-upper", "btcAddressUpper")
+var BtcAddressUpperValidator = validator.NewRegexpStrfmtValidator(regexpStringBtcAddressUpper, "btc-address-upper", "btcAddressUpper")
 
-func init() { github_com_go_courier_validator.Register(DataURIValidator) }
+func init() { validator.Register(DataURIValidator) }
 
-var DataURIValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringDataURI, "data-uri", "dataURI")
+var DataURIValidator = validator.NewRegexpStrfmtValidator(regexpStringDataURI, "data-uri", "dataURI")
 
-func init() { github_com_go_courier_validator.Register(EmailValidator) }
+func init() { validator.Register(EmailValidator) }
 
-var EmailValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringEmail, "email")
+var EmailValidator = validator.NewRegexpStrfmtValidator(regexpStringEmail, "email")
 
-func init() { github_com_go_courier_validator.Register(EthAddressValidator) }
+func init() { validator.Register(EthAddressValidator) }
 
-var EthAddressValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringEthAddress, "eth-address", "ethAddress")
+var EthAddressValidator = validator.NewRegexpStrfmtValidator(regexpStringEthAddress, "eth-address", "ethAddress")
 
-func init() { github_com_go_courier_validator.Register(EthAddressLowerValidator) }
+func init() { validator.Register(EthAddressLowerValidator) }
 
-var EthAddressLowerValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringEthAddressLower, "eth-address-lower", "ethAddressLower")
+var EthAddressLowerValidator = validator.NewRegexpStrfmtValidator(regexpStringEthAddressLower, "eth-address-lower", "ethAddressLower")
 
-func init() { github_com_go_courier_validator.Register(EthAddressUpperValidator) }
+func init() { validator.Register(EthAddressUpperValidator) }
 
-var EthAddressUpperValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringEthAddressUpper, "eth-address-upper", "ethAddressUpper")
+var EthAddressUpperValidator = validator.NewRegexpStrfmtValidator(regexpStringEthAddressUpper, "eth-address-upper", "ethAddressUpper")
 
-func init() { github_com_go_courier_validator.Register(HslValidator) }
+func init() { validator.Register(HslValidator) }
 
-var HslValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHSL, "hsl")
+var HslValidator = validator.NewRegexpStrfmtValidator(regexpStringHSL, "hsl")
 
-func init() { github_com_go_courier_validator.Register(HslaValidator) }
+func init() { validator.Register(HslaValidator) }
 
-var HslaValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHSLA, "hsla")
+var HslaValidator = validator.NewRegexpStrfmtValidator(regexpStringHSLA, "hsla")
 
-func init() { github_com_go_courier_validator.Register(HexAdecimalValidator) }
+func init() { validator.Register(HexAdecimalValidator) }
 
-var HexAdecimalValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHexAdecimal, "hex-adecimal", "hexAdecimal")
+var HexAdecimalValidator = validator.NewRegexpStrfmtValidator(regexpStringHexAdecimal, "hex-adecimal", "hexAdecimal")
 
-func init() { github_com_go_courier_validator.Register(HexColorValidator) }
+func init() { validator.Register(HexColorValidator) }
 
-var HexColorValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHexColor, "hex-color", "hexColor")
+var HexColorValidator = validator.NewRegexpStrfmtValidator(regexpStringHexColor, "hex-color", "hexColor")
 
-func init() { github_com_go_courier_validator.Register(HostnameValidator) }
+func init() { validator.Register(HostnameValidator) }
 
-var HostnameValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHostname, "hostname")
+var HostnameValidator = validator.NewRegexpStrfmtValidator(regexpStringHostname, "hostname")
 
-func init() { github_com_go_courier_validator.Register(HostnameXValidator) }
+func init() { validator.Register(HostnameXValidator) }
 
-var HostnameXValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringHostnameX, "hostname-x", "hostnameX")
+var HostnameXValidator = validator.NewRegexpStrfmtValidator(regexpStringHostnameX, "hostname-x", "hostnameX")
 
-func init() { github_com_go_courier_validator.Register(Isbn10Validator) }
+func init() { validator.Register(Isbn10Validator) }
 
-var Isbn10Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringISBN10, "isbn10")
+var Isbn10Validator = validator.NewRegexpStrfmtValidator(regexpStringISBN10, "isbn10")
 
-func init() { github_com_go_courier_validator.Register(Isbn13Validator) }
+func init() { validator.Register(Isbn13Validator) }
 
-var Isbn13Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringISBN13, "isbn13")
+var Isbn13Validator = validator.NewRegexpStrfmtValidator(regexpStringISBN13, "isbn13")
 
-func init() { github_com_go_courier_validator.Register(LatitudeValidator) }
+func init() { validator.Register(LatitudeValidator) }
 
-var LatitudeValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringLatitude, "latitude")
+var LatitudeValidator = validator.NewRegexpStrfmtValidator(regexpStringLatitude, "latitude")
 
-func init() { github_com_go_courier_validator.Register(LongitudeValidator) }
+func init() { validator.Register(LongitudeValidator) }
 
-var LongitudeValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringLongitude, "longitude")
+var LongitudeValidator = validator.NewRegexpStrfmtValidator(regexpStringLongitude, "longitude")
 
-func init() { github_com_go_courier_validator.Register(MultibyteValidator) }
+func init() { validator.Register(MultibyteValidator) }
 
-var MultibyteValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringMultibyte, "multibyte")
+var MultibyteValidator = validator.NewRegexpStrfmtValidator(regexpStringMultibyte, "multibyte")
 
-func init() { github_com_go_courier_validator.Register(NumberValidator) }
+func init() { validator.Register(NumberValidator) }
 
-var NumberValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringNumber, "number")
+var NumberValidator = validator.NewRegexpStrfmtValidator(regexpStringNumber, "number")
 
-func init() { github_com_go_courier_validator.Register(NumericValidator) }
+func init() { validator.Register(NumericValidator) }
 
-var NumericValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringNumeric, "numeric")
+var NumericValidator = validator.NewRegexpStrfmtValidator(regexpStringNumeric, "numeric")
 
-func init() { github_com_go_courier_validator.Register(PrintableASCIIValidator) }
+func init() { validator.Register(PrintableASCIIValidator) }
 
-var PrintableASCIIValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringPrintableASCII, "printable-ascii", "printableASCII")
+var PrintableASCIIValidator = validator.NewRegexpStrfmtValidator(regexpStringPrintableASCII, "printable-ascii", "printableASCII")
 
-func init() { github_com_go_courier_validator.Register(RgbValidator) }
+func init() { validator.Register(RgbValidator) }
 
-var RgbValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringRGB, "rgb")
+var RgbValidator = validator.NewRegexpStrfmtValidator(regexpStringRGB, "rgb")
 
-func init() { github_com_go_courier_validator.Register(RgbaValidator) }
+func init() { validator.Register(RgbaValidator) }
 
-var RgbaValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringRGBA, "rgba")
+var RgbaValidator = validator.NewRegexpStrfmtValidator(regexpStringRGBA, "rgba")
 
-func init() { github_com_go_courier_validator.Register(SsnValidator) }
+func init() { validator.Register(SsnValidator) }
 
-var SsnValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringSSN, "ssn")
+var SsnValidator = validator.NewRegexpStrfmtValidator(regexpStringSSN, "ssn")
 
-func init() { github_com_go_courier_validator.Register(UUIDValidator) }
+func init() { validator.Register(UUIDValidator) }
 
-var UUIDValidator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringUUID, "uuid")
+var UUIDValidator = validator.NewRegexpStrfmtValidator(regexpStringUUID, "uuid")
 
-func init() { github_com_go_courier_validator.Register(Uuid3Validator) }
+func init() { validator.Register(Uuid3Validator) }
 
-var Uuid3Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringUUID3, "uuid3")
+var Uuid3Validator = validator.NewRegexpStrfmtValidator(regexpStringUUID3, "uuid3")
 
-func init() { github_com_go_courier_validator.Register(Uuid4Validator) }
+func init() { validator.Register(Uuid4Validator) }
 
-var Uuid4Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringUUID4, "uuid4")
+var Uuid4Validator = validator.NewRegexpStrfmtValidator(regexpStringUUID4, "uuid4")
 
-func init() { github_com_go_courier_validator.Register(Uuid5Validator) }
+func init() { validator.Register(Uuid5Validator) }
 
-var Uuid5Validator = github_com_go_courier_validator.NewRegexpStrfmtValidator(regexpStringUUID5, "uuid5")
+var Uuid5Validator = validator.NewRegexpStrfmtValidator(regexpStringUUID5, "uuid5")

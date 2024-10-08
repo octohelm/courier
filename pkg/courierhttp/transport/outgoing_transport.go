@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -21,7 +22,6 @@ import (
 	contextx "github.com/octohelm/x/context"
 	reflectx "github.com/octohelm/x/reflect"
 	typesx "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type OutgoingTransport interface {
@@ -118,7 +118,7 @@ func (t *outgoingTransport) NewRequest(ctx context.Context, v any) (*http.Reques
 	typ := reflectx.Deref(reflect.TypeOf(v))
 
 	if t.Type != typ {
-		return nil, errors.Errorf("unmatched outgoingTransport, need %s but got %s", t.Type, typ)
+		return nil, fmt.Errorf("unmatched outgoingTransport, need %s but got %s", t.Type, typ)
 	}
 
 	method := t.Method()

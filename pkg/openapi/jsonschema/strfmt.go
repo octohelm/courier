@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // openapi:strfmt uri

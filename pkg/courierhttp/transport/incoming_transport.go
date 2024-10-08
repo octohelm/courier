@@ -15,10 +15,8 @@ import (
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/courier/pkg/transformer"
 	"github.com/octohelm/courier/pkg/transformer/core"
-	"github.com/octohelm/courier/pkg/validator"
 	reflectx "github.com/octohelm/x/reflect"
 	typex "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type IncomingTransport interface {
@@ -67,16 +65,9 @@ func (t *incomingTransport) UnmarshalOperator(ctx context.Context, info courierh
 	return t.validate(op)
 }
 
-func (t *incomingTransport) validate(v interface{}) error {
+func (t *incomingTransport) validate(v any) error {
 	if canValidate, ok := v.(interface{ Validate() error }); ok {
 		if err := canValidate.Validate(); err != nil {
-			if est := err.(interface {
-				ToFieldErrors() statuserror.ErrorFields
-			}); ok {
-				if errorFields := est.ToFieldErrors(); len(errorFields) > 0 {
-					return (&badRequest{errorFields: errorFields}).Err()
-				}
-			}
 			return err
 		}
 		return nil
@@ -87,7 +78,7 @@ func (t *incomingTransport) validate(v interface{}) error {
 		rv = reflect.ValueOf(v)
 	}
 
-	errSet := validator.NewErrorSet()
+	var finalError error
 
 	for in := range t.InParameters {
 		parameters := t.InParameters[in]
@@ -98,41 +89,35 @@ func (t *incomingTransport) validate(v interface{}) error {
 			if param.Validator != nil {
 				if err := param.Validator.Validate(param.FieldValue(rv)); err != nil {
 					if param.In == "body" {
-						errSet.AddErr(err, validator.Location(param.In))
+						finalError = statuserror.Append(finalError, statuserror.ParameterError(param.In))
 					} else {
-						errSet.AddErr(err, validator.Location(param.In), param.Name)
+						finalError = statuserror.Append(finalError, statuserror.ParameterError(param.In, param.Name))
 					}
 				}
 			}
 		}
 	}
 
-	br := badRequestFromErrSet(errSet)
-
-	if errSet.Err() == nil {
-		return nil
-	}
-
-	return br.Err()
+	return finalError
 }
 
-func (t *incomingTransport) decodeFromRequestInfo(ctx context.Context, info courierhttp.Request, v interface{}) error {
+func (t *incomingTransport) decodeFromRequestInfo(ctx context.Context, info courierhttp.Request, v any) error {
 	rv, ok := v.(reflect.Value)
 	if !ok {
 		rv = reflect.ValueOf(v)
 	}
 
 	if rv.Kind() != reflect.Ptr {
-		return errors.Errorf("decode target must be an ptr value")
+		return fmt.Errorf("decode target must be an ptr value")
 	}
 
 	rv = reflectx.Indirect(rv)
 
 	if tpe := rv.Type(); tpe != t.Type {
-		return errors.Errorf("unmatched request transformer, need %s but got %s", t.Type, tpe)
+		return fmt.Errorf("unmatched request transformer, need %s but got %s", t.Type, tpe)
 	}
 
-	errSet := validator.NewErrorSet()
+	var finalError error
 
 	for in := range t.InParameters {
 		parameters := t.InParameters[in]
@@ -144,7 +129,7 @@ func (t *incomingTransport) decodeFromRequestInfo(ctx context.Context, info cour
 				if !param.TransformerOption.Strict || strings.HasPrefix(info.Header().Get("Content-Type"), param.Transformer.Names()[0]) {
 					err := param.Transformer.DecodeFrom(ctx, info.Body(), param.FieldValue(rv).Addr(), textproto.MIMEHeader(info.Header()))
 					if err != nil && err != io.EOF {
-						errSet.AddErr(err, validator.Location(param.In))
+						finalError = statuserror.Append(finalError, statuserror.ParameterError(param.In))
 					}
 				}
 				continue
@@ -168,81 +153,69 @@ func (t *incomingTransport) decodeFromRequestInfo(ctx context.Context, info cour
 					DecodeFrom(ctx, core.NewStringReaders(values), paramValue)
 
 				if err != nil {
-					errSet.AddErr(err, validator.Location(param.In), param.Name)
+					finalError = statuserror.Append(finalError, statuserror.ParameterError(param.In, param.Name))
 				}
 			}
 		}
 	}
 
-	if errSet.Err() == nil {
-		return nil
-	}
-
-	return badRequestFromErrSet(errSet).Err()
+	return finalError
 }
 
-func badRequestFromErrSet(set *validator.ErrorSet) *badRequest {
-	br := &badRequest{}
+//func badRequestFromErrSet(set *validator.ErrorSet) *badRequest {
+//	br := &badRequest{}
+//
+//	set.Flatten().Each(func(fieldErr *validator.FieldError) {
+//		if l, ok := fieldErr.Path[0].(validator.Location); ok {
+//			fe := &statuserror.ErrorField{
+//				In:    string(l),
+//				Field: fieldErr.Path[1:].String(),
+//				Msg:   fieldErr.Error.Error(),
+//			}
+//			br.errorFields = append(br.errorFields, fe)
+//		}
+//	})
+//
+//	return br
+//}
 
-	set.Flatten().Each(func(fieldErr *validator.FieldError) {
-		if l, ok := fieldErr.Path[0].(validator.Location); ok {
-			fe := &statuserror.ErrorField{
-				In:    string(l),
-				Field: fieldErr.Path[1:].String(),
-				Msg:   fieldErr.Error.Error(),
-			}
-			br.errorFields = append(br.errorFields, fe)
-		}
-	})
-
-	return br
-}
-
-type badRequest struct {
-	errorFields statuserror.ErrorFields
-	errTalk     bool
-	msg         string
-}
-
-func (e *badRequest) EnableErrTalk() {
-	e.errTalk = true
-}
-
-func (e *badRequest) SetMsg(msg string) {
-	e.msg = msg
-}
-
-func (e *badRequest) AddErr(err error, nameOrIdx ...interface{}) {
-	if len(nameOrIdx) > 1 {
-		e.errorFields = append(e.errorFields, &statuserror.ErrorField{
-			In:    nameOrIdx[0].(string),
-			Field: validator.KeyPath(nameOrIdx[1:]).String(),
-			Msg:   err.Error(),
-		})
-	}
-}
-
-func (e *badRequest) Err() error {
-	if len(e.errorFields) == 0 {
-		return nil
-	}
-
-	msg := e.msg
-	if msg == "" {
-		msg = "invalid parameters"
-	}
-
-	err := statuserror.
-		Wrap(errors.New(""), http.StatusBadRequest, "badRequest").
-		WithMsg(msg).
-		AppendErrorFields(e.errorFields...)
-
-	if e.errTalk {
-		err = err.EnableErrTalk()
-	}
-
-	return err
-}
+//type badRequest struct {
+//	errorFields statuserror.ErrorFields
+//	msg         string
+//}
+//
+//func (e *badRequest) SetMsg(msg string) {
+//	e.msg = msg
+//}
+//
+//func (e *badRequest) AddErr(err error, nameOrIdx ...any) {
+//	if len(nameOrIdx) > 1 {
+//		e.errorFields = append(e.errorFields, &statuserror.ErrorField{
+//			In:    nameOrIdx[0].(string),
+//			Field: validator.KeyPath(nameOrIdx[1:]).String(),
+//			Msg:   err.Error(),
+//		})
+//	}
+//}
+//
+//func (e *badRequest) Err() error {
+//	if len(e.errorFields) == 0 {
+//		return nil
+//	}
+//
+//	msg := e.msg
+//	if msg == "" {
+//		msg = "invalid parameters"
+//	}
+//
+//	err := statuserror.
+//		Wrap(errors.New(""), http.StatusBadRequest, "badRequest").
+//		WithMsg(msg).
+//		AppendErrorFields(e.errorFields...)
+//
+//
+//	return err
+//}
 
 type Upgrader interface {
 	Upgrade(w http.ResponseWriter, r *http.Request) error

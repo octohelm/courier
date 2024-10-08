@@ -2,8 +2,8 @@ package org
 
 import (
 	"bytes"
+	github_com_pkg_errors "errors"
 	"fmt"
-	github_com_pkg_errors "github.com/pkg/errors"
 )
 
 type Type int

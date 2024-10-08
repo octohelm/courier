@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/pkg/errors"
+	"errors"
 
 	"github.com/octohelm/courier/pkg/statuserror"
 
