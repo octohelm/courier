@@ -66,7 +66,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 
 	resp, err := httpClient.Do(httpReq)
 	if err != nil {
-		if errors.Unwrap(err) == context.Canceled {
+		if errors.Is(err, context.Canceled) {
 			return &result{
 				c:   c,
 				err: statuserror.Wrap(err, 499, "ClientClosedRequest"),
@@ -189,7 +189,10 @@ func (r *result) decode(body any, meta courier.Metadata) error {
 	}
 
 	if err := tf.DecodeFrom(context.Background(), r.Response.Body, rv, textproto.MIMEHeader(r.Response.Header)); err != nil {
-		return statuserror.Wrap(err, http.StatusInternalServerError, "DecodeFailed", errors.Wrapf(err, "decode failed to %v", body).Error())
+		if e, ok := body.(error); ok {
+			return e
+		}
+		return statuserror.Wrap(err, http.StatusInternalServerError, "DecodeFailed", errors.Wrapf(err, "decode failed to %T", body).Error())
 	}
 
 	return nil
