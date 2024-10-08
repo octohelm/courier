@@ -12,6 +12,7 @@ type HttpRequest struct {
 // +gengo:injectable:provider
 type OperationInfo struct {
 	Server
+
 	ID     string
 	Method string
 	Route  string

@@ -4,10 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"errors"
+
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/statuserror"
-	"github.com/pkg/errors"
 )
 
 var openapiView transport.Upgrader

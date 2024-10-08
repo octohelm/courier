@@ -14,66 +14,23 @@ func runtimeDoc(v any, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v ErrorField) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "Field":
-			return []string{
-				"field path",
-				"prop.slice[2].a",
-			}, true
-		case "Msg":
-			return []string{
-				"msg",
-			}, true
-		case "In":
-			return []string{
-				"location",
-				"eq. body, query, header, path, formData",
-			}, true
-
-		}
-
-		return nil, false
-	}
-	return []string{}, true
-}
-
-func (ErrorFields) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
-func (v StatusErr) RuntimeDoc(names ...string) ([]string, bool) {
+func (v ErrorResponse) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Code":
-			return []string{
-				"http code",
-			}, true
+			return []string{}, true
 		case "Key":
-			return []string{
-				"key of err",
-			}, true
+			return []string{}, true
 		case "Msg":
-			return []string{
-				"msg of err",
-			}, true
-		case "Desc":
-			return []string{
-				"desc of err",
-			}, true
-		case "CanBeTalkError":
-			return []string{
-				"can be task error",
-				"for client to should error msg to end user",
-			}, true
-		case "Sources":
-			return []string{
-				"error tracing",
-			}, true
-		case "ErrorFields":
-			return []string{
-				"error in where fields",
-			}, true
+			return []string{}, true
+		case "Location":
+			return []string{}, true
+		case "Pointer":
+			return []string{}, true
+		case "Source":
+			return []string{}, true
+		case "Errors":
+			return []string{}, true
 
 		}
 

@@ -3,13 +3,14 @@ package httprouter
 import (
 	"bytes"
 	"fmt"
-	"github.com/octohelm/courier/internal/pathpattern"
 	"iter"
 	"maps"
 	"net/http"
 	"net/url"
 	"slices"
 	"strings"
+
+	"github.com/octohelm/courier/internal/pathpattern"
 )
 
 type group struct {
@@ -80,8 +81,6 @@ func (g *group) handler(m *mux) http.Handler {
 
 				remain, ok := prefix.MatchTo(values, req.URL.Path)
 				if ok {
-					fmt.Println(remain)
-
 					parts := strings.Split(remain, "/")
 
 					for i, p := range parts {

@@ -2,20 +2,20 @@ package client
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
-	"net/textproto"
 	"net/url"
 	"path"
 	"reflect"
 	"strings"
 
+	"github.com/octohelm/courier/internal/httprequest"
+	"github.com/octohelm/courier/pkg/content"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/statuserror"
-	transformer "github.com/octohelm/courier/pkg/transformer/core"
-	typesutil "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
 )
 
 type RoundTrip = func(request *http.Request) (*http.Response, error)
@@ -53,7 +53,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		if err != nil {
 			return &result{
 				c:   c,
-				err: statuserror.Wrap(err, http.StatusInternalServerError, "RequestFailed"),
+				err: statuserror.Wrap(err, http.StatusInternalServerError, "HttpRequestFailed"),
 			}
 		}
 		httpReq = r
@@ -66,7 +66,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 
 	resp, err := httpClient.Do(httpReq)
 	if err != nil {
-		if errors.Unwrap(err) == context.Canceled {
+		if errors.Is(err, context.Canceled) {
 			return &result{
 				c:   c,
 				err: statuserror.Wrap(err, 499, "ClientClosedRequest"),
@@ -112,8 +112,8 @@ func (c *Client) newRequest(ctx context.Context, r any, metas ...courier.Metadat
 }
 
 type result struct {
-	c *Client
 	*http.Response
+	c   *Client
 	err error
 }
 
@@ -148,10 +148,8 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 		if r.c.NewError != nil {
 			body = r.c.NewError()
 		} else {
-			body = &statuserror.StatusErr{
-				Code:    r.Response.StatusCode,
-				Msg:     r.Response.Status,
-				Sources: []string{r.Response.Request.Host},
+			body = &statuserror.ErrorResponse{
+				Source: r.Response.Request.Host,
 			}
 		}
 	}
@@ -161,9 +159,29 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 	}
 
 	switch x := body.(type) {
+	case *any:
+		return meta, nil
+	case interface {
+		error
+		UnmarshalErrorResponse(statusCode int, respBody []byte) error
+	}:
+		if r.Response != nil && r.Response.Body != nil {
+			data, err := io.ReadAll(r.Response.Body)
+			if err != nil {
+				return meta, err
+			}
+			if err := x.UnmarshalErrorResponse(r.Response.StatusCode, data); err != nil {
+				return nil, err
+			}
+			return meta, x
+		}
+		if err := x.UnmarshalErrorResponse(r.Response.StatusCode, nil); err != nil {
+			return nil, err
+		}
+		return meta, x
 	case error:
 		// to unmarshal status error
-		if err := r.decode(x, meta); err != nil {
+		if err := r.unmarshalInto(x); err != nil {
 			return meta, err
 		}
 		return meta, x
@@ -172,7 +190,7 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 			return meta, statuserror.Wrap(err, http.StatusInternalServerError, "WriteFailed")
 		}
 	default:
-		if err := r.decode(body, meta); err != nil {
+		if err := r.unmarshalInto(body); err != nil {
 			return meta, err
 		}
 	}
@@ -180,16 +198,21 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 	return meta, nil
 }
 
-func (r *result) decode(body any, meta courier.Metadata) error {
+func (r *result) unmarshalInto(body any) error {
 	rv := reflect.ValueOf(body)
 
-	tf, err := transformer.NewTransformer(context.Background(), typesutil.FromRType(rv.Type()), transformer.Option{})
-	if err != nil {
-		return statuserror.Wrap(err, http.StatusInternalServerError, "TransformerCreateFailed")
+	mediaType := strings.Split(r.Response.Header.Get("Content-Type"), ";")[0]
+	if v, ok := body.(interface{ ContentType() string }); ok {
+		mediaType = v.ContentType()
 	}
 
-	if err := tf.DecodeFrom(context.Background(), r.Response.Body, rv, textproto.MIMEHeader(r.Response.Header)); err != nil {
-		return statuserror.Wrap(err, http.StatusInternalServerError, "DecodeFailed", errors.Wrapf(err, "decode failed to %v", body).Error())
+	tf, err := content.New(rv.Type(), mediaType, "unmarshal")
+	if err != nil {
+		return err
+	}
+
+	if err := tf.ReadAs(context.Background(), httprequest.WithHeader(r.Response.Body, r.Response.Header), rv); err != nil {
+		return statuserror.Wrap(fmt.Errorf("unmarshal to %T failed: %w", body, err), http.StatusInternalServerError, "ResponseDecodeFailed")
 	}
 
 	return nil

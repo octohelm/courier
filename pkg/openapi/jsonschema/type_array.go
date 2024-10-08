@@ -12,13 +12,13 @@ func ArrayOf(items Schema) *ArrayType {
 }
 
 type ArrayType struct {
-	Type  string `json:"type,omitempty"`
-	Items Schema `json:"items,omitempty"`
+	Type  string `json:"type,omitzero"`
+	Items Schema `json:"items,omitzero"`
 
 	// validate
-	MaxItems    *uint64 `json:"maxItems,omitempty"`
-	MinItems    *uint64 `json:"minItems,omitempty"`
-	UniqueItems *bool   `json:"uniqueItems,omitempty"`
+	MaxItems    *uint64 `json:"maxItems,omitzero"`
+	MinItems    *uint64 `json:"minItems,omitzero"`
+	UniqueItems *bool   `json:"uniqueItems,omitzero"`
 
 	Core
 	Metadata

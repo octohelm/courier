@@ -29,16 +29,16 @@ func MapOf(v Schema) *ObjectType {
 }
 
 type ObjectType struct {
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitzero"`
 
-	Properties           Props  `json:"properties,omitempty"`
-	PropertyNames        Schema `json:"propertyNames,omitempty"`
-	AdditionalProperties Schema `json:"additionalProperties,omitempty"`
+	Properties           Props  `json:"properties,omitzero"`
+	PropertyNames        Schema `json:"propertyNames,omitzero"`
+	AdditionalProperties Schema `json:"additionalProperties,omitzero"`
 
 	// validate
-	Required      []string `json:"required,omitempty"`
-	MaxProperties *uint64  `json:"maxProperties,omitempty"`
-	MinProperties *uint64  `json:"minProperties,omitempty"`
+	Required      []string `json:"required,omitzero"`
+	MaxProperties *uint64  `json:"maxProperties,omitzero"`
+	MinProperties *uint64  `json:"minProperties,omitzero"`
 
 	Core
 	Metadata

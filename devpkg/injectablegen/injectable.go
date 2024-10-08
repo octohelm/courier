@@ -28,7 +28,7 @@ func (g *injectableGen) init(c gengo.Context) {
 		sig := c.Package("context").Function("Cause").Signature()
 
 		g.publicProviderInterface = types.NewInterfaceType([]*types.Func{
-			types.NewFunc(0, nil, "InjectContext",
+			types.NewFunc(0, c.Package("context").Pkg(), "InjectContext",
 				types.NewSignatureType(nil, nil, nil,
 					types.NewTuple(sig.Params().At(0)),
 					types.NewTuple(sig.Params().At(0)),
@@ -40,7 +40,7 @@ func (g *injectableGen) init(c gengo.Context) {
 
 	{
 		g.publicInitInterface = types.NewInterfaceType([]*types.Func{
-			types.NewFunc(0, nil, "Init", c.Package("context").Function("Cause").Signature()),
+			types.NewFunc(0, c.Package("context").Pkg(), "Init", c.Package("context").Function("Cause").Signature()),
 		}, nil)
 	}
 }
@@ -127,6 +127,10 @@ func @Type'InjectContext(ctx @contextContext, tpe *@Type) (@contextContext) {
    return @contextWithValue(ctx, context@Type{}, tpe)
 }
 
+func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
+   return @Type'InjectContext(ctx, p)
+}
+
 `,
 			"Type":             gengo.ID(t.Obj()),
 			"contextContext":   gengo.ID("context.Context"),
@@ -161,6 +165,16 @@ func(v *@Type) Init(ctx @contextContext) error {
 
 				injectTag, exists := structTag.Lookup("inject")
 				if exists && injectTag != "-" {
+					typ := f.Type()
+
+					for {
+						x, ok := typ.(*types.Pointer)
+						if !ok {
+							break
+						}
+						typ = x.Elem()
+					}
+
 					sw.Render(gengo.Snippet{
 						gengo.T: `
 if value, ok := @FieldType'FromContext(ctx); ok {
@@ -168,16 +182,16 @@ if value, ok := @FieldType'FromContext(ctx); ok {
 } @elseOr
 `,
 						"Field":     gengo.ID(f.Name()),
-						"FieldType": gengo.ID(f.Type()),
+						"FieldType": gengo.ID(typ),
 						"elseOr": func(sw gengo.SnippetWriter) {
 							if !strings.Contains(injectTag, ",optional") {
 								sw.Render(gengo.Snippet{
 									gengo.T: `else {
-return @errorsErrorf("No provider %T", v.@Field)
+return @errorsErrorf("missing provider %T", v.@Field)
 }
 `,
 									"Field":        gengo.ID(f.Name()),
-									"errorsErrorf": gengo.ID("github.com/pkg/errors.Errorf"),
+									"errorsErrorf": gengo.ID("fmt.Errorf"),
 								})
 							}
 						},
@@ -238,7 +252,7 @@ func (g *injectableGen) isInjectable(c gengo.Context, t types.Type) bool {
 		if _, ok := tags["gengo:injectable"]; ok {
 			return true
 		}
-		return types.Implements(types.NewPointer(x), g.publicProviderInterface)
+		return types.Implements(x, g.publicProviderInterface) || types.Implements(types.NewPointer(x), g.publicProviderInterface)
 	}
 
 	return false
@@ -254,7 +268,7 @@ func (g *injectableGen) hasPublicInit(c gengo.Context, t types.Type) bool {
 			_, ok := x.Obj().Type().(*types.Struct)
 			return ok
 		}
-		return types.Implements(types.NewPointer(x), g.publicInitInterface)
+		return types.Implements(x, g.publicInitInterface) || types.Implements(types.NewPointer(x), g.publicInitInterface)
 	}
 
 	return false

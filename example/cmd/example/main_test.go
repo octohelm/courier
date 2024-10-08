@@ -5,26 +5,24 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"testing"
 	"time"
-
-	"golang.org/x/net/http2"
 
 	"github.com/go-courier/logr"
 	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/example/client/example"
 	"github.com/octohelm/courier/internal/testingutil"
-	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
-	"github.com/pkg/errors"
+	testingx "github.com/octohelm/x/testing"
+	"golang.org/x/net/http2"
 )
 
 var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.RoundTrip) (*http.Response, error) {
-
 	startedAt := time.Now()
 
 	ctx, logger := logr.Start(req.Context(), "Request")
@@ -40,13 +38,13 @@ var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.Roun
 			"method", req.Method,
 			"url", req.URL.String(),
 			"metadata", req.Header,
-			"content-len", req.ContentLength,
+			"http.content-length", req.ContentLength,
 		)
 
 		if err == nil {
 			logger.WithValues("response.proto", resp.Proto).Info("success")
 		} else {
-			logger.Warn(errors.Wrap(err, "http request failed"))
+			logger.Warn(fmt.Errorf("http request failed: %w", err))
 		}
 	}()
 
@@ -55,7 +53,8 @@ var htLogger = client.HttpTransportFunc(func(req *http.Request, next client.Roun
 
 func TestAll(t *testing.T) {
 	h, err := httprouter.New(apis.R, "example")
-	testingutil.Expect(t, err, testingutil.Be[error](nil))
+	testingx.Expect(t, err, testingx.BeNil[error]())
+
 	srv := testingutil.Serve(t, h)
 
 	c := &example.Client{
@@ -70,8 +69,9 @@ func TestAll(t *testing.T) {
 			OrgName: "test",
 		}
 		resp, err := example.Do(ctx, org)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, resp.Name, testingutil.Be(org.OrgName))
+		testingx.Expect(t, err, testingx.BeNil[error]())
+		testingx.Expect(t, resp.Name, testingx.Be(org.OrgName))
+		testingx.Expect(t, resp.Type, testingx.Be(example.ORG_TYPE__Gov))
 	})
 
 	t.Run("Do Some Request with h2", func(t *testing.T) {
@@ -86,25 +86,25 @@ func TestAll(t *testing.T) {
 				},
 			}
 		}), org)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, resp.Name, testingutil.Be(org.OrgName))
+		testingx.Expect(t, err, testingx.BeNil[error]())
+		testingx.Expect(t, resp.Name, testingx.Be(org.OrgName))
 	})
 
 	t.Run("Upload", func(t *testing.T) {
 		v := &example.UploadBlob{
-			ReadCloser: courierhttp.WrapReadCloser(bytes.NewBufferString("1234567")),
+			ReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
 		}
 		_, err := example.Do(ctx, v)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingx.Expect(t, err, testingx.BeNil[error]())
 	})
 
 	t.Run("UploadStoreBlob", func(t *testing.T) {
 		v := &example.UploadStoreBlob{
 			Scope:      "a/b/c",
-			ReadCloser: courierhttp.WrapReadCloser(bytes.NewBufferString("1234567")),
+			ReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
 		}
 		_, err := example.Do(ctx, v)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingx.Expect(t, err, testingx.BeNil[error]())
 	})
 
 	t.Run("GetStoreBlob", func(t *testing.T) {
@@ -113,8 +113,8 @@ func TestAll(t *testing.T) {
 			Digest: "xxx",
 		}
 		resp, err := example.Do(ctx, v)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, *resp, testingutil.Be("a/b/c@xxx"))
+		testingx.Expect(t, err, testingx.BeNil[error]())
+		testingx.Expect(t, *resp, testingx.Be("a/b/c@xxx"))
 	})
 
 	t.Run("GetFile", func(t *testing.T) {
@@ -122,7 +122,7 @@ func TestAll(t *testing.T) {
 			Path: "a/b/c",
 		}
 		resp, err := example.Do(ctx, v)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, *resp, testingutil.Be("a/b/c"))
+		testingx.Expect(t, err, testingx.BeNil[error]())
+		testingx.Expect(t, *resp, testingx.Be("a/b/c"))
 	})
 }

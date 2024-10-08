@@ -4,17 +4,17 @@ import (
 	"context"
 	"encoding"
 	"fmt"
-	"go/ast"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 
-	contextx "github.com/octohelm/x/context"
-	reflectx "github.com/octohelm/x/reflect"
-	"github.com/pkg/errors"
+	"github.com/octohelm/courier/internal/jsonflags"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+	"github.com/octohelm/courier/pkg/validator"
+	contextx "github.com/octohelm/x/context"
+	reflectx "github.com/octohelm/x/reflect"
 )
 
 type RuntimeDocer interface {
@@ -302,20 +302,25 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			break
 		default:
 			if _, ok := keySchema.(*jsonschema.StringType); !ok {
-				panic(errors.Errorf("only support string of map key, but got %s", keySchema))
+				panic(fmt.Errorf("only support string of map key, but got %s", keySchema))
 			}
 		}
 		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
 	case reflect.Struct:
 		structSchema := jsonschema.ObjectOf(nil)
 
-		EachStructField(t, func(f *StructField) {
-			propSchema := f.ToPropSchema(ctx, opt)
+		fields, err := jsonflags.Structs.StructFields(t)
+		if err != nil {
+			panic(err)
+		}
+
+		for f := range fields.StructField() {
+			propSchema := toPropSchema(ctx, f, opt)
 
 			if propSchema != nil {
-				structSchema.SetProperty(f.DisplayName, propSchema, !f.Optional)
+				structSchema.SetProperty(f.Name, propSchema, !(f.Omitempty || f.Omitzero))
 			}
-		})
+		}
 
 		return structSchema
 	default:
@@ -325,15 +330,8 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 	return nil
 }
 
-type StructField struct {
-	reflect.StructField
-
-	DisplayName string
-	Optional    bool
-}
-
-func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Schema {
-	if !FieldShouldPick(sf.Type, sf.DisplayName) {
+func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsonschema.Schema {
+	if !FieldShouldPick(sf.Type, sf.FieldName) {
 		return nil
 	}
 
@@ -341,8 +339,8 @@ func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Sch
 
 	if opt.Doc != nil {
 		for _, name := range []string{
+			sf.FieldName,
 			sf.Name,
-			sf.DisplayName,
 		} {
 			if fieldDesc := opt.Doc[name]; fieldDesc != "" {
 				fieldDoc = fieldDesc
@@ -357,26 +355,25 @@ func (sf *StructField) ToPropSchema(ctx context.Context, opt Opt) jsonschema.Sch
 
 	propSchema := SchemaFromType(ctx, sf.Type, opt.WithDecl(false))
 	if propSchema != nil {
-		validate, hasValidate := sf.Tag.Lookup("validate")
-
-		if hasValidate && validate != "-" {
-			s, err := PatchSchemaValidationByValidateBytes(propSchema, sf.Type, []byte(validate))
-			if err != nil {
-				panic(errors.Wrapf(err, "invalid validate %s", validate))
-			}
-			propSchema = s
+		s, err := PatchSchemaValidation(propSchema, validator.Option{
+			Type: sf.Type,
+			Rule: sf.Tag.Get("validate"),
+		})
+		if err != nil {
+			panic(fmt.Errorf("invalid validate %s: %w", sf.Tag.Get("validate"), err))
 		}
+		propSchema = s
 
 		metadata := propSchema.GetMetadata()
 		metadata.Description = fieldDoc
 
 		if canRuntimeDoc, ok := RuntimeDocerContext.MayFrom(ctx); ok {
-			if lines, ok := canRuntimeDoc.RuntimeDoc(sf.Name); ok {
+			if lines, ok := canRuntimeDoc.RuntimeDoc(sf.FieldName); ok {
 				metadata.Description = strings.Join(lines, "\n")
 			}
 		}
 
-		metadata.AddExtension(jsonschema.XGoFieldName, sf.Name)
+		metadata.AddExtension(jsonschema.XGoFieldName, sf.FieldName)
 
 		return propSchema
 	}
@@ -410,67 +407,4 @@ func pickStringEnumFromDesc(d string) []string {
 	}
 
 	return nil
-}
-
-func EachStructField(t reflect.Type, each func(f *StructField)) {
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-
-		if !ast.IsExported(field.Name) {
-			continue
-		}
-
-		structTag := field.Tag
-
-		tagValueForName := ""
-
-		for _, namedTag := range []string{"json", "name"} {
-			if tagValueForName == "" {
-				tagValueForName = structTag.Get(namedTag)
-			}
-		}
-
-		name, flags := tagValueAndFlagsByTagString(tagValueForName)
-		if name == "-" {
-			continue
-		}
-
-		// includes ,inline
-		if name == "" && field.Anonymous {
-			ft := field.Type
-			if ft.Kind() == reflect.Ptr {
-				ft = ft.Elem()
-			}
-
-			if ft.Kind() == reflect.Struct {
-				EachStructField(ft, each)
-			}
-			continue
-		}
-
-		st := &StructField{StructField: field}
-
-		st.DisplayName = field.Name
-		if name != "" {
-			st.DisplayName = name
-		}
-
-		if hasOmitempty, ok := flags["omitempty"]; ok {
-			st.Optional = hasOmitempty
-		}
-
-		each(st)
-	}
-}
-
-func tagValueAndFlagsByTagString(tagString string) (string, map[string]bool) {
-	valueAndFlags := strings.Split(tagString, ",")
-	v := valueAndFlags[0]
-	tagFlags := map[string]bool{}
-	if len(valueAndFlags) > 1 {
-		for _, flag := range valueAndFlags[1:] {
-			tagFlags[flag] = true
-		}
-	}
-	return v, tagFlags
 }

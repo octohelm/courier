@@ -11,13 +11,13 @@ const (
 
 // +gengo:deepcopy
 type Metadata struct {
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
-	Default     any    `json:"default,omitempty"`
-	WriteOnly   *bool  `json:"writeOnly,omitempty"`
-	ReadOnly    *bool  `json:"readOnly,omitempty"`
-	Examples    []any  `json:"examples,omitempty"`
-	Deprecated  *bool  `json:"deprecated,omitempty"`
+	Title       string `json:"title,omitzero"`
+	Description string `json:"description,omitzero"`
+	Default     any    `json:"default,omitzero"`
+	WriteOnly   *bool  `json:"writeOnly,omitzero"`
+	ReadOnly    *bool  `json:"readOnly,omitzero"`
+	Examples    []any  `json:"examples,omitzero"`
+	Deprecated  *bool  `json:"deprecated,omitzero"`
 
 	Ext
 }

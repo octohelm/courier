@@ -2,24 +2,18 @@ package handler
 
 import (
 	"context"
-	contextx "github.com/octohelm/x/context"
+
+	"github.com/octohelm/courier/internal/httprequest"
 )
 
-type PathValueGetter interface {
-	PathValue(k string) string
-}
-
-var paramGetterContext = contextx.New[PathValueGetter]()
+type PathValueGetter = httprequest.PathValueGetter
 
 func PathValueGetterFromContext(ctx context.Context) PathValueGetter {
-	if g, ok := paramGetterContext.MayFrom(ctx); ok {
-		return g
-	}
-	return Params{}
+	return httprequest.PathValueGetterFromContext(ctx)
 }
 
 func ContextWithPathValueGetter(ctx context.Context, p PathValueGetter) context.Context {
-	return paramGetterContext.Inject(ctx, p)
+	return httprequest.ContextWithPathValueGetter(ctx, p)
 }
 
 type Params map[string]string

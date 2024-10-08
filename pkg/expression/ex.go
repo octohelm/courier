@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 
 	"github.com/octohelm/courier/pkg/expression/raw"
 )
@@ -75,7 +75,7 @@ func (f factory) From(expression Expression) (Expr, error) {
 func (f factory) from(ctx context.Context, name string, args []any) (Expr, error) {
 	expr, ok := f[name]
 	if !ok {
-		return nil, errors.Errorf("`%s` is not registered expression", name)
+		return nil, fmt.Errorf("`%s` is not registered expression", name)
 	}
 
 	finalArgs := make([]any, len(args))

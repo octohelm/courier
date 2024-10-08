@@ -3,7 +3,7 @@ package openapi
 import "github.com/octohelm/courier/pkg/openapi/jsonschema"
 
 type ContentObject struct {
-	Content map[string]*MediaTypeObject `json:"content,omitempty"`
+	Content map[string]*MediaTypeObject `json:"content,omitzero"`
 }
 
 func (o *ContentObject) AddContent(contentType string, mt *MediaTypeObject) {
@@ -17,8 +17,8 @@ func (o *ContentObject) AddContent(contentType string, mt *MediaTypeObject) {
 }
 
 type MediaTypeObject struct {
-	Schema   jsonschema.Schema          `json:"schema,omitempty"`
-	Encoding map[string]*EncodingObject `json:"encoding,omitempty"`
+	Schema   jsonschema.Schema          `json:"schema,omitzero"`
+	Encoding map[string]*EncodingObject `json:"encoding,omitzero"`
 
 	jsonschema.Ext
 }

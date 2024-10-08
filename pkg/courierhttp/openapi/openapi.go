@@ -9,21 +9,18 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/courier/pkg/statuserror"
-
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
-
+	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/internal/request"
+	"github.com/octohelm/courier/pkg/content"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	"github.com/octohelm/courier/pkg/openapi"
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
-	transformer "github.com/octohelm/courier/pkg/transformer/core"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
-	typesx "github.com/octohelm/x/types"
-	"github.com/pkg/errors"
+	"github.com/octohelm/x/ptr"
 )
 
 type OpenAPIBuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
@@ -301,10 +298,9 @@ func (b *scanner) scanResponseError(ctx context.Context, op *openapi.OperationOb
 		codes := map[int][]string{}
 
 		for _, err := range returnErrors {
-			if e, ok := err.(statuserror.ErrorWithStatusCode); ok {
-				s, ok := statuserror.Summary(err)
+			if e, ok := err.(statuserror.WithStatusCode); ok {
 				if ok {
-					codes[e.StatusCode()] = append(codes[e.StatusCode()], s)
+					codes[e.StatusCode()] = append(codes[e.StatusCode()], err.Error())
 				}
 			}
 		}
@@ -350,26 +346,28 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 		docer = d
 	}
 
-	typesx.EachField(typesx.FromRType(t), "name", func(field typesx.StructField, fieldDisplayName string, omitempty bool) bool {
-		location, _ := tagValueAndFlagsByTagString(field.Tag().Get("in"))
+	fields, err := jsonflags.Structs.StructFields(t)
+	if err != nil {
+		panic(err)
+	}
+
+	for field := range fields.StructField() {
+		location := field.Tag.Get("in")
 
 		if location == "" {
-			panic(errors.Errorf("missing tag `in` for %s of %s", field.Name(), op.OperationId))
+			panic(fmt.Errorf("missing tag `in` for %s of %s", field.FieldName, op.OperationId))
 		}
+		optional := field.Omitzero || field.Omitempty
 
-		tf, err := transformer.NewTransformer(ctx, field.Type(), transformer.Option{
-			MIME: strings.Split(field.Tag().Get("mime"), ",")[0],
-		})
+		tf, err := content.New(field.Type, field.Tag.Get("mime"), "unmarshal")
 		if err != nil {
 			panic(err)
 		}
 
-		v, _ := typesx.TryNew(field.Type())
-
-		schema := b.SchemaFromType(ctx, v.Interface(), false)
+		schema := b.SchemaFromType(ctx, reflect.New(field.Type).Interface(), false)
 
 		if schema != nil && docer != nil {
-			if lines, ok := docer.RuntimeDoc(field.Name()); ok {
+			if lines, ok := docer.RuntimeDoc(field.FieldName); ok {
 				schema.GetMetadata().Description = strings.Join(lines, "\n")
 			}
 		}
@@ -384,43 +382,29 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 				op.SetRequestBody(reqBody)
 			}
 
-			reqBody.AddContent(tf.Names()[0], &openapi.MediaTypeObject{
+			reqBody.AddContent(tf.MediaType(), &openapi.MediaTypeObject{
 				Schema: schema,
 			})
 		case "query":
-			op.AddParameter(fieldDisplayName, openapi.InQuery, &openapi.Parameter{
+			op.AddParameter(field.Name, openapi.InQuery, &openapi.Parameter{
 				Schema:   schema,
-				Required: ptr.Ptr(!omitempty),
+				Required: ptr.Ptr(!optional),
 			})
 		case "cookie":
-			op.AddParameter(fieldDisplayName, openapi.InCookie, &openapi.Parameter{
+			op.AddParameter(field.Name, openapi.InCookie, &openapi.Parameter{
 				Schema:   schema,
-				Required: ptr.Ptr(!omitempty),
+				Required: ptr.Ptr(!optional),
 			})
 		case "header":
-			op.AddParameter(fieldDisplayName, openapi.InHeader, &openapi.Parameter{
+			op.AddParameter(field.Name, openapi.InHeader, &openapi.Parameter{
 				Schema:   schema,
-				Required: ptr.Ptr(!omitempty),
+				Required: ptr.Ptr(!optional),
 			})
 		case "path":
-			op.AddParameter(fieldDisplayName, openapi.InPath, &openapi.Parameter{
+			op.AddParameter(field.Name, openapi.InPath, &openapi.Parameter{
 				Schema:   schema,
 				Required: ptr.Ptr(true),
 			})
 		}
-
-		return true
-	}, "in")
-}
-
-func tagValueAndFlagsByTagString(tagString string) (string, map[string]bool) {
-	valueAndFlags := strings.Split(tagString, ",")
-	v := valueAndFlags[0]
-	tagFlags := map[string]bool{}
-	if len(valueAndFlags) > 1 {
-		for _, flag := range valueAndFlags[1:] {
-			tagFlags[flag] = true
-		}
 	}
-	return v, tagFlags
 }

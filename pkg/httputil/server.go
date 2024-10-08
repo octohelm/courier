@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,7 +27,7 @@ func ListenAndServe(ctx context.Context, addr string, handler http.Handler) erro
 		if err := srv.ListenAndServe(); err != nil {
 			logger.Error(err)
 
-			if err != http.ErrServerClosed {
+			if !errors.Is(err, http.ErrServerClosed) {
 				panic(err)
 			}
 		}
@@ -44,5 +45,4 @@ func ListenAndServe(ctx context.Context, addr string, handler http.Handler) erro
 	logger.Info("shutdowning in %s", timeout)
 
 	return srv.Shutdown(ctx)
-
 }

@@ -3,8 +3,8 @@ package jsonschema
 import "io"
 
 type RefType struct {
-	Ref        *URIReferenceString `json:"$ref,omitempty"`
-	DynamicRef *URIReferenceString `json:"$dynamicRef,omitempty"`
+	Ref        *URIReferenceString `json:"$ref,omitzero"`
+	DynamicRef *URIReferenceString `json:"$dynamicRef,omitzero"`
 
 	Core
 	Metadata

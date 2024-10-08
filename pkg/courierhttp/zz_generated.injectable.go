@@ -21,6 +21,10 @@ func HttpRequestInjectContext(ctx context.Context, tpe *HttpRequest) context.Con
 	return context.WithValue(ctx, contextHttpRequest{}, tpe)
 }
 
+func (p *HttpRequest) InjectContext(ctx context.Context) context.Context {
+	return HttpRequestInjectContext(ctx, p)
+}
+
 func (v *HttpRequest) Init(ctx context.Context) error {
 
 	return nil
@@ -39,7 +43,24 @@ func OperationInfoInjectContext(ctx context.Context, tpe *OperationInfo) context
 	return context.WithValue(ctx, contextOperationInfo{}, tpe)
 }
 
+func (p *OperationInfo) InjectContext(ctx context.Context) context.Context {
+	return OperationInfoInjectContext(ctx, p)
+}
+
 func (v *OperationInfo) Init(ctx context.Context) error {
 
 	return nil
+}
+
+type contextRouteDescriber struct{}
+
+func RouteDescriberFromContext(ctx context.Context) (RouteDescriber, bool) {
+	if v, ok := ctx.Value(contextRouteDescriber{}).(RouteDescriber); ok {
+		return v, true
+	}
+	return nil, false
+}
+
+func RouteDescriberInjectContext(ctx context.Context, tpe RouteDescriber) context.Context {
+	return context.WithValue(ctx, contextRouteDescriber{}, tpe)
 }

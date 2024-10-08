@@ -2,10 +2,11 @@ package pathpattern
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"net/http"
 	"slices"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestTree(t *testing.T) {

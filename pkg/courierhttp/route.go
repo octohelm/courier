@@ -1,13 +1,16 @@
 package courierhttp
 
 import (
-	"context"
 	"fmt"
-
-	contextx "github.com/octohelm/x/context"
 
 	"github.com/octohelm/courier/pkg/courier"
 )
+
+// +gengo:injectable:provider
+type RouteDescriber interface {
+	MethodDescriber
+	PathDescriber
+}
 
 type MethodDescriber interface {
 	Method() string
@@ -56,22 +59,4 @@ func (g *metaOperator) String() string {
 		return fmt.Sprintf("basePath(%s)", g.basePath)
 	}
 	return fmt.Sprintf("group(%s)", g.path)
-}
-
-type RouteDescriber interface {
-	MethodDescriber
-	PathDescriber
-}
-
-type contextRouteDescriber struct{}
-
-func ContextWithRouteDescriber(ctx context.Context, r RouteDescriber) context.Context {
-	return contextx.WithValue(ctx, contextRouteDescriber{}, r)
-}
-
-func RouteDescriberFromContext(ctx context.Context) RouteDescriber {
-	if v, ok := ctx.Value(contextRouteDescriber{}).(RouteDescriber); ok {
-		return v
-	}
-	return nil
 }

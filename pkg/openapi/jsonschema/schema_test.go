@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json"
-
 	"github.com/octohelm/courier/internal/testingutil"
+	testingx "github.com/octohelm/x/testing"
 )
 
 func TestSchemaUnmarshal(t *testing.T) {
@@ -64,19 +64,19 @@ func TestSchemaUnmarshal(t *testing.T) {
 					fmt.Printf("#%v\n", err)
 				}
 
-				testingutil.Expect(t, err, testingutil.Be[error](nil))
-				testingutil.Expect(t, c.expect(schema), testingutil.Be(true))
+				testingx.Expect(t, err, testingx.BeNil[error]())
+				testingx.Expect(t, c.expect(schema), testingx.Be(true))
 			})
 		}
 	})
 
 	t.Run("full", func(t *testing.T) {
 		data, err := os.ReadFile("./testdata/2020-12/meta/applicator.json")
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingx.Expect(t, err, testingx.Be[error](nil))
 
 		p := &Payload{}
 		err = p.UnmarshalJSON(data)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
+		testingx.Expect(t, err, testingx.Be[error](nil))
 
 		p.Schema.PrintTo(os.Stdout)
 	})
@@ -84,39 +84,35 @@ func TestSchemaUnmarshal(t *testing.T) {
 
 func TestSchema(t *testing.T) {
 	t.Run("ref", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{"x-go-type":"any"}`))
+		testingx.Expect(t, Any(), testingutil.BeJSON[*AnyType](`{"x-go-type":"any"}`))
 	})
 
 	t.Run("any", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Any()), testingutil.Equal(`{"x-go-type":"any"}`))
+		testingx.Expect(t, Any(), testingutil.BeJSON[*AnyType](`{"x-go-type":"any"}`))
 	})
 
 	t.Run("string", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(
-			String(),
-		), testingutil.
-			Equal(`{"type":"string"}`),
-		)
+		testingx.Expect(t, String(), testingutil.BeJSON[*StringType](`{"type":"string"}`))
 	})
 
 	t.Run("bytes", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Bytes()), testingutil.Equal(`{"type":"string","format":"bytes"}`))
+		testingx.Expect(t, Bytes(), testingutil.BeJSON[*StringType](`{"type":"string","format":"bytes"}`))
 	})
 
 	t.Run("binary", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Binary()), testingutil.Equal(`{"type":"string","format":"binary"}`))
+		testingx.Expect(t, Binary(), testingutil.BeJSON[*StringType](`{"type":"string","format":"binary"}`))
 	})
 
 	t.Run("boolean", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(Boolean()), testingutil.Equal(`{"type":"boolean"}`))
+		testingx.Expect(t, Boolean(), testingutil.BeJSON[*BooleanType](`{"type":"boolean"}`))
 	})
 
 	t.Run("array", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(ArrayOf(String())), testingutil.Equal(`{"type":"array","items":{"type":"string"}}`))
+		testingx.Expect(t, ArrayOf(String()), testingutil.BeJSON[*ArrayType](`{"type":"array","items":{"type":"string"}}`))
 	})
 
 	t.Run("object", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(
+		testingx.Expect(t,
 			ObjectOf(
 				map[string]Schema{
 					"key1": String(),
@@ -124,32 +120,28 @@ func TestSchema(t *testing.T) {
 				},
 				"key1",
 			),
-		), testingutil.
-			Equal(`{"type":"object","properties":{"key1":{"type":"string"},"key2":{"type":"string"}},"required":["key1"]}`),
+			testingutil.BeJSON[*ObjectType](`{"type":"object","properties":{"key1":{"type":"string"},"key2":{"type":"string"}},"required":["key1"]}`),
 		)
 	})
 
 	t.Run("object with additional", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(
+		testingx.Expect(t,
 			MapOf(String()),
-		), testingutil.
-			Equal(`{"type":"object","additionalProperties":{"type":"string"}}`),
+			testingutil.BeJSON[*ObjectType](`{"type":"object","additionalProperties":{"type":"string"}}`),
 		)
 	})
 
 	t.Run("object with additionalProperties and propNames", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(
+		testingx.Expect(t,
 			RecordOf(String(), String()),
-		), testingutil.
-			Equal(`{"type":"object","propertyNames":{"type":"string"},"additionalProperties":{"type":"string"}}`),
+			testingutil.BeJSON[*ObjectType](`{"type":"object","propertyNames":{"type":"string"},"additionalProperties":{"type":"string"}}`),
 		)
 	})
 
 	t.Run("oneOf", func(t *testing.T) {
-		testingutil.Expect(t, testingutil.MustJSONRaw(
+		testingx.Expect(t,
 			OneOf(String(), Boolean()),
-		), testingutil.
-			Equal(`{"oneOf":[{"type":"string"},{"type":"boolean"}]}`),
+			testingutil.BeJSON[*UnionType](`{"oneOf":[{"type":"string"},{"type":"boolean"}]}`),
 		)
 	})
 }
@@ -159,6 +151,6 @@ func TestCommon(t *testing.T) {
 		"x-v": "string",
 	})})
 
-	testingutil.Expect(t, err, testingutil.Be[error](nil))
-	testingutil.Expect(t, string(data), testingutil.Equal(`{"x-v":"string"}`))
+	testingx.Expect(t, err, testingx.Be[error](nil))
+	testingx.Expect(t, string(data), testingx.Be(`{"x-v":"string"}`))
 }

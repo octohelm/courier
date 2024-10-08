@@ -6,11 +6,11 @@ type ErrContextCanceled struct {
 	Reason string
 }
 
-func (ErrContextCanceled) StatusCode() int {
+func (e *ErrContextCanceled) StatusCode() int {
 	// https://httpstatuses.com/499
 	return 499
 }
 
-func (c *ErrContextCanceled) Error() string {
-	return fmt.Sprintf("context canceled: %s", c.Reason)
+func (e *ErrContextCanceled) Error() string {
+	return fmt.Sprintf("context canceled: %s", e.Reason)
 }

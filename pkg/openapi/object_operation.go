@@ -9,21 +9,21 @@ func NewOperation(operationId string) *OperationObject {
 }
 
 type OperationObject struct {
-	Tags []string `json:"tags,omitempty"`
+	Tags []string `json:"tags,omitzero"`
 
-	Summary     string `json:"summary,omitempty"`
-	Description string `json:"description,omitempty"`
+	Summary     string `json:"summary,omitzero"`
+	Description string `json:"description,omitzero"`
 
 	OperationId string `json:"operationId"`
 
-	Parameters  []*ParameterObject `json:"parameters,omitempty"`
-	RequestBody *RequestBodyObject `json:"requestBody,omitempty"`
+	Parameters  []*ParameterObject `json:"parameters,omitzero"`
+	RequestBody *RequestBodyObject `json:"requestBody,omitzero"`
 
 	ResponsesObject
 
 	CallbacksObject
 
-	Deprecated *bool `json:"deprecated,omitempty"`
+	Deprecated *bool `json:"deprecated,omitzero"`
 
 	jsonschema.Ext
 }

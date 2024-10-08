@@ -2,6 +2,7 @@ package clientgen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go/types"
 	"net/http"
@@ -12,13 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/gengo/pkg/gengo"
-	"github.com/pkg/errors"
-
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/transformer/core"
+	"github.com/octohelm/gengo/pkg/gengo"
 )
 
 func init() {
@@ -94,7 +92,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		req, _ := http.NewRequest("GET", u.String(), nil)
 		_, err := cc.Do(context.Background(), req).Into(&g.oas)
 		if err != nil {
-			return errors.Wrap(gengo.ErrIgnore, err.Error())
+			return errors.Join(gengo.ErrIgnore, err)
 		}
 	}
 
@@ -214,44 +212,16 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 				return
 			}
 
-			multi := len(operation.RequestBody.Content) > 1
-
 			for contentType := range operation.RequestBody.Content {
 				mt := operation.RequestBody.Content[contentType]
 
-				mimeAlias := core.MgrFromContext(context.Background()).GetTransformerNames(contentType)[1]
-
-				mime := func() any {
-					if !multi {
-						return mimeAlias
-					}
-					return fmt.Sprintf("%s,strict", mimeAlias)
-				}()
-
-				if mimeAlias == "octet-stream" {
+				if contentType == "octet-stream" {
 					sw.Render(gengo.Snippet{gengo.T: `
 @Type ` + "`" + `in:"body" mime:@mime` + "`" + `
 `,
 
-						"mime": mime,
+						"mime": "application/octet-stream",
 						"Type": gengo.ID("io.ReadCloser"),
-					})
-					continue
-				}
-
-				if multi {
-					sw.Render(gengo.Snippet{gengo.T: `
-@FieldName *@Type ` + "`" + `in:"body" mime:@mime` + "`" + `
-`,
-
-						"mime": mime,
-						"Type": g.typeOfSchema(c, mt.Schema),
-						"FieldName": func() any {
-							if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
-								return gengo.ID(goFieldName.(string))
-							}
-							return gengo.ID("")
-						}(),
 					})
 					continue
 				}
@@ -260,7 +230,7 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 @FieldName @Type ` + "`" + `in:"body" mime:@mime` + "`" + `
 `,
 
-					"mime": mime,
+					"mime": contentType,
 					"Type": g.typeOfSchema(c, mt.Schema),
 					"FieldName": func() any {
 						if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
@@ -289,7 +259,7 @@ func fieldPropExtraTag(s jsonschema.Schema) func(sw gengo.SnippetWriter) {
 
 func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 	if name == "" {
-		return errors.Errorf("missing name of %s", t.Schema)
+		return fmt.Errorf("missing name of %s", t.Schema)
 	}
 
 	if t.Schema != nil {
@@ -352,7 +322,7 @@ func (m *@Type) SetUnderlying(v any) {
 
 func (m *@Type) UnmarshalJSON(data []byte) error {
 	mm := @Type{}
-	if err := @utilUnmarshalTaggedUnionFromJSON(data, &mm); err != nil {
+	if err := @taggedunionUnmarshal(data, &mm); err != nil {
 		return err
 	}
 	*m = mm
@@ -366,8 +336,8 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 	return @jsonMarshal(m.Underlying)
 }
 `,
-				"utilUnmarshalTaggedUnionFromJSON": gengo.ID("github.com/octohelm/courier/pkg/openapi/jsonschema/util.UnmarshalTaggedUnionFromJSON"),
-				"jsonMarshal":                      gengo.ID("encoding/json.Marshal"),
+				"taggedunionUnmarshal": gengo.ID("github.com/octohelm/courier/pkg/validator/taggedunion.Unmarshal"),
+				"jsonMarshal":          gengo.ID("github.com/octohelm/courier/pkg/validator.Marshal"),
 
 				"Type":                      gengo.ID(name),
 				"DiscriminatorPropertyName": unionType.Discriminator.PropertyName,
