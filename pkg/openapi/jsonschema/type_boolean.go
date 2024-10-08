@@ -9,7 +9,7 @@ func Boolean() *BooleanType {
 }
 
 type BooleanType struct {
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitzero"`
 
 	Core
 	Metadata

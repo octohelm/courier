@@ -3,11 +3,12 @@ package httprouter
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"io"
 	"net/http"
 	"os"
 	"slices"
+
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 
 	"github.com/juju/ansiterm"
 	"github.com/octohelm/courier/internal/pathpattern"

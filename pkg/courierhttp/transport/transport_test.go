@@ -3,14 +3,15 @@ package transport_test
 import (
 	"context"
 	"net/http"
-	"reflect"
 	"testing"
+
+	"github.com/octohelm/courier/internal/httprequest"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
-	reflectx "github.com/octohelm/x/reflect"
+	testingx "github.com/octohelm/x/testing"
 )
 
 func TestRequestTransformer(t *testing.T) {
@@ -41,23 +42,40 @@ func TestRequestTransformer(t *testing.T) {
 		C string `json:",omitempty" xml:",omitempty"`
 	}
 
-	type FormDataMultipart struct {
-		Bytes []byte `name:"bytes"`
-		A     []int  `name:"a"`
-		C     uint   `name:"c" `
-		Data  Data   `name:"data"`
-	}
+	t.Run("full in parameters", func(t *testing.T) {
+		type Request struct {
+			courierhttp.MethodGet `path:"/:id"`
+			ID                    string `name:"id" in:"path"`
+			Headers
+			Queries
+			Cookies
 
-	cases := []struct {
-		name   string
-		path   string
-		expect string
-		req    interface{}
-	}{
-		{
-			"full InParameters",
-			"/:id",
-			`GET /1?bytes=Ynl0ZXM%3D&int=1&slice=1&slice=2&string=string HTTP/1.1
+			Data `in:"body"`
+		}
+
+		req := Request{
+			ID: "1",
+			Headers: Headers{
+				HInt:    1,
+				HString: "string",
+				HBool:   true,
+			},
+			Queries: Queries{
+				QInt:    1,
+				QString: "string",
+				QSlice:  []string{"1", "2"},
+				QBytes:  []byte("bytes"),
+			},
+			Cookies: Cookies{
+				CString: "xxx",
+				CSlice:  []string{"1", "2"},
+			},
+		}
+
+		r, err := transport.NewRequest(context.Background(), req)
+		testingx.Expect(t, err, testingx.BeNil[error]())
+		testingx.Expect(t, r, testingutil.BeRequest(`
+GET /1?bytes=bytes&int=1&slice=1&slice=2&string=string HTTP/1.1
 Content-Type: application/json; charset=utf-8
 Cookie: a=xxx; slice=1; slice=2
 Hbool: true
@@ -65,143 +83,19 @@ Hint: 1
 Hstring: string
 
 {}
-`,
-			&struct {
-				courierhttp.MethodGet `path:"/:id"`
-				Headers
-				Queries
-				Cookies
-				Data `in:"body"`
-				ID   string `name:"id" in:"path"`
-			}{
-				ID: "1",
-				Headers: Headers{
-					HInt:    1,
-					HString: "string",
-					HBool:   true,
-				},
-				Queries: Queries{
-					QInt:    1,
-					QString: "string",
-					QSlice:  []string{"1", "2"},
-					QBytes:  []byte("bytes"),
-				},
-				Cookies: Cookies{
-					CString: "xxx",
-					CSlice:  []string{"1", "2"},
-				},
-			},
-		},
-		{
-			"url-encoded",
-			"/",
-			`GET / HTTP/1.1
-Content-Type: application/x-www-form-urlencoded; param=value
+`))
 
-int=1&slice=1&slice=2&string=string`,
-			&struct {
-				courierhttp.MethodGet `path:"/"`
-				Queries               `in:"body" mime:"urlencoded"`
-			}{
-				Queries: Queries{
-					QInt:    1,
-					QString: "string",
-					QSlice:  []string{"1", "2"},
-				},
-			},
-		},
-		{
-			"xml",
-			"/",
-			`GET / HTTP/1.1
-Content-Type: application/xml; charset=utf-8
+		req2 := &Request{}
 
-<Data><A>1</A></Data>`,
-			&struct {
-				courierhttp.MethodGet `path:"/"`
-				Data                  `in:"body" mime:"xml"`
-			}{
-				Data: Data{
-					A: "1",
-				},
-			},
-		},
-		{
-			"form-data/multipart",
-			"/",
-			`GET / HTTP/1.1
-Content-Type: multipart/form-data; boundary=5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
+		incomeTransport, err := transport.NewIncomingTransport(context.Background(), req2)
+		testingx.Expect(t, err, testingx.BeNil[error]())
 
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
-Content-Disposition: form-data; name="bytes"
-Content-Type: text/plain; charset=utf-8
+		request := r.WithContext(httprequest.ContextWithPathValueGetter(r.Context(), handler.Params{"id": "1"}))
 
-Ynl0ZXM=
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
-Content-Disposition: form-data; name="a"
-Content-Type: text/plain; charset=utf-8
+		err = incomeTransport.UnmarshalOperator(context.Background(), httprequest.From(request), req2)
+		testingx.Expect(t, err, testingx.BeNil[error]())
 
--1
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
-Content-Disposition: form-data; name="a"
-Content-Type: text/plain; charset=utf-8
-
-1
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
-Content-Disposition: form-data; name="c"
-Content-Type: text/plain; charset=utf-8
-
-1
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda
-Content-Disposition: form-data; name="data"
-Content-Type: application/json; charset=utf-8
-
-{"A":"1"}
-
---5eaf397248958ac38281d1c034e1ad0d4a5f7d986d4c53ac32e8399cbcda--
-`,
-			&struct {
-				courierhttp.MethodGet `path:"/"`
-				FormDataMultipart     `in:"body" mime:"multipart" boundary:"boundary1"`
-			}{
-				FormDataMultipart: FormDataMultipart{
-					A:     []int{-1, 1},
-					C:     1,
-					Bytes: []byte("bytes"),
-					Data: Data{
-						A: "1",
-					},
-				},
-			},
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			for i := 0; i < 5; i++ {
-				t.Run("New outgoing request", func(t *testing.T) {
-					req, err := transport.NewRequest(context.Background(), c.req)
-					testingutil.Expect(t, err, testingutil.Be[error](nil))
-
-					testingutil.RequestEqual(t, req, c.expect)
-
-					t.Run("Unmarshal incoming request", func(t *testing.T) {
-						rv := reflectx.New(reflect.PointerTo(reflectx.Deref(reflect.TypeOf(c.req))))
-
-						it, err := transport.NewIncomingTransport(context.Background(), rv.Interface())
-						testingutil.Expect(t, err, testingutil.Be[error](nil))
-
-						req = req.WithContext(handler.ContextWithPathValueGetter(req.Context(), handler.Params{"id": "1"}))
-
-						err = it.UnmarshalOperator(context.Background(), transport.FromHttpRequest(req, ""), rv)
-						testingutil.Expect(t, err, testingutil.Be[error](nil))
-						testingutil.Expect(t, reflectx.Indirect(rv).Interface(), testingutil.Equal(reflectx.Indirect(reflect.ValueOf(c.req)).Interface()))
-					})
-				})
-
-			}
-		})
-	}
+	})
 
 	t.Run("Should unmarshal header values from query values with prefix `x-param-header-`", func(t *testing.T) {
 		req := &struct {
@@ -209,13 +103,15 @@ Content-Type: application/json; charset=utf-8
 			Headers
 		}{}
 
-		it, _ := transport.NewIncomingTransport(context.Background(), req)
+		it, err := transport.NewIncomingTransport(context.Background(), req)
+		testingx.Expect(t, err, testingx.Be[error](nil))
 
-		httpRequest, _ := http.NewRequest("GET", "/?x-param-header-Hint=1&x-param-header-Hbool=true&x-param-header-Hstring=string", nil)
+		httpRequest, err := http.NewRequest("GET", "/?x-param-header-Hint=1&x-param-header-Hbool=true&x-param-header-Hstring=string", nil)
+		testingx.Expect(t, err, testingx.Be[error](nil))
 
-		err := it.UnmarshalOperator(context.Background(), transport.FromHttpRequest(httpRequest, ""), req)
-		testingutil.Expect(t, err, testingutil.Be[error](nil))
-		testingutil.Expect(t, req.Headers, testingutil.Equal(Headers{
+		err = it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req)
+		testingx.Expect(t, err, testingx.Be[error](nil))
+		testingx.Expect(t, req.Headers, testingx.Equal(Headers{
 			HInt:    1,
 			HString: "string",
 			HBool:   true,

@@ -9,10 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/octohelm/courier/pkg/statuserror"
-
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
 	typex "github.com/octohelm/x/types"
@@ -69,7 +68,7 @@ func (*@Type) ResponseErrors() []error {
 
 `,
 			"Type": gengo.ID(named.Obj()),
-			"statusErrors": gengo.MapSnippet(statusErrors, func(statusError *statuserror.StatusErr) gengo.Snippet {
+			"statusErrors": gengo.MapSnippet(statusErrors, func(statusError *statuserror.ErrorResponse) gengo.Snippet {
 				return gengo.Snippet{
 					gengo.T:       "@statusError,",
 					"statusError": statusError,

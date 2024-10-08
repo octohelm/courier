@@ -43,3 +43,16 @@ func (v *OperationInfo) Init(ctx context.Context) error {
 
 	return nil
 }
+
+type contextRouteDescriber struct{}
+
+func RouteDescriberFromContext(ctx context.Context) (RouteDescriber, bool) {
+	if v, ok := ctx.Value(contextRouteDescriber{}).(RouteDescriber); ok {
+		return v, true
+	}
+	return nil, false
+}
+
+func RouteDescriberInjectContext(ctx context.Context, tpe RouteDescriber) context.Context {
+	return context.WithValue(ctx, contextRouteDescriber{}, tpe)
+}

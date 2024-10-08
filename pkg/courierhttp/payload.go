@@ -8,13 +8,10 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/pkg/errors"
-
-	"github.com/octohelm/courier/pkg/statuserror"
-
+	"github.com/octohelm/courier/internal/httprequest"
+	"github.com/octohelm/courier/pkg/content"
 	"github.com/octohelm/courier/pkg/courier"
-	transformer "github.com/octohelm/courier/pkg/transformer/core"
-	typesutil "github.com/octohelm/x/types"
+	"github.com/octohelm/courier/pkg/statuserror"
 )
 
 type NoContent struct{}
@@ -33,6 +30,7 @@ type CookiesDescriber interface {
 
 type RedirectDescriber interface {
 	StatusCodeDescriber
+
 	Location() *url.URL
 }
 
@@ -42,24 +40,11 @@ type WithHeader interface {
 
 type FileHeader interface {
 	io.ReadCloser
-
 	Filename() string
 	Header() http.Header
 }
 
-type Request interface {
-	Context() context.Context
-
-	ServiceName() string
-
-	Method() string
-	Path() string
-	Header() http.Header
-	Values(in string, name string) []string
-	Body() io.ReadCloser
-
-	Underlying() *http.Request
-}
+type Request = httprequest.Request
 
 type ResponseSetting interface {
 	SetStatusCode(statusCode int)
@@ -135,32 +120,7 @@ type Response[T any] interface {
 }
 
 type ErrResponseWriter interface {
-	WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)
-}
-
-type contextErrResponseWriter struct{}
-
-func ContextWithErrResponseWriter(ctx context.Context, errResponseWriter ErrResponseWriter) context.Context {
-	return context.WithValue(ctx, contextErrResponseWriter{}, errResponseWriter)
-}
-
-func ErrResponseWriterFromContext(ctx context.Context) ErrResponseWriter {
-	if writeErrResp, ok := ctx.Value(contextErrResponseWriter{}).(ErrResponseWriter); ok {
-		return writeErrResp
-	}
-	return nil
-}
-
-func ErrResponseWriterFunc(fn func(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)) ErrResponseWriter {
-	return &errResponseWriterFunc{fn: fn}
-}
-
-func (e *errResponseWriterFunc) WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr) {
-	e.fn(ctx, rw, req, statusErr)
-}
-
-type errResponseWriterFunc struct {
-	fn func(ctx context.Context, rw http.ResponseWriter, req Request, statusErr *statuserror.StatusErr)
+	WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, err error)
 }
 
 type ResponseWriter interface {
@@ -243,20 +203,9 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 	resp := r.v
 
 	if err, ok := resp.(error); ok {
-		statusErr, ok := statuserror.IsStatusErr(err)
-		if !ok {
-			if errors.Is(err, context.Canceled) {
-				statusErr = statuserror.New(&ErrContextCanceled{Reason: err.Error()})
-			} else {
-				statusErr = statuserror.New(err)
-			}
-		}
-		resp = statusErr.AppendSource(req.ServiceName())
+		opInfo, _ := OperationInfoFromContext(ctx)
 
-		if errResponseWriter := ErrResponseWriterFromContext(ctx); errResponseWriter != nil {
-			errResponseWriter.WriteErr(ctx, rw, req, statusErr)
-			return nil
-		}
+		resp = statuserror.AsErrorResponse(err, opInfo.Server.UserAgent())
 	}
 
 	if statusCodeDescriber, ok := resp.(StatusCodeDescriber); ok {
@@ -322,36 +271,26 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 
 	switch v := resp.(type) {
 	case courier.Result:
+		// forward result
 		rw.WriteHeader(r.statusCode)
 		if _, err := v.Into(rw); err != nil {
 			return err
 		}
-	case io.ReadCloser:
-		defer v.Close()
-		rw.WriteHeader(r.statusCode)
-		if _, err := io.Copy(rw, v); err != nil {
-			return err
-		}
-	case io.Reader:
-		rw.WriteHeader(r.statusCode)
-		if _, err := io.Copy(rw, v); err != nil {
-			return err
-		}
 	default:
 		if resp == nil {
-			// ship nil resp
+			// skip nil resp
 			rw.WriteHeader(r.statusCode)
 			return nil
 		}
-		tf, err := transformer.NewTransformer(ctx, typesutil.FromRType(reflect.TypeOf(resp)), transformer.Option{
-			MIME: r.contentType,
-		})
+
+		t, err := content.New(reflect.TypeOf(resp), "", "marshal")
 		if err != nil {
 			return err
 		}
-		if err := tf.EncodeTo(transformer.ContextWithStatusCode(ctx, r.statusCode), rw, resp); err != nil {
-			return err
-		}
+
+		w := t.PrepareWriter(rw.Header(), rw)
+		rw.WriteHeader(r.statusCode)
+		return w.Send(ctx, resp)
 	}
 	return nil
 }

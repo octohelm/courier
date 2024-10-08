@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/ptr"
+	"github.com/octohelm/x/ptr"
 )
 
 // https://spec.openapis.org/oas/latest.html#components-object
 // FIXME now only support schemas
 type ComponentsObject struct {
-	Schemas map[string]jsonschema.Schema `json:"schemas,omitempty"`
+	Schemas map[string]jsonschema.Schema `json:"schemas,omitzero"`
 }
 
 func (o *ComponentsObject) AddSchema(id string, s jsonschema.Schema) {

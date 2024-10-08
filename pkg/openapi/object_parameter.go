@@ -22,13 +22,13 @@ type ParameterObject struct {
 
 type Parameter struct {
 	Schema      jsonschema.Schema `json:"schema"`
-	Description string            `json:"description,omitempty"`
-	Required    *bool             `json:"required,omitempty"`
-	Deprecated  *bool             `json:"deprecated,omitempty"`
+	Description string            `json:"description,omitzero"`
+	Required    *bool             `json:"required,omitzero"`
+	Deprecated  *bool             `json:"deprecated,omitzero"`
 
 	// https://spec.openapis.org/oas/latest.html#parameter-object
-	Style   ParameterStyle `json:"style,omitempty"`
-	Explode *bool          `json:"explode,omitempty"`
+	Style   ParameterStyle `json:"style,omitzero"`
+	Explode *bool          `json:"explode,omitzero"`
 
 	jsonschema.Ext
 }
@@ -36,7 +36,7 @@ type Parameter struct {
 type HeaderObject = Parameter
 
 type HeadersObject struct {
-	Headers map[string]*HeaderObject `json:"headers,omitempty"`
+	Headers map[string]*HeaderObject `json:"headers,omitzero"`
 }
 
 func (object *HeadersObject) AddHeader(name string, h *Parameter) {

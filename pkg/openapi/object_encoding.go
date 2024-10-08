@@ -7,9 +7,9 @@ type EncodingObject struct {
 
 	HeadersObject
 
-	Style         ParameterStyle `json:"style,omitempty"`
-	Explode       bool           `json:"explode,omitempty"`
-	AllowReserved bool           `json:"allowReserved,omitempty"`
+	Style         ParameterStyle `json:"style,omitzero"`
+	Explode       bool           `json:"explode,omitzero"`
+	AllowReserved bool           `json:"allowReserved,omitzero"`
 
 	jsonschema.Ext
 }

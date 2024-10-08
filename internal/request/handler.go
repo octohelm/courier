@@ -7,11 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
+	"github.com/octohelm/courier/internal/httprequest"
 
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	contextx "github.com/octohelm/x/context"
 )
@@ -189,7 +190,7 @@ func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	ctx = courierhttp.HttpRequestInjectContext(ctx, &courierhttp.HttpRequest{Request: r})
 
-	info := transport.FromHttpRequest(r, h.service)
+	info := httprequest.From(r)
 
 	for i := range h.operators {
 		opFactory := h.operators[i]

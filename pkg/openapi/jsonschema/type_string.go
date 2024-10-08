@@ -23,13 +23,13 @@ func Binary() *StringType {
 }
 
 type StringType struct {
-	Type   string `json:"type,omitempty"`
-	Format string `json:"format,omitempty"`
+	Type   string `json:"type,omitzero"`
+	Format string `json:"format,omitzero"`
 
 	// validate
-	MaxLength *uint64 `json:"maxLength,omitempty"`
-	MinLength *uint64 `json:"minLength,omitempty"`
-	Pattern   string  `json:"pattern,omitempty"`
+	MaxLength *uint64 `json:"maxLength,omitzero"`
+	MinLength *uint64 `json:"minLength,omitzero"`
+	Pattern   string  `json:"pattern,omitzero"`
 
 	Core
 	Metadata

@@ -1,0 +1,30 @@
+-- simple_error.json --
+{
+  "code": 500,
+  "key": "InternalServerError",
+  "msg": "test error",
+  "source": "x@v1",
+  "errors": [
+    {
+      "code": 0,
+      "key": "InternalServerError",
+      "msg": "test error",
+      "source": "x@v1"
+    }
+  ]
+}
+-- status_code_wrap_error.json --
+{
+  "code": 500,
+  "key": "InternalServerError",
+  "msg": "test error",
+  "source": "x@v1",
+  "errors": [
+    {
+      "code": 0,
+      "key": "InternalServerError",
+      "msg": "test error",
+      "source": "x@v1"
+    }
+  ]
+}

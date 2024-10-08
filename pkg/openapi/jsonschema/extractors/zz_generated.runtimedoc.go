@@ -49,26 +49,6 @@ func (v Opt) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v StructField) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "StructField":
-			return []string{}, true
-		case "DisplayName":
-			return []string{}, true
-		case "Optional":
-			return []string{}, true
-
-		}
-		if doc, ok := runtimeDoc(v.StructField, names...); ok {
-			return doc, ok
-		}
-
-		return nil, false
-	}
-	return []string{}, true
-}
-
 func (TypeName) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

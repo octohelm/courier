@@ -173,11 +173,11 @@ if value, ok := @FieldType'FromContext(ctx); ok {
 							if !strings.Contains(injectTag, ",optional") {
 								sw.Render(gengo.Snippet{
 									gengo.T: `else {
-return @errorsErrorf("No provider %T", v.@Field)
+return @errorsErrorf("no provider %T", v.@Field)
 }
 `,
 									"Field":        gengo.ID(f.Name()),
-									"errorsErrorf": gengo.ID("github.com/pkg/errors.Errorf"),
+									"errorsErrorf": gengo.ID("fmt.Errorf"),
 								})
 							}
 						},

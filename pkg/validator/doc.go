@@ -39,6 +39,6 @@ Then the parsed rule will be transform to special validators:
 # Validating
 
 We can create validator by 'Rule DSL', and also can configure them by validator struct field as conditions.
-Then call the method `Validate(v interface{}) error` to do value validations.
+Then call the method `Validate(v any) error` to do value validations.
 */
 package validator

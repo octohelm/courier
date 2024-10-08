@@ -3,24 +3,57 @@ package testingutil
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"github.com/octohelm/courier/pkg/courierhttp/transport"
+	testingx "github.com/octohelm/x/testing"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
-	"strings"
-	"testing"
-
-	"github.com/octohelm/courier/pkg/courierhttp/transport"
 )
 
-func ShouldReturnWhenRequest(t testing.TB, h http.Handler, req any, httpResp string) {
-	t.Helper()
-
+func ShouldReturnWhenRequest(req any, expect string) testingx.Matcher[http.Handler] {
 	r, err := transport.NewRequest(context.Background(), req)
-	Expect(t, err, Be[error](nil))
+	if err != nil {
+		panic(err)
+	}
 
+	return &responseMatcher{
+		req:    r,
+		expect: unifyRequestData([]byte(expect)),
+	}
+}
+
+type responseMatcher struct {
+	req      *http.Request
+	expect   []byte
+	reqData  []byte
+	respData []byte
+}
+
+func (r *responseMatcher) Name() string {
+	return "Return When Request"
+}
+
+func (r *responseMatcher) Negative() bool {
+	return false
+}
+
+func (r *responseMatcher) Match(h http.Handler) bool {
 	rw := NewMockResponseWriter()
-	h.ServeHTTP(rw, r)
-	Expect(t, strings.TrimSpace(string(rw.MustDumpResponse())), Be(strings.TrimSpace(httpResp)))
+	h.ServeHTTP(rw, r.req)
+	r.respData = unifyRequestData(rw.MustDumpResponse())
+
+	return bytes.Equal(r.respData, r.expect)
+}
+
+func (r *responseMatcher) FormatActual(actual http.Handler) string {
+	fmt.Println(string(r.respData))
+
+	return string(r.respData)
+}
+
+func (m *responseMatcher) FormatExpected() string {
+	return string(m.expect)
 }
 
 func NewMockResponseWriter() *MockResponseWriter {
@@ -68,5 +101,5 @@ func (w *MockResponseWriter) MustDumpResponse() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return bytes.Replace(data, []byte("\r\n"), []byte("\n"), -1)
+	return data
 }

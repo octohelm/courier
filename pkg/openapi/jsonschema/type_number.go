@@ -3,7 +3,7 @@ package jsonschema
 import (
 	"io"
 
-	"github.com/octohelm/courier/pkg/ptr"
+	"github.com/octohelm/x/ptr"
 )
 
 func Integer() Schema {
@@ -26,14 +26,14 @@ func Long() Schema {
 }
 
 type NumberType struct {
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitzero"`
 
 	// validate
-	MultipleOf       *float64 `json:"multipleOf,omitempty"`
-	Maximum          *float64 `json:"maximum,omitempty"`
-	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitempty"`
-	Minimum          *float64 `json:"minimum,omitempty"`
-	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitempty"`
+	MultipleOf       *float64 `json:"multipleOf,omitzero"`
+	Maximum          *float64 `json:"maximum,omitzero"`
+	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitzero"`
+	Minimum          *float64 `json:"minimum,omitzero"`
+	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitzero"`
 
 	Core
 	Metadata

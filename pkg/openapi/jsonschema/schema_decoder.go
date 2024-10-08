@@ -2,10 +2,12 @@ package jsonschema
 
 import (
 	"bytes"
+	"fmt"
+
+	"errors"
 
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/pkg/errors"
 )
 
 var ErrInvalidJSONSchemaObject = errors.New("invalid json schema object")
@@ -85,7 +87,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 	for kind := decoder.PeekKind(); kind != '}'; kind = decoder.PeekKind() {
 		var prop string
 		if err := u.decode(decoder, &prop); err != nil {
-			return errors.Wrap(err, "decode prop failed")
+			return fmt.Errorf("decode prop failed: %w", err)
 		}
 
 		// renaming
@@ -104,7 +106,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 		case "const":
 			var value any
 			if err := u.decode(decoder, &value); err != nil {
-				return errors.Wrapf(err, "decode prop %s failed", prop)
+				return fmt.Errorf("decode prop %s failed: %w", prop, err)
 			}
 			schema = &EnumType{
 				Enum: []any{value},
@@ -183,7 +185,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 
 		v, err := decoder.ReadValue()
 		if err != nil {
-			return errors.Wrapf(err, "read prop %s failed", prop)
+			return fmt.Errorf("read prop %s failed: %w", prop, err)
 		}
 
 		_ = json.MarshalEncode(unprocessedEnc, prop)

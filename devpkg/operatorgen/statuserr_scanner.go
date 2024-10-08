@@ -17,22 +17,21 @@ import (
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
-	"github.com/pkg/errors"
 )
 
 func newStatusErrScanner() *statusErrScanner {
 	return &statusErrScanner{
-		statusErrorTypes: map[*types.Named][]*statuserror.StatusErr{},
-		errorsUsed:       map[*types.Func][]*statuserror.StatusErr{},
+		statusErrorTypes: map[*types.Named][]*statuserror.ErrorResponse{},
+		errorsUsed:       map[*types.Func][]*statuserror.ErrorResponse{},
 	}
 }
 
 type statusErrScanner struct {
-	statusErrorTypes map[*types.Named][]*statuserror.StatusErr
-	errorsUsed       map[*types.Func][]*statuserror.StatusErr
+	statusErrorTypes map[*types.Named][]*statuserror.ErrorResponse
+	errorsUsed       map[*types.Func][]*statuserror.ErrorResponse
 }
 
-var statusErr = reflect.TypeOf(statuserror.StatusErr{})
+var statusErr = reflect.TypeOf(statuserror.ErrorResponse{})
 
 func isTypeStatusErr(named *types.Named) bool {
 	if o := named.Obj(); o != nil {
@@ -56,7 +55,7 @@ func identChainOfCallFunc(expr ast.Expr) (list []*ast.Ident) {
 	return
 }
 
-func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types.Func) []*statuserror.StatusErr {
+func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types.Func) []*statuserror.ErrorResponse {
 	if typeFunc == nil {
 		return nil
 	}
@@ -65,12 +64,9 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 		return statusErrList
 	}
 
-	s.errorsUsed[typeFunc] = []*statuserror.StatusErr{}
+	s.errorsUsed[typeFunc] = []*statuserror.ErrorResponse{}
 
 	pkg := ctx.Package(typeFunc.Pkg().Path())
-
-	_, lines := pkg.Doc(typeFunc.Pos())
-	s.appendStateErrs(typeFunc, pickStatusErrorsFromDoc(lines)...)
 
 	results, n := pkg.ResultsOf(typeFunc)
 	for i := 0; i < n; i++ {
@@ -115,8 +111,8 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 	return s.errorsUsed[typeFunc]
 }
 
-func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*statuserror.StatusErr) {
-	m := map[string]*statuserror.StatusErr{}
+func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*statuserror.ErrorResponse) {
+	m := map[string]*statuserror.ErrorResponse{}
 
 	errs := append(s.errorsUsed[typeFunc], statusErrs...)
 	for i := range errs {
@@ -124,7 +120,7 @@ func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*
 		m[fmt.Sprintf("%s%d", s.Key, s.Code)] = s
 	}
 
-	next := make([]*statuserror.StatusErr, 0)
+	next := make([]*statuserror.ErrorResponse, 0)
 	for k := range m {
 		next = append(next, m[k])
 	}
@@ -171,7 +167,11 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 				msg = key
 			}
 
-			s.appendStateErrs(typeFunc, statuserror.Wrap(errors.New(""), code, key, append([]string{msg}, desc...)...))
+			s.appendStateErrs(typeFunc, &statuserror.ErrorResponse{
+				Key:  key,
+				Code: code,
+				Msg:  msg,
+			})
 		}
 
 		return true
@@ -181,7 +181,7 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 }
 
 var (
-	rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.ErrorWithStatusCode)(nil)).Elem())
+	rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.WithStatusCode)(nil)).Elem())
 )
 
 func isErrWithStatusCodeInterface(named *types.Named) bool {
@@ -215,12 +215,12 @@ func (s *statusErrScanner) resolveStateCode(ctx gengo.Context, named *types.Name
 	return 0, false
 }
 
-func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.StatusErr) {
+func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.ErrorResponse) {
 	if named.Obj() == nil {
 		return nil
 	}
 
-	serr := &statuserror.StatusErr{
+	serr := &statuserror.ErrorResponse{
 		Key:  filepath.Base(named.Obj().Pkg().Path()) + "." + named.Obj().Name(),
 		Code: http.StatusInternalServerError,
 	}
@@ -298,18 +298,4 @@ func fmtSprintfArgsAsTemplate(args []ast.Expr) string {
 	}
 
 	return fmt.Sprintf(normalizeFormat(f), fArgs...)
-}
-
-func pickStatusErrorsFromDoc(lines []string) []*statuserror.StatusErr {
-	statusErrorList := make([]*statuserror.StatusErr, 0)
-
-	for _, line := range lines {
-		if line != "" {
-			if statusErr, err := statuserror.ParseStatusErrSummary(line); err == nil {
-				statusErrorList = append(statusErrorList, statusErr)
-			}
-		}
-	}
-
-	return statusErrorList
 }

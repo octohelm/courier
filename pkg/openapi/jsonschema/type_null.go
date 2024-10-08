@@ -3,7 +3,7 @@ package jsonschema
 import "io"
 
 type NullType struct {
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitzero"`
 
 	Core
 	Metadata
