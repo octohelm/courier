@@ -2,6 +2,7 @@ package courierhttp
 
 import (
 	"context"
+	"github.com/go-courier/logr"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -191,9 +192,12 @@ func (r *response[T]) Meta() courier.Metadata {
 	return r.meta
 }
 
-func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter, req Request) error {
+func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter, req Request) (finalErr error) {
 	defer func() {
 		r.v = nil
+		if finalErr != nil {
+			logr.FromContext(ctx).Error(finalErr)
+		}
 	}()
 
 	if respWriter, ok := r.v.(ResponseWriter); ok {

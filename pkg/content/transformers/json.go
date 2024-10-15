@@ -47,6 +47,15 @@ func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 		v = rv.Interface()
 	}
 
+	if direct, ok := v.(json.UnmarshalerV1); ok {
+		// avoid trim \n
+		raw, err := io.ReadAll(r)
+		if err != nil {
+			return err
+		}
+		return direct.UnmarshalJSON(raw)
+	}
+
 	return validator.UnmarshalRead(r, v)
 }
 
@@ -73,6 +82,7 @@ func (w *jsonWriter) Send(ctx context.Context, v any) error {
 	}
 
 	if direct, ok := v.(json.MarshalerV1); ok {
+		// avoid trim \n
 		raw, err := direct.MarshalJSON()
 		if err != nil {
 			return err

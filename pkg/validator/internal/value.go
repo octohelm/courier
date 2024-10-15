@@ -32,9 +32,13 @@ type Value struct {
 }
 
 func (va *Value) UnmarshalJSONV2(dec *jsontext.Decoder, options json.Options) (err error) {
+	if va.Kind() == reflect.Pointer {
+		return (&Pointer{Value: va.Value, Validator: va.Validator}).UnmarshalJSONV2(dec, options)
+	}
+
 	typ := va.Type()
 
-	if jsonflags.Implements(typ, jsonUnmarshalerV2Type) {
+	if reflect.PointerTo(typ).Implements(jsonUnmarshalerV2Type) {
 		prefix := dec.StackPointer()
 
 		if err := va.Addr().Interface().(json.UnmarshalerV2).UnmarshalJSONV2(dec, options); err != nil {
@@ -44,10 +48,10 @@ func (va *Value) UnmarshalJSONV2(dec *jsontext.Decoder, options json.Options) (e
 		return nil
 	}
 
-	if jsonflags.Implements(typ, jsonUnmarshalerV1Type) {
+	if reflect.PointerTo(typ).Implements(jsonUnmarshalerV1Type) {
 		value, err := dec.ReadValue()
 		if err != nil {
-			return nil
+			return err
 		}
 
 		prefix := dec.StackPointer()
@@ -59,12 +63,8 @@ func (va *Value) UnmarshalJSONV2(dec *jsontext.Decoder, options json.Options) (e
 		return nil
 	}
 
-	if jsonflags.Implements(typ, textUnmarshalerType) {
+	if reflect.PointerTo(typ).Implements(textUnmarshalerType) {
 		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalJSONV2(dec, options)
-	}
-
-	if va.Kind() == reflect.Pointer {
-		return (&Pointer{Value: va.Value, Validator: va.Validator}).UnmarshalJSONV2(dec, options)
 	}
 
 	if typ == jsontextValueType || typ == bytesType {
