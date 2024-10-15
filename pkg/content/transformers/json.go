@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"context"
+	"github.com/go-json-experiment/json"
 	"io"
 	"mime"
 	"net/http"
@@ -69,6 +70,15 @@ func (w *jsonWriter) Send(ctx context.Context, v any) error {
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()
+	}
+
+	if direct, ok := v.(json.MarshalerV1); ok {
+		raw, err := direct.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		_, err = w.Write(raw)
+		return err
 	}
 
 	return validator.MarshalWrite(w, v)
