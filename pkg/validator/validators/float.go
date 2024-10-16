@@ -3,9 +3,9 @@ package validators
 import (
 	"bytes"
 	"fmt"
-
 	"math"
 	"strconv"
+	"sync"
 
 	"github.com/go-json-experiment/json/jsontext"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
@@ -26,9 +26,9 @@ func (c *floatValidatorProvider) Validator(rule *rules.Rule) (internal.Validator
 
 	switch rule.Name {
 	case "float", "float32":
-		validator.MaxDigits = 7
+		validator.BitSize = 32
 	case "double", "float64":
-		validator.MaxDigits = 15
+		validator.BitSize = 64
 	}
 
 	if rule.Params != nil {
@@ -42,16 +42,22 @@ func (c *floatValidatorProvider) Validator(rule *rules.Rule) (internal.Validator
 			if err != nil {
 				return nil, rules.NewSyntaxError("decimal digits should be a uint value which less than 16, but got `%s`", maxDigitsBytes)
 			}
-			validator.MaxDigits = uint(maxDigits)
+			validator.MaxDigits = ptr.Ptr(uint(maxDigits))
 		}
 
 		if len(rule.Params) > 1 {
 			decimalDigitsBytes := rule.Params[1].Bytes()
+
 			if len(decimalDigitsBytes) > 0 {
 				decimalDigits, err := strconv.ParseUint(string(decimalDigitsBytes), 10, 4)
-				if err != nil || uint(decimalDigits) >= validator.MaxDigits {
-					return nil, rules.NewSyntaxError("decimal digits should be a uint value which less than %d, but got `%s`", validator.MaxDigits, decimalDigitsBytes)
+				if err != nil {
+					return nil, rules.NewSyntaxError("decimal digits should be a uint value, but got `%s`", decimalDigitsBytes)
 				}
+
+				if validator.MaxDigits != nil && uint(decimalDigits) >= *validator.MaxDigits {
+					return nil, rules.NewSyntaxError("decimal digits should be less than %d, but got `%s`", *validator.MaxDigits, decimalDigitsBytes)
+				}
+
 				validator.DecimalDigits = ptr.Ptr(uint(decimalDigits))
 			}
 		}
@@ -60,8 +66,6 @@ func (c *floatValidatorProvider) Validator(rule *rules.Rule) (internal.Validator
 	if err := validator.unmarshalRule(rule); err != nil {
 		return nil, err
 	}
-
-	validator.SetDefaults()
 
 	return validator, nil
 }
@@ -106,7 +110,8 @@ aliases:
 	@float64 = @float<15>
 */
 type FloatValidator struct {
-	MaxDigits     uint
+	BitSize       int
+	MaxDigits     *uint
 	DecimalDigits *uint
 
 	Number[float64]
@@ -121,17 +126,6 @@ func (floatValidatorProvider) Names() []string {
 	}
 }
 
-func (validator *FloatValidator) SetDefaults() {
-	if validator != nil {
-		if validator.MaxDigits == 0 {
-			validator.MaxDigits = 7
-		}
-		if validator.DecimalDigits == nil {
-			validator.DecimalDigits = ptr.Ptr[uint](2)
-		}
-	}
-}
-
 func (validator *FloatValidator) Validate(value jsontext.Value) error {
 	if value.Kind() != '0' {
 		return &validatorerrors.ErrInvalidType{
@@ -143,25 +137,6 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 	val, err := strconv.ParseFloat(string(value), 64)
 	if err != nil {
 		return fmt.Errorf("invalid value %w", err)
-	}
-
-	decimalDigits := *validator.DecimalDigits
-
-	m, d := lengthOfDigits(value)
-	if m > validator.MaxDigits {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "total digits of float value",
-			Current: m,
-			Maximum: validator.MaxDigits,
-		}
-	}
-
-	if d > decimalDigits {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "decimal digits of float value",
-			Current: d,
-			Maximum: decimalDigits,
-		}
 	}
 
 	if validator.Enums != nil {
@@ -200,6 +175,7 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 
 	if validator.Maximum != nil {
 		maxinum := *validator.Maximum
+
 		if (validator.ExclusiveMaximum && val == maxinum) || val > maxinum {
 			return &validatorerrors.OutOfRangeError{
 				Topic:            "float value",
@@ -210,14 +186,45 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 		}
 	}
 
+	get := sync.OnceValues(func() (uint, uint) {
+		return lengthOfDigits(value)
+	})
+
 	if validator.MultipleOf != 0 {
-		if !multipleOf(val, validator.MultipleOf, decimalDigits) {
+		_, d := get()
+
+		if !multipleOf(val, validator.MultipleOf, d) {
 			return &validatorerrors.ErrMultipleOf{
-				Topic:      "int value",
+				Topic:      "float value",
 				Current:    val,
 				MultipleOf: validator.MultipleOf,
 			}
 		}
+	}
+
+	if validator.DecimalDigits != nil {
+		_, d := get()
+		m := *validator.DecimalDigits
+		if d > m {
+			return &validatorerrors.OutOfRangeError{
+				Topic:   "decimal digits of float value",
+				Current: d,
+				Maximum: m,
+			}
+		}
+	}
+
+	if validator.MaxDigits != nil {
+		n, _ := get()
+		m := *validator.MaxDigits
+		if n > m {
+			return &validatorerrors.OutOfRangeError{
+				Topic:   "total digits of float value",
+				Current: n,
+				Maximum: m,
+			}
+		}
+		return nil
 	}
 
 	return nil
@@ -253,9 +260,17 @@ func fixDecimal(f float64, n int) float64 {
 func (validator *FloatValidator) String() string {
 	rule := rules.NewRule("float")
 
-	rule.Params = []rules.RuleNode{
-		rules.NewRuleLit([]byte(strconv.Itoa(int(validator.MaxDigits)))),
-		rules.NewRuleLit([]byte(strconv.Itoa(int(*validator.DecimalDigits)))),
+	if validator.MaxDigits != nil {
+		if validator.DecimalDigits != nil {
+			rule.Params = []rules.RuleNode{
+				rules.NewRuleLit([]byte(strconv.Itoa(int(*validator.MaxDigits)))),
+				rules.NewRuleLit([]byte(strconv.Itoa(int(*validator.DecimalDigits)))),
+			}
+		} else {
+			rule.Params = []rules.RuleNode{
+				rules.NewRuleLit([]byte(strconv.Itoa(int(*validator.MaxDigits)))),
+			}
+		}
 	}
 
 	validator.marshalRule(rule)

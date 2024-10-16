@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/x/ptr"
 	"github.com/octohelm/x/slices"
@@ -130,9 +131,11 @@ type ErrorResponse struct {
 }
 
 func (e *ErrorResponse) UnmarshalErrorResponse(statusCode int, raw []byte) error {
-	e.Code = statusCode
-	e.Key = "UpstreamError"
-	e.Msg = string(raw)
+	if err := json.Unmarshal(raw, e); err != nil {
+		e.Code = statusCode
+		e.Key = "UpstreamError"
+		e.Msg = string(raw)
+	}
 	return nil
 }
 
