@@ -2,15 +2,15 @@ package statuserror
 
 import (
 	"fmt"
-	"go/ast"
-	"net/http"
-	"path/filepath"
-	"reflect"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/x/ptr"
 	"github.com/octohelm/x/slices"
+	"go/ast"
+	"net/http"
+	"path/filepath"
+	"reflect"
+	"strconv"
 )
 
 func AsErrorResponse(err error, source string) *ErrorResponse {
@@ -140,6 +140,10 @@ func (e *ErrorResponse) UnmarshalErrorResponse(statusCode int, raw []byte) error
 }
 
 func (e *ErrorResponse) StatusCode() int {
+	if e.Code > 1000 {
+		i, _ := strconv.ParseUint(strconv.FormatUint(uint64(e.Code), 10)[0:3], 10, 64)
+		return int(i)
+	}
 	return e.Code
 }
 
