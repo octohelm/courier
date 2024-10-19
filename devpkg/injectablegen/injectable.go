@@ -55,11 +55,11 @@ func (g *injectableGen) GenerateType(c gengo.Context, t *types.Named) error {
 	values, ok := tags["gengo:injectable:provider"]
 	if ok {
 		if len(values) > 0 {
-			if err := g.genAsProvider(c, t, values[0]); err != nil {
+			if err := g.genAsProvider(c, t, values[0], false); err != nil {
 				return err
 			}
 		} else {
-			if err := g.genAsProvider(c, t, ""); err != nil {
+			if err := g.genAsProvider(c, t, "", false); err != nil {
 				return err
 			}
 		}
@@ -72,9 +72,33 @@ func (g *injectableGen) GenerateType(c gengo.Context, t *types.Named) error {
 	return nil
 }
 
-func (g *injectableGen) genAsProvider(c gengo.Context, t *types.Named, impl string) error {
-	switch t.Underlying().(type) {
-	case *types.Alias:
+func (g *injectableGen) GenerateAliasType(c gengo.Context, t *types.Alias) error {
+	tags, _ := c.Doc(t.Obj())
+
+	g.once.Do(func() {
+		g.init(c)
+	})
+
+	values, ok := tags["gengo:injectable:provider"]
+	if ok {
+		if len(values) > 0 {
+			if err := g.genAsProvider(c, t, values[0], true); err != nil {
+				return err
+			}
+		} else {
+			if err := g.genAsProvider(c, t, "", true); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (g *injectableGen) genAsProvider(c gengo.Context, t interface {
+	Obj() *types.TypeName
+	Underlying() types.Type
+}, impl string, forAlias bool) error {
+	switch x := t.Underlying().(type) {
 	case *types.Interface:
 		c.Render(gengo.Snippet{
 			gengo.T: `
@@ -96,18 +120,53 @@ func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
 			"contextWithValue": gengo.ID("context.WithValue"),
 		})
 	case *types.Struct:
+		provideFields := func(sw gengo.SnippetWriter) {
+			if forAlias {
+				return
+			}
+
+			for i := 0; i < x.NumFields(); i++ {
+				f := x.Field(i)
+				structTag := reflect.StructTag(x.Tag(i))
+
+				injectTag, exists := structTag.Lookup("provide")
+				if exists && injectTag != "-" {
+					typ := f.Type()
+					for {
+						x, ok := typ.(*types.Pointer)
+						if !ok {
+							break
+						}
+						typ = x.Elem()
+					}
+
+					sw.Render(gengo.Snippet{
+						gengo.T: `
+ctx = @FieldType'InjectContext(ctx, p.@Field)
+`,
+						"Field":     gengo.ID(f.Name()),
+						"FieldType": gengo.ID(f.Type()),
+					})
+				}
+			}
+		}
+
 		if impl != "" {
-			c.Render(gengo.Snippet{
-				gengo.T: `
+			if !forAlias {
+				c.Render(gengo.Snippet{
+					gengo.T: `
 func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
+   @provideFields		
    return @injectContext(ctx, p)
 }
 
 `,
-				"Type":           gengo.ID(t.Obj()),
-				"injectContext":  gengo.ID(impl + "InjectContext"),
-				"contextContext": gengo.ID("context.Context"),
-			})
+					"Type":           gengo.ID(t.Obj()),
+					"injectContext":  gengo.ID(impl + "InjectContext"),
+					"contextContext": gengo.ID("context.Context"),
+					"provideFields":  provideFields,
+				})
+			}
 
 			return nil
 		}
@@ -126,16 +185,26 @@ func @Type'FromContext(ctx @contextContext) (*@Type, bool) {
 func @Type'InjectContext(ctx @contextContext, tpe *@Type) (@contextContext) {
    return @contextWithValue(ctx, context@Type{}, tpe)
 }
-
-func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
-   return @Type'InjectContext(ctx, p)
-}
-
 `,
 			"Type":             gengo.ID(t.Obj()),
 			"contextContext":   gengo.ID("context.Context"),
 			"contextWithValue": gengo.ID("context.WithValue"),
 		})
+
+		if !forAlias {
+			c.Render(gengo.Snippet{
+				gengo.T: `
+func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
+   @provideFields
+   return @Type'InjectContext(ctx, p)
+}
+`,
+				"Type":             gengo.ID(t.Obj()),
+				"contextContext":   gengo.ID("context.Context"),
+				"contextWithValue": gengo.ID("context.WithValue"),
+				"provideFields":    provideFields,
+			})
+		}
 	}
 
 	return nil
@@ -187,7 +256,7 @@ if value, ok := @FieldType'FromContext(ctx); ok {
 							if !strings.Contains(injectTag, ",optional") {
 								sw.Render(gengo.Snippet{
 									gengo.T: `else {
-return @errorsErrorf("missing provider %T", v.@Field)
+return @errorsErrorf("missing provider %T.@Field", v)
 }
 `,
 									"Field":        gengo.ID(f.Name()),

@@ -2,6 +2,7 @@ package courierhttp
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-courier/logr"
 	"io"
 	"net/http"
@@ -45,7 +46,7 @@ type FileHeader interface {
 	Header() http.Header
 }
 
-type Request = httprequest.Request
+type RequestInfo = httprequest.Request
 
 type ResponseSetting interface {
 	SetStatusCode(statusCode int)
@@ -121,11 +122,11 @@ type Response[T any] interface {
 }
 
 type ErrResponseWriter interface {
-	WriteErr(ctx context.Context, rw http.ResponseWriter, req Request, err error)
+	WriteErr(ctx context.Context, rw http.ResponseWriter, req RequestInfo, err error)
 }
 
 type ResponseWriter interface {
-	WriteResponse(ctx context.Context, rw http.ResponseWriter, req Request) error
+	WriteResponse(ctx context.Context, rw http.ResponseWriter, req RequestInfo) error
 }
 
 type errorResponse struct {
@@ -192,7 +193,7 @@ func (r *response[T]) Meta() courier.Metadata {
 	return r.meta
 }
 
-func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter, req Request) (finalErr error) {
+func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter, req RequestInfo) (finalErr error) {
 	defer func() {
 		r.v = nil
 		if finalErr != nil {
@@ -278,7 +279,7 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		// forward result
 		rw.WriteHeader(r.statusCode)
 		if _, err := v.Into(rw); err != nil {
-			return err
+			return fmt.Errorf("forward failed: %w", err)
 		}
 	default:
 		if resp == nil {

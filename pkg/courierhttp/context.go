@@ -5,9 +5,7 @@ import (
 )
 
 // +gengo:injectable:provider
-type HttpRequest struct {
-	*http.Request
-}
+type Request = http.Request
 
 // +gengo:injectable:provider
 type OperationInfo struct {

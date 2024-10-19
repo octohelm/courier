@@ -189,13 +189,13 @@ func (v *validators) defaultRule(t reflect.Type) string {
 		case reflect.Uint:
 			return "@uint"
 		case reflect.Uint8:
-			return "@uin8"
+			return "@uint8"
 		case reflect.Uint16:
-			return "@uin16"
+			return "@uint16"
 		case reflect.Uint32:
-			return "@uin32"
+			return "@uint32"
 		case reflect.Uint64:
-			return "@uin64"
+			return "@uint64"
 		case reflect.Float32:
 			return "@float"
 		case reflect.Float64:

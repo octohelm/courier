@@ -1,7 +1,7 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-courier/logr v0.3.0 h1:0VEQB1b53EmYQ+ZehrIgD8l2IO+WX7TY+CqzlykIFmo=
-github.com/go-courier/logr v0.3.0/go.mod h1:OI7f/JCFZ1ZMD5qG3bIJr5WMNnGzd24+II1D9D9w5x4=
+github.com/go-courier/logr v0.3.1 h1:RcHM7qpO8OpuV+zFvJMXtJEspTnnYmT6uGiAomwb8X8=
+github.com/go-courier/logr v0.3.1/go.mod h1:NQWi+TSv0rS1RfyWHv7MNEI5cNy9NR6k1n8R24uHgdY=
 github.com/go-json-experiment/json v0.0.0-20240815175050-ebd3a8989ca1 h1:xcuWappghOVI8iNWoF2OKahVejd1LSVi/v4JED44Amo=
 github.com/go-json-experiment/json v0.0.0-20240815175050-ebd3a8989ca1/go.mod h1:BWmvoE1Xia34f3l/ibJweyhrT+aROb/FQ6d+37F0e2s=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
@@ -30,8 +30,8 @@ github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27k
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/octohelm/gengo v0.0.0-20241014043309-2344b8632080 h1:JydhpFfiuBsIXWs4f3GQJDpCmG5LFKgzB7CFkRGWs3s=
-github.com/octohelm/gengo v0.0.0-20241014043309-2344b8632080/go.mod h1:7bkbdNmnQEmnVbvdSJdRwvGmm2/3KgvxXSDi/nXCOk8=
+github.com/octohelm/gengo v0.0.0-20241021060200-490be2d0c7f4 h1:zd0FrKYk+2aFBbS90nzdXhSpJadMwfZBb9hSamuLEVQ=
+github.com/octohelm/gengo v0.0.0-20241021060200-490be2d0c7f4/go.mod h1:7bkbdNmnQEmnVbvdSJdRwvGmm2/3KgvxXSDi/nXCOk8=
 github.com/octohelm/x v0.0.0-20241011014327-0fcf864c84d6 h1:4royPn66/B49ftj5Jh7ZWuJ8A2B/2l0UTQ6EFLf29Vk=
 github.com/octohelm/x v0.0.0-20241011014327-0fcf864c84d6/go.mod h1:c8k4TZNwZXVCclWxFU8dm67PQ98APzKW3f5JJykQ2uo=
 github.com/onsi/ginkgo/v2 v2.20.1 h1:YlVIbqct+ZmnEph770q9Q7NVAz4wwIiVNahee6JyUzo=

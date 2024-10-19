@@ -188,7 +188,7 @@ type routeHttpHandler struct {
 func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	ctx = courierhttp.HttpRequestInjectContext(ctx, &courierhttp.HttpRequest{Request: r})
+	ctx = courierhttp.RequestInjectContext(ctx, r)
 
 	info := httprequest.From(r)
 

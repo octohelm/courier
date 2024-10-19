@@ -11,8 +11,8 @@ import (
 )
 
 type IncomingTransport interface {
-	UnmarshalOperator(ctx context.Context, info courierhttp.Request, op any) error
-	WriteResponse(ctx context.Context, rw http.ResponseWriter, result any, info courierhttp.Request)
+	UnmarshalOperator(ctx context.Context, info courierhttp.RequestInfo, op any) error
+	WriteResponse(ctx context.Context, rw http.ResponseWriter, result any, info courierhttp.RequestInfo)
 }
 
 func NewIncomingTransport(ctx context.Context, v any) (IncomingTransport, error) {
@@ -23,11 +23,11 @@ func NewIncomingTransport(ctx context.Context, v any) (IncomingTransport, error)
 type incomingTransport struct {
 }
 
-func (t *incomingTransport) UnmarshalOperator(ctx context.Context, ireq courierhttp.Request, op any) error {
+func (t *incomingTransport) UnmarshalOperator(ctx context.Context, ireq courierhttp.RequestInfo, op any) error {
 	return content.UnmarshalRequestInfo(ireq, op)
 }
 
-func (i *incomingTransport) WriteResponse(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.Request) {
+func (i *incomingTransport) WriteResponse(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.RequestInfo) {
 	if upgrader, ok := ret.(Upgrader); ok {
 		if err := upgrader.Upgrade(rw, req.Underlying()); err != nil {
 			i.writeErrResp(ctx, rw, err, req)
@@ -42,13 +42,13 @@ func (i *incomingTransport) WriteResponse(ctx context.Context, rw http.ResponseW
 	}
 }
 
-func (i *incomingTransport) writeResp(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.Request) {
+func (i *incomingTransport) writeResp(ctx context.Context, rw http.ResponseWriter, ret any, req courierhttp.RequestInfo) {
 	if err := courierhttp.Wrap(ret).(courierhttp.ResponseWriter).WriteResponse(ctx, rw, req); err != nil {
 		logr.FromContext(ctx).Error(err)
 	}
 }
 
-func (i *incomingTransport) writeErrResp(ctx context.Context, rw http.ResponseWriter, err error, req courierhttp.Request) {
+func (i *incomingTransport) writeErrResp(ctx context.Context, rw http.ResponseWriter, err error, req courierhttp.RequestInfo) {
 	if err := courierhttp.WrapError(err).(courierhttp.ResponseWriter).WriteResponse(ctx, rw, req); err != nil {
 		logr.FromContext(ctx).Error(err)
 	}

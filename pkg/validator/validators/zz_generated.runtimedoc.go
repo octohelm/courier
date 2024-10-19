@@ -17,6 +17,8 @@ func runtimeDoc(v any, names ...string) ([]string, bool) {
 func (v FloatValidator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
+		case "BitSize":
+			return []string{}, true
 		case "MaxDigits":
 			return []string{}, true
 		case "DecimalDigits":
