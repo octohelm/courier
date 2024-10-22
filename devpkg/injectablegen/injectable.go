@@ -120,6 +120,19 @@ func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
 			"contextWithValue": gengo.ID("context.WithValue"),
 		})
 	case *types.Struct:
+		hasProvideFields := func() bool {
+			for i := 0; i < x.NumFields(); i++ {
+				structTag := reflect.StructTag(x.Tag(i))
+
+				injectTag, exists := structTag.Lookup("provide")
+				if exists && injectTag != "-" {
+					return true
+				}
+			}
+
+			return false
+		}()
+
 		provideFields := func(sw gengo.SnippetWriter) {
 			if forAlias {
 				return
@@ -140,13 +153,27 @@ func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
 						typ = x.Elem()
 					}
 
-					sw.Render(gengo.Snippet{
-						gengo.T: `
+					optional := strings.Contains(injectTag, ",opt")
+
+					if optional {
+						sw.Render(gengo.Snippet{
+							gengo.T: `
+if p.@Field != nil {
+	ctx = @FieldType'InjectContext(ctx, p.@Field)
+}
+`,
+							"Field":     gengo.ID(f.Name()),
+							"FieldType": gengo.ID(typ),
+						})
+					} else {
+						sw.Render(gengo.Snippet{
+							gengo.T: `
 ctx = @FieldType'InjectContext(ctx, p.@Field)
 `,
-						"Field":     gengo.ID(f.Name()),
-						"FieldType": gengo.ID(f.Type()),
-					})
+							"Field":     gengo.ID(f.Name()),
+							"FieldType": gengo.ID(typ),
+						})
+					}
 				}
 			}
 		}
@@ -171,8 +198,9 @@ func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
 			return nil
 		}
 
-		c.Render(gengo.Snippet{
-			gengo.T: `
+		if !hasProvideFields {
+			c.Render(gengo.Snippet{
+				gengo.T: `
 type context@Type struct{}
 
 func @Type'FromContext(ctx @contextContext) (*@Type, bool) {
@@ -185,13 +213,32 @@ func @Type'FromContext(ctx @contextContext) (*@Type, bool) {
 func @Type'InjectContext(ctx @contextContext, tpe *@Type) (@contextContext) {
    return @contextWithValue(ctx, context@Type{}, tpe)
 }
+
 `,
-			"Type":             gengo.ID(t.Obj()),
-			"contextContext":   gengo.ID("context.Context"),
-			"contextWithValue": gengo.ID("context.WithValue"),
-		})
+				"Type":             gengo.ID(t.Obj()),
+				"contextContext":   gengo.ID("context.Context"),
+				"contextWithValue": gengo.ID("context.WithValue"),
+			})
+		}
 
 		if !forAlias {
+			if hasProvideFields {
+				c.Render(gengo.Snippet{
+					gengo.T: `
+func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
+   @provideFields
+   return ctx
+}
+`,
+					"Type":             gengo.ID(t.Obj()),
+					"contextContext":   gengo.ID("context.Context"),
+					"contextWithValue": gengo.ID("context.WithValue"),
+					"provideFields":    provideFields,
+				})
+
+				return nil
+			}
+
 			c.Render(gengo.Snippet{
 				gengo.T: `
 func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
@@ -253,7 +300,7 @@ if value, ok := @FieldType'FromContext(ctx); ok {
 						"Field":     gengo.ID(f.Name()),
 						"FieldType": gengo.ID(typ),
 						"elseOr": func(sw gengo.SnippetWriter) {
-							if !strings.Contains(injectTag, ",optional") {
+							if !strings.Contains(injectTag, ",opt") {
 								sw.Render(gengo.Snippet{
 									gengo.T: `else {
 return @errorsErrorf("missing provider %T.@Field", v)

@@ -20,6 +20,7 @@ func OperationInfoFromContext(ctx context.Context) (*OperationInfo, bool) {
 func OperationInfoInjectContext(ctx context.Context, tpe *OperationInfo) context.Context {
 	return context.WithValue(ctx, contextOperationInfo{}, tpe)
 }
+
 func (p *OperationInfo) InjectContext(ctx context.Context) context.Context {
 
 	return OperationInfoInjectContext(ctx, p)

@@ -114,6 +114,7 @@ func (*@Type) ResponseContent() any {
 func (*@Type) ResponseData() *@courierNoContent {
 	return new(@courierNoContent)
 }
+
 `,
 			"Type":             gengo.ID(named.Obj()),
 			"courierNoContent": gengo.ID("github.com/octohelm/courier/pkg/courier.NoContent"),

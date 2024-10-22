@@ -3,6 +3,7 @@ package request
 import (
 	"context"
 	"fmt"
+	contextx "github.com/octohelm/x/context"
 	"net/http"
 	"strings"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
-	contextx "github.com/octohelm/x/context"
 )
 
 type Segments = pathpattern.Segments
@@ -217,14 +217,18 @@ func (h *routeHttpHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 
 		if !opFactory.IsLast {
-			switch x := result.(type) {
-			case courier.CanInjectContext:
+			if x, ok := op.(courier.CanInjectContext); ok {
 				ctx = x.InjectContext(ctx)
-			case context.Context:
-				ctx = x
-			default:
-				if opFactory.ContextKey != nil {
-					ctx = contextx.WithValue(ctx, opFactory.ContextKey, result)
+			} else {
+				switch x := result.(type) {
+				case courier.CanInjectContext:
+					ctx = x.InjectContext(ctx)
+				case context.Context:
+					ctx = x
+				default:
+					if opFactory.ContextKey != nil {
+						ctx = contextx.WithValue(ctx, opFactory.ContextKey, result)
+					}
 				}
 			}
 			continue

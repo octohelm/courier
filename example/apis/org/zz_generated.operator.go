@@ -70,10 +70,6 @@ func init() {
 	R.Register(courier.NewRouter(&ListOrg{}))
 }
 
-func (*ListOrg) ResponseStatusCode() int {
-	return 200
-}
-
 func (*ListOrg) ResponseContent() any {
 	return new(DataList[Info])
 }
