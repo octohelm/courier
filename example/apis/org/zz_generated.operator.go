@@ -56,6 +56,7 @@ func (*GetOrg) ResponseContent() any {
 func (*GetOrg) ResponseData() *Detail {
 	return new(Detail)
 }
+
 func (*GetOrg) ResponseErrors() []error {
 	return []error{
 		&(statuserror.ErrorResponse{
@@ -70,6 +71,10 @@ func init() {
 	R.Register(courier.NewRouter(&ListOrg{}))
 }
 
+func (*ListOrg) ResponseStatusCode() int {
+	return 200
+}
+
 func (*ListOrg) ResponseContent() any {
 	return new(DataList[Info])
 }
@@ -80,6 +85,10 @@ func (*ListOrg) ResponseData() *DataList[Info] {
 
 func init() {
 	R.Register(courier.NewRouter(&ListOrgOld{}))
+}
+
+func (*ListOrgOld) ResponseStatusCode() int {
+	return 302
 }
 
 func (*ListOrgOld) ResponseContent() any {

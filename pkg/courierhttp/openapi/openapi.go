@@ -280,6 +280,10 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.OperationObject,
 
 	if can, ok := o.Operator.(CanResponseContent); ok {
 		if rt := can.ResponseContent(); rt != nil {
+			if c, ok := rt.(courierhttp.ContentTypeDescriber); ok {
+				contentType = c.ContentType()
+			}
+
 			mt := &openapi.MediaTypeObject{}
 			mt.Schema = b.SchemaFromType(ctx, rt, false)
 			resp.AddContent(contentType, mt)

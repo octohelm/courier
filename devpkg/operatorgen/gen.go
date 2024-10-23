@@ -127,7 +127,7 @@ func (*@Type) ResponseData() *@courierNoContent {
 			typeArgs := n.TypeArgs()
 
 			if typeArgs.Len() > 0 {
-				if n.Obj().Pkg().Path() == typeResponseWithSettingPkgPath.PkgPath() && n.Obj().Name() == "Response" {
+				if n.Obj().Pkg().Path() == typeResponse.PkgPath() && n.Obj().Name() == "Response" {
 					tpe = dePtr(n.TypeArgs().At(0))
 
 					ast.Inspect(expr, func(node ast.Node) bool {
@@ -138,7 +138,11 @@ func (*@Type) ResponseData() *@courierNoContent {
 								switch e.Sel.Name {
 								case "WithStatusCode", "Redirect":
 									if p := c.LocateInPackage(node.Pos()); p != nil {
-										v, _ := p.Eval(callExpr.Args[0])
+										v, err := p.Eval(callExpr.Args[0])
+										if err != nil {
+											return true
+										}
+
 										if statueCode, ok := valueOf(v.Value).(int64); ok {
 											c.Render(gengo.Snippet{gengo.T: `
 func (*@Type) ResponseStatusCode() int {
@@ -189,6 +193,7 @@ func (*@Type) ResponseContent() any {
 func (*@Type) ResponseData() *@ReturnType {
 	return new(@ReturnType)
 }
+
 `,
 			"Type":       gengo.ID(named.Obj()),
 			"ReturnType": gengo.ID(tpe),
@@ -203,7 +208,7 @@ func dePtr(t types.Type) types.Type {
 	return t
 }
 
-var typeResponseWithSettingPkgPath = reflect.TypeOf((*courierhttp.Response[any])(nil)).Elem()
+var typeResponse = reflect.TypeFor[courierhttp.Response[any]]()
 
 func (g *operatorGen) generateRegister(c gengo.Context, named *types.Named) {
 	tags, _ := c.Doc(named.Obj())
@@ -229,7 +234,7 @@ func (g *operatorGen) resolvePkg(c gengo.Context, importPath string) *types.Pack
 	return c.Package(importPath).Pkg()
 }
 
-func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name string) (interface{}, bool) {
+func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name string) (any, bool) {
 	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName(name)
 	if ok {
 		fn := method.(*typex.TMethod).Func
@@ -266,7 +271,7 @@ func isCourierOperator(c gengo.Context, tpe typex.Type, lookup func(c gengo.Cont
 	return false
 }
 
-func valueOf(v constant.Value) interface{} {
+func valueOf(v constant.Value) any {
 	if v == nil {
 		return nil
 	}
