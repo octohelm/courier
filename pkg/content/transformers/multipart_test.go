@@ -47,16 +47,19 @@ Content-Type: multipart/form-data; boundary=boundary1
 
 --boundary1
 Content-Disposition: form-data; name=a
+Content-Length: 1
 Content-Type: text/plain; charset=utf-8
 
 s
 --boundary1
 Content-Disposition: form-data; name=filter
+Content-Length: 2
 Content-Type: text/plain; charset=utf-8
 
 x1
 --boundary1
 Content-Disposition: form-data; name=filter
+Content-Length: 2
 Content-Type: text/plain; charset=utf-8
 
 x2

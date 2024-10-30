@@ -44,6 +44,7 @@ func TestRequestArshaler(t *testing.T) {
 	testingx.Expect(t, err, testingx.BeNil[error]())
 	testingx.Expect(t, req2, testingutil.BeRequest(`
 GET /users/1?filter=1&filter=2&limit=20 HTTP/1.1
+Content-Length: 4
 Content-Type: text/plain; charset=utf-8
 Cookie: cookie=xxx
 

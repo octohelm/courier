@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"iter"
-	"net/http"
 	"reflect"
 
 	"github.com/go-json-experiment/json/jsontext"
@@ -125,9 +124,19 @@ func (p *ParamValue) MarshalValues(ctx context.Context, sf *jsonflags.StructFiel
 
 		b := bytes.NewBuffer(nil)
 
-		w := t.PrepareWriter(http.Header{}, b)
+		if err := func() error {
+			ct, err := t.Prepare(ctx, rv)
+			if err != nil {
+				return err
+			}
+			defer ct.Close()
 
-		if err := w.Send(ctx, rv); err != nil {
+			if _, err := io.Copy(b, ct); err != nil {
+				return err
+			}
+
+			return nil
+		}(); err != nil {
 			return nil, err
 		}
 

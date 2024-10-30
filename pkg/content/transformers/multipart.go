@@ -3,16 +3,16 @@ package transformers
 import (
 	"context"
 	"errors"
+	"github.com/octohelm/courier/internal/jsonflags"
+	"github.com/octohelm/courier/pkg/content/internal"
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"reflect"
-
-	"github.com/octohelm/courier/internal/jsonflags"
-	"github.com/octohelm/courier/pkg/content/internal"
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
+	"strconv"
 )
 
 func init() {
@@ -122,75 +122,88 @@ func (p *multipartTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v an
 	return validatorerrors.Join(errs...)
 }
 
-func (p *multipartTransformer) PrepareWriter(headers http.Header, w io.Writer) internal.ContentWriter {
-	mw := multipart.NewWriter(w)
-	headers.Set("Content-Type", mw.FormDataContentType())
+func (mt *multipartTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
+	c := NewContent(mt.mediaType)
+	c.ReadCloser = AsReaderCloser(ctx, func(w io.WriteCloser) func() error {
+		mw := multipart.NewWriter(w)
+		c.contentType = mw.FormDataContentType()
 
-	return &multipartWriter{
-		Writer: mw,
-	}
-}
+		return func() error {
+			defer w.Close()
 
-type multipartWriter struct {
-	*multipart.Writer
-}
-
-func (mw *multipartWriter) Send(ctx context.Context, v any) error {
-	rv, ok := v.(reflect.Value)
-	if ok {
-		v = rv.Interface()
-	}
-
-	for rv.Kind() == reflect.Pointer {
-		rv = rv.Elem()
-	}
-
-	pv := &internal.ParamValue{}
-	pv.Value = rv
-
-	s, err := jsonflags.Structs.StructFields(pv.Type())
-	if err != nil {
-		return err
-	}
-
-	for sf := range s.StructField() {
-		for sfv := range pv.Values(sf) {
-			if sfv.IsZero() {
-				if sf.Omitzero || sf.Omitempty {
-					continue
-				}
+			rv, ok := v.(reflect.Value)
+			if ok {
+				v = rv.Interface()
 			}
 
-			params := map[string]string{
-				"name": sf.Name,
+			for rv.Kind() == reflect.Pointer {
+				rv = rv.Elem()
 			}
 
-			fv := sfv.Interface()
-			if withFilename, ok := fv.(interface{ Filename() string }); ok {
-				params["filename"] = withFilename.Filename()
-			}
-			header := textproto.MIMEHeader{}
+			pv := &internal.ParamValue{}
+			pv.Value = rv
 
-			if withContentType, ok := fv.(interface{ ContentType() string }); ok {
-				header.Set("Content-Type", withContentType.ContentType())
-			}
-
-			header.Set("Content-Disposition", mime.FormatMediaType("form-data", params))
-
-			cw, err := internal.New(sfv.Type(), sf.Tag.Get("mime"), "marshal")
+			s, err := jsonflags.Structs.StructFields(pv.Type())
 			if err != nil {
 				return err
 			}
 
-			w := cw.PrepareWriter(http.Header(header), internal.DeferWriter(func() (io.Writer, error) {
-				return mw.CreatePart(header)
-			}))
+			for sf := range s.StructField() {
+				for sfv := range pv.Values(sf) {
+					if sfv.IsZero() {
+						if sf.Omitzero || sf.Omitempty {
+							continue
+						}
+					}
 
-			if err := w.Send(ctx, sfv); err != nil {
-				return err
+					params := map[string]string{
+						"name": sf.Name,
+					}
+
+					fv := sfv.Interface()
+					if withFilename, ok := fv.(interface{ Filename() string }); ok {
+						params["filename"] = withFilename.Filename()
+					}
+
+					header := textproto.MIMEHeader{}
+
+					header.Set("Content-Disposition", mime.FormatMediaType("form-data", params))
+
+					cw, err := internal.New(sfv.Type(), sf.Tag.Get("mime"), "marshal")
+					if err != nil {
+						return err
+					}
+
+					c, err := cw.Prepare(ctx, sfv)
+					if err != nil {
+						return err
+					}
+
+					if ct := c.GetContentType(); ct != "" {
+						header.Set("Content-Type", ct)
+					}
+
+					if withContentType, ok := fv.(interface{ ContentType() string }); ok {
+						header.Set("Content-Type", withContentType.ContentType())
+					}
+
+					if i := c.GetContentLength(); i > -1 {
+						header.Set("Content-Length", strconv.FormatInt(i, 10))
+					}
+
+					p, err := mw.CreatePart(header)
+					if err != nil {
+						return err
+					}
+
+					if _, err := io.Copy(p, c); err != nil {
+						return err
+					}
+				}
 			}
+			return mw.Close()
 		}
-	}
+	})
 
-	return mw.Close()
+	return c, nil
 }

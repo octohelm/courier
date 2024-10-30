@@ -1,13 +1,13 @@
 package transformers
 
 import (
+	"bytes"
 	"context"
-	"github.com/go-json-experiment/json"
 	"io"
 	"mime"
-	"net/http"
 	"reflect"
 
+	"github.com/go-json-experiment/json"
 	"github.com/octohelm/courier/pkg/content/internal"
 	"github.com/octohelm/courier/pkg/validator"
 )
@@ -59,23 +59,11 @@ func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 	return validator.UnmarshalRead(r, v)
 }
 
-func (p *jsonTransformer) PrepareWriter(headers http.Header, w io.Writer) internal.ContentWriter {
-	if ct := headers.Get("Content-Type"); ct == "" {
-		headers.Set("Content-Type", mime.FormatMediaType(p.mediaType, map[string]string{
-			"charset": "utf-8",
-		}))
-	}
+func (p *jsonTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
+	c := NewContent(mime.FormatMediaType(p.mediaType, map[string]string{
+		"charset": "utf-8",
+	}))
 
-	return &jsonWriter{
-		Writer: w,
-	}
-}
-
-type jsonWriter struct {
-	io.Writer
-}
-
-func (w *jsonWriter) Send(ctx context.Context, v any) error {
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()
@@ -85,11 +73,22 @@ func (w *jsonWriter) Send(ctx context.Context, v any) error {
 		// avoid trim \n
 		raw, err := direct.MarshalJSON()
 		if err != nil {
-			return err
+			return nil, err
 		}
-		_, err = w.Write(raw)
-		return err
+
+		c.SetContentLength(int64(len(raw)))
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(raw))
+
+		return c, nil
 	}
 
-	return validator.MarshalWrite(w, v)
+	c.ReadCloser = AsReaderCloser(ctx, func(w io.WriteCloser) func() error {
+		return func() error {
+			defer w.Close()
+
+			return validator.MarshalWrite(w, v)
+		}
+	})
+
+	return c, nil
 }

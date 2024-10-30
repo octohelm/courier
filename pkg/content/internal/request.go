@@ -2,12 +2,12 @@ package internal
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"slices"
 	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/octohelm/courier/internal/httprequest"
@@ -28,10 +28,10 @@ func (p *Request) MarshalRequest(ctx context.Context, method string, path pathpa
 		return nil, err
 	}
 
-	var body io.ReadCloser
+	var body Content
 
 	query := url.Values{}
-	headers := http.Header{}
+	header := http.Header{}
 	pathParams := map[string]string{}
 
 	for sf := range s.LocatedStructField("body") {
@@ -42,7 +42,7 @@ func (p *Request) MarshalRequest(ctx context.Context, method string, path pathpa
 			return nil, err
 		}
 
-		body, err = AsReadCloser(ctx, cw, rv, headers)
+		body, err = cw.Prepare(ctx, rv)
 		if err != nil {
 			return nil, err
 		}
@@ -73,15 +73,6 @@ func (p *Request) MarshalRequest(ctx context.Context, method string, path pathpa
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, path.Encode(pathParams), body)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(query) > 0 {
-		req.URL.RawQuery = query.Encode()
-	}
-
 	for sf := range s.LocatedStructField("header") {
 		values, err := p.MarshalValues(ctx, sf)
 		if err != nil {
@@ -89,8 +80,30 @@ func (p *Request) MarshalRequest(ctx context.Context, method string, path pathpa
 		}
 
 		if values != nil {
-			req.Header[textproto.CanonicalMIMEHeaderKey(sf.Name)] = values
+			header[textproto.CanonicalMIMEHeaderKey(sf.Name)] = values
 		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, path.Encode(pathParams), body)
+	if err != nil {
+		return nil, err
+	}
+
+	if body != nil {
+		if ct := body.GetContentType(); ct != "" {
+			header.Set("Content-Type", ct)
+		}
+
+		if n := body.GetContentLength(); n > -1 {
+			req.ContentLength = n
+			header.Set("Content-Length", strconv.FormatInt(n, 10))
+		}
+	}
+
+	req.Header = header
+
+	if len(query) > 0 {
+		req.URL.RawQuery = query.Encode()
 	}
 
 	cookies := url.Values{}
@@ -125,10 +138,6 @@ func (p *Request) MarshalRequest(ctx context.Context, method string, path pathpa
 				})
 			}
 		}
-	}
-
-	for k, vv := range headers {
-		req.Header[k] = vv
 	}
 
 	return req, err

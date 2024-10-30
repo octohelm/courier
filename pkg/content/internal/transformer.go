@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http"
 	"reflect"
 	"strings"
 	"sync"
-
-	"github.com/go-courier/logr"
 )
 
 type TransformerProvider interface {
@@ -21,35 +18,26 @@ type Transformer interface {
 	MediaType() string
 
 	ContentReader
-	ContentWriterProvider
+	ContentProvider
 }
 
 type ContentReader interface {
 	ReadAs(ctx context.Context, r io.ReadCloser, v any) error
 }
 
-type ContentWriterProvider interface {
-	PrepareWriter(headers http.Header, w io.Writer) ContentWriter
+type Content interface {
+	GetContentType() string
+	GetContentLength() int64
+
+	io.ReadCloser
 }
 
-type ContentWriter interface {
-	Send(ctx context.Context, v any) error
+type ContentProvider interface {
+	Prepare(ctx context.Context, src any) (Content, error)
 }
 
-func AsReadCloser(ctx context.Context, cw ContentWriterProvider, v any, headers http.Header) (io.ReadCloser, error) {
-	pr, pw := io.Pipe()
-
-	w := cw.PrepareWriter(headers, pw)
-
-	go func() {
-		defer pw.Close()
-
-		if err := w.Send(ctx, v); err != nil {
-			logr.FromContext(ctx).Error(err)
-		}
-	}()
-
-	return pr, nil
+type ContentLengthSetter interface {
+	SetContentLength(l int64)
 }
 
 var defaultTransformers = &transformers{

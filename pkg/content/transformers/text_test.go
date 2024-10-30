@@ -20,6 +20,7 @@ func TestTextTransformer(t *testing.T) {
 	testingx.Expect(t, err, testingx.BeNil[error]())
 	testingx.Expect(t, req, testingutil.BeRequest(`
 POST / HTTP/1.1
+Content-Length: 4
 Content-Type: text/plain; charset=utf-8
 
 test

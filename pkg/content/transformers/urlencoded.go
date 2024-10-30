@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"mime"
-	"net/http"
 	"net/url"
 	"reflect"
 
@@ -40,17 +39,6 @@ func (p *urlencodedTransformer) MediaType() string {
 	return p.mediaType
 }
 
-func (p *urlencodedTransformer) PrepareWriter(headers http.Header, w io.Writer) internal.ContentWriter {
-	if ct := headers.Get("Content-Type"); ct == "" {
-		headers.Set("Content-Type", mime.FormatMediaType(p.mediaType, map[string]string{
-			"param": "value",
-		}))
-	}
-	return &urlencodedWriter{
-		Writer: w,
-	}
-}
-
 func (p *urlencodedTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) error {
 	defer r.Close()
 
@@ -77,24 +65,38 @@ func (p *urlencodedTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v a
 	)
 }
 
-type urlencodedWriter struct {
-	io.Writer
-}
+func (p *urlencodedTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
+	c := NewContent(mime.FormatMediaType(p.mediaType, map[string]string{
+		"param": "value",
+	}))
 
-func (w *urlencodedWriter) Send(ctx context.Context, v any) error {
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()
 	}
 
-	return internal.Pipe(
-		func(w io.Writer) error {
-			return validator.MarshalWrite(w, v)
-		},
-		func(r io.Reader) error {
-			return w.urlencodedWrite(jsontext.NewDecoder(r))
-		},
-	)
+	c.ReadCloser = AsReaderCloser(ctx, func(w io.WriteCloser) func() error {
+		uw := &urlencodedWriter{Writer: w}
+
+		return func() error {
+			defer w.Close()
+
+			return internal.Pipe(
+				func(w io.Writer) error {
+					return validator.MarshalWrite(w, v)
+				},
+				func(r io.Reader) error {
+					return uw.urlencodedWrite(jsontext.NewDecoder(r))
+				},
+			)
+		}
+	})
+
+	return c, nil
+}
+
+type urlencodedWriter struct {
+	io.Writer
 }
 
 // { "a": 1 } => a=1

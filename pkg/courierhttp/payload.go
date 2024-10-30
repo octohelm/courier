@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-courier/logr"
+	"github.com/octohelm/courier/internal/httprequest"
+	"github.com/octohelm/courier/pkg/content"
+	"github.com/octohelm/courier/pkg/courier"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"io"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"reflect"
-
-	"github.com/octohelm/courier/internal/httprequest"
-	"github.com/octohelm/courier/pkg/content"
-	"github.com/octohelm/courier/pkg/courier"
-	"github.com/octohelm/courier/pkg/statuserror"
+	"strconv"
 )
 
 type NoContent struct{}
@@ -293,9 +293,26 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 			return err
 		}
 
-		w := t.PrepareWriter(rw.Header(), rw)
+		c, err := t.Prepare(ctx, resp)
+		if err != nil {
+			return err
+		}
+		defer c.Close()
+
+		if ct := c.GetContentType(); ct != "" {
+			rw.Header().Set("Content-Type", ct)
+		}
+
+		if i := c.GetContentLength(); i > -1 {
+			rw.Header().Set("Content-Length", strconv.FormatInt(i, 10))
+		}
+
 		rw.WriteHeader(r.statusCode)
-		return w.Send(ctx, resp)
+
+		if _, err := io.Copy(rw, c); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }

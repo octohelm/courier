@@ -20,6 +20,7 @@ func TestOctetTransformer(t *testing.T) {
 	testingx.Expect(t, err, testingx.BeNil[error]())
 	testingx.Expect(t, req, testingutil.BeRequest(`
 POST / HTTP/1.1
+Content-Length: 4
 Content-Type: application/octet-stream
 
 test

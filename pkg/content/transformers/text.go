@@ -1,16 +1,15 @@
 package transformers
 
 import (
+	"bytes"
 	"context"
-	"github.com/octohelm/courier/pkg/validator"
-	"io"
-	"mime"
-	"net/http"
-	"reflect"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/content/internal"
+	"github.com/octohelm/courier/pkg/validator"
+	"io"
+	"mime"
+	"reflect"
 )
 
 func init() {
@@ -66,23 +65,11 @@ func (p *textTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 	}
 }
 
-func (p *textTransformer) PrepareWriter(headers http.Header, w io.Writer) internal.ContentWriter {
-	if ct := headers.Get("Content-Type"); ct == "" {
-		headers.Set("Content-Type", mime.FormatMediaType(p.mediaType, map[string]string{
-			"charset": "utf-8",
-		}))
-	}
+func (p *textTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
+	c := NewContent(mime.FormatMediaType(p.mediaType, map[string]string{
+		"charset": "utf-8",
+	}))
 
-	return &textWriter{
-		Writer: w,
-	}
-}
-
-type textWriter struct {
-	io.Writer
-}
-
-func (w *textWriter) Send(ctx context.Context, v any) error {
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()
@@ -90,27 +77,24 @@ func (w *textWriter) Send(ctx context.Context, v any) error {
 
 	switch x := v.(type) {
 	case []byte:
-		if _, err := w.Write(x); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(x)))
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(x))
+		return c, nil
 	case string:
-		if _, err := w.Write([]byte(x)); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(x)))
+		c.ReadCloser = io.NopCloser(bytes.NewBufferString(x))
+		return c, nil
 	default:
 		data, err := validator.Marshal(v)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		raw, err := jsontext.AppendUnquote(nil, data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if _, err := w.Writer.Write(raw); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(raw)))
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(raw))
+		return c, nil
 	}
 }

@@ -1,16 +1,15 @@
 package transformers
 
 import (
+	"bytes"
 	"context"
-	"github.com/octohelm/courier/pkg/validator"
-	"io"
-	"mime"
-	"net/http"
-	"reflect"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/content/internal"
+	"github.com/octohelm/courier/pkg/validator"
+	"io"
+	"mime"
+	"reflect"
 )
 
 func init() {
@@ -103,61 +102,46 @@ func (p *octecTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) e
 	}
 }
 
-func (p *octecTransformer) PrepareWriter(headers http.Header, w io.Writer) internal.ContentWriter {
-	if ct := headers.Get("Content-Type"); ct == "" {
-		headers.Set("Content-Type", p.mediaType)
-	}
+func (p *octecTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
+	c := NewContent(p.mediaType)
 
-	return &octecWriter{
-		Writer: w,
-	}
-}
-
-type octecWriter struct {
-	io.Writer
-}
-
-func (w *octecWriter) Send(ctx context.Context, v any) error {
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()
 	}
 
+	if v == nil {
+		c.SetContentLength(0)
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(nil))
+		return c, nil
+	}
+
 	switch x := v.(type) {
 	case io.ReadCloser:
-		defer x.Close()
-
-		if _, err := io.Copy(w, x); err != nil {
-			return err
-		}
-		return nil
+		c.ReadCloser = x
+		return c, nil
 	case io.Reader:
-		if _, err := io.Copy(w, x); err != nil {
-			return err
-		}
-		return nil
+		c.ReadCloser = io.NopCloser(x)
+		return c, nil
 	case []byte:
-		if _, err := w.Write(x); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(x)))
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(x))
+		return c, nil
 	case string:
-		if _, err := w.Write([]byte(x)); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(x)))
+		c.ReadCloser = io.NopCloser(bytes.NewBufferString(x))
+		return c, nil
 	default:
 		data, err := validator.Marshal(v)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		raw, err := jsontext.AppendUnquote(nil, data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if _, err := w.Write(raw); err != nil {
-			return err
-		}
-		return nil
+		c.SetContentLength(int64(len(raw)))
+		c.ReadCloser = io.NopCloser(bytes.NewBuffer(raw))
+		return c, nil
 	}
 }
