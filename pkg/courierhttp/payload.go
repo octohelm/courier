@@ -270,12 +270,11 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 		return nil
 	}
 
-	if r.contentType != "" {
-		rw.Header().Set("Content-Type", r.contentType)
-	}
-
 	switch v := resp.(type) {
 	case courier.Result:
+		if r.contentType != "" {
+			rw.Header().Set("Content-Type", r.contentType)
+		}
 		// forward result
 		rw.WriteHeader(r.statusCode)
 		if _, err := v.Into(rw); err != nil {
@@ -301,6 +300,10 @@ func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter,
 
 		if ct := c.GetContentType(); ct != "" {
 			rw.Header().Set("Content-Type", ct)
+		}
+
+		if r.contentType != "" {
+			rw.Header().Set("Content-Type", r.contentType)
 		}
 
 		if i := c.GetContentLength(); i > -1 {
