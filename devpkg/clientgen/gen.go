@@ -509,8 +509,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 		requiredFieldSet[name] = true
 	}
 
-	for name := range schema.Properties {
-		propSchema := schema.Properties[name]
+	for name, propSchema := range schema.Properties.KeyValues() {
 
 		propDecls[name] = gengo.Snippet{gengo.T: `
 @doc

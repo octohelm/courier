@@ -16,7 +16,7 @@ func TestOpenAPI(t *testing.T) {
 	openapi.Title = "Swagger Petstore"
 	openapi.License = &License{Name: "MIT"}
 
-	openapi.AddSchema("Pet", jsonschema.ObjectOf(jsonschema.Props{
+	openapi.AddSchema("Pet", jsonschema.ObjectOf(map[string]jsonschema.Schema{
 		"id":   jsonschema.Long(),
 		"name": jsonschema.String(),
 		"tag":  jsonschema.String(),
@@ -24,7 +24,7 @@ func TestOpenAPI(t *testing.T) {
 
 	openapi.AddSchema("Pets", jsonschema.ArrayOf(openapi.RefSchema("Pet")))
 
-	openapi.AddSchema("Error", jsonschema.ObjectOf(jsonschema.Props{
+	openapi.AddSchema("Error", jsonschema.ObjectOf(map[string]jsonschema.Schema{
 		"code":    jsonschema.Integer(),
 		"message": jsonschema.String(),
 	}, "code", "message"))
