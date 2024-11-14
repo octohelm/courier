@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	contextx "github.com/octohelm/x/context"
 )
 
@@ -53,13 +52,23 @@ func (v *valueGetterFunc) Get(name string) (any, bool) {
 	return v.fn(name)
 }
 
-func WithValueGetter(ctx context.Context, getter ValueGetter) context.Context {
-	return contextx.WithValue(ctx, contextValueGetter{}, getter)
-}
-
 func ValueGetterFromContext(ctx context.Context) ValueGetter {
 	if vg, ok := ctx.Value(contextValueGetter{}).(ValueGetter); ok {
 		return vg
 	}
 	return nil
+}
+
+func WithValueGetter(ctx context.Context, getter ValueGetter) context.Context {
+	vg := ValueGetterFromContext(ctx)
+	if vg != nil {
+		return contextx.WithValue(ctx, contextValueGetter{}, ValueGetterFunc(func(name string) (any, bool) {
+			v, ok := getter.Get(name)
+			if ok {
+				return v, ok
+			}
+			return vg.Get(name)
+		}))
+	}
+	return contextx.WithValue(ctx, contextValueGetter{}, getter)
 }
