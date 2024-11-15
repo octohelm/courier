@@ -236,65 +236,63 @@ func (t ObjectType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 
 		propIdx := 0
 		for propName, prop := range t.Properties.KeyValues() {
-			{
-				if propIdx > 0 {
-					p.Return()
-				}
-
-				propIdx++
-
-				if opt.WithDoc {
-					if desc := prop.GetMetadata().Description; desc != "" {
-						p.PrintDoc(desc)
-					}
-				}
-
-				p.Printf("%q", propName)
-
-				required := false
-				for _, r := range t.Required {
-					if r == propName {
-						required = true
-						break
-					}
-				}
-
-				if !required {
-					p.Print("?")
-				}
-
-				p.Print(": ")
-				p.PrintFrom(prop, optionFns...)
+			if propIdx > 0 {
+				p.Return()
 			}
 
-			if additionalProperties := t.AdditionalProperties; additionalProperties != nil {
-				if !t.Properties.IsZero() {
-					p.Return()
-				}
+			propIdx++
 
-				propSchema := t.PropertyNames
-				if propSchema == nil {
-					propSchema = &StringType{}
+			if opt.WithDoc {
+				if title := prop.GetMetadata().Title; title != "" {
+					p.PrintDoc(title)
 				}
-
-				p.Print("[X=")
-				p.PrintFrom(propSchema, optionFns...)
-				p.Print("]: ")
-				p.PrintFrom(additionalProperties, optionFns...)
 			}
 
-			for name, d := range t.Defs {
-				if propIdx > 0 {
-					p.Return()
+			p.Printf("%q", propName)
+
+			required := false
+			for _, r := range t.Required {
+				if r == propName {
+					required = true
+					break
 				}
-				if dynamicAnchor := d.GetCore().DynamicAnchor; dynamicAnchor != "" {
-					p.Printf("#%s: ", dynamicAnchor)
-				} else {
-					p.Printf("#%s: ", name)
-				}
-				p.PrintFrom(d, optionFns...)
-				propIdx++
 			}
+
+			if !required {
+				p.Print("?")
+			}
+
+			p.Print(": ")
+			p.PrintFrom(prop, optionFns...)
+		}
+
+		if additionalProperties := t.AdditionalProperties; additionalProperties != nil {
+			if !t.Properties.IsZero() {
+				p.Return()
+			}
+
+			propSchema := t.PropertyNames
+			if propSchema == nil {
+				propSchema = &StringType{}
+			}
+
+			p.Print("[X=")
+			p.PrintFrom(propSchema, optionFns...)
+			p.Print("]: ")
+			p.PrintFrom(additionalProperties, optionFns...)
+		}
+
+		for name, d := range t.Defs {
+			if propIdx > 0 {
+				p.Return()
+			}
+			if dynamicAnchor := d.GetCore().DynamicAnchor; dynamicAnchor != "" {
+				p.Printf("#%s: ", dynamicAnchor)
+			} else {
+				p.Printf("#%s: ", name)
+			}
+			p.PrintFrom(d, optionFns...)
+			propIdx++
 		}
 	})
 }

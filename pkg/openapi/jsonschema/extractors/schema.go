@@ -353,7 +353,7 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 				} else if i := strings.Index(fieldDesc, "\n"); i > 0 {
 					fieldDoc = []string{fieldDesc[0:i], fieldDesc[i+1:]}
 				} else {
-					fieldDoc = []string{"", fieldDesc}
+					fieldDoc = []string{fieldDesc, ""}
 				}
 			}
 		}
