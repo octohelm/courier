@@ -372,7 +372,7 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 
 		if schema != nil && docer != nil {
 			if lines, ok := docer.RuntimeDoc(field.FieldName); ok {
-				schema.GetMetadata().Description = strings.Join(lines, "\n")
+				extractors.SetTitleOrDescription(schema.GetMetadata(), lines)
 			}
 		}
 

@@ -31,8 +31,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/octohelm/gengo v0.0.0-20241023040556-a66fecda6cd6 h1:xsDe0CBcK1CW+dcQdH5mQuVBBScQ1vDbh+cYpVDI7AQ=
 github.com/octohelm/gengo v0.0.0-20241023040556-a66fecda6cd6/go.mod h1:aviWG2Mi3alkrLA0G/UtypdM05btKHuLTabGkEmzjWI=
-github.com/octohelm/x v0.0.0-20241112102041-a15ce954bd07 h1:tw8m1UkgykqfaPwhI/7Ly3iRa9XILWzrdX86MKzsanw=
-github.com/octohelm/x v0.0.0-20241112102041-a15ce954bd07/go.mod h1:QL0+PtGIwaNA8EkM6E9fdeuiiPWg6e0+wDNnUK1X/u0=
+github.com/octohelm/x v0.0.0-20241115085849-6402f8916ad3 h1:43P4uBxFSDtw3yhQPzUvTrkgobIrXiAw9llSvibnBTc=
+github.com/octohelm/x v0.0.0-20241115085849-6402f8916ad3/go.mod h1:R/YWc3OdwyIs2SlMy30dd+bqmkiSl9GeuAAtxDKW0Lc=
 github.com/onsi/ginkgo/v2 v2.20.1 h1:YlVIbqct+ZmnEph770q9Q7NVAz4wwIiVNahee6JyUzo=
 github.com/onsi/ginkgo/v2 v2.20.1/go.mod h1:lG9ey2Z29hR41WMVthyJBGUBcBhGOtoPF2VFMvBXFCI=
 github.com/onsi/gomega v1.35.1 h1:Cwbd75ZBPxFSuZ6T+rN/WCb/gOc6YgFBXLlZLhC7Ds4=

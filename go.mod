@@ -1,6 +1,6 @@
 module github.com/octohelm/courier
 
-go 1.23.2
+go 1.23.3
 
 require (
 	github.com/davecgh/go-spew v1.1.1
@@ -8,7 +8,7 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20240815175050-ebd3a8989ca1
 	github.com/juju/ansiterm v1.0.0
 	github.com/octohelm/gengo v0.0.0-20241023040556-a66fecda6cd6
-	github.com/octohelm/x v0.0.0-20241112102041-a15ce954bd07
+	github.com/octohelm/x v0.0.0-20241115085849-6402f8916ad3
 	github.com/onsi/gomega v1.35.1
 	golang.org/x/net v0.31.0
 	golang.org/x/sync v0.9.0

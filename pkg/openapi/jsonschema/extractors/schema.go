@@ -130,7 +130,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 
 			defer func() {
 				if lines, ok := docer.RuntimeDoc(); ok {
-					s.GetMetadata().Description = strings.Join(lines, "\n")
+					SetTitleOrDescription(s.GetMetadata(), lines)
 				}
 			}()
 		}
@@ -335,7 +335,7 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 		return nil
 	}
 
-	fieldDoc := ""
+	var fieldDoc []string
 
 	if opt.Doc != nil {
 		for _, name := range []string{
@@ -343,10 +343,17 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 			sf.Name,
 		} {
 			if fieldDesc := opt.Doc[name]; fieldDesc != "" {
-				fieldDoc = fieldDesc
 				stringEnum := pickStringEnumFromDesc(fieldDesc)
 				if len(stringEnum) > 0 {
 					opt = opt.WithEnumInDoc(stringEnum)
+				}
+
+				if i := strings.Index(fieldDesc, "."); i > 0 {
+					fieldDoc = []string{fieldDesc[0:i], fieldDesc[i+1:]}
+				} else if i := strings.Index(fieldDesc, "\n"); i > 0 {
+					fieldDoc = []string{fieldDesc[0:i], fieldDesc[i+1:]}
+				} else {
+					fieldDoc = []string{"", fieldDesc}
 				}
 			}
 		}
@@ -362,20 +369,18 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 		if err != nil {
 			panic(fmt.Errorf("invalid validate %s: %w", sf.Tag.Get("validate"), err))
 		}
-		propSchema = s
 
-		metadata := propSchema.GetMetadata()
-		metadata.Description = fieldDoc
+		SetTitleOrDescription(s.GetMetadata(), fieldDoc)
 
 		if canRuntimeDoc, ok := RuntimeDocerContext.MayFrom(ctx); ok {
 			if lines, ok := canRuntimeDoc.RuntimeDoc(sf.FieldName); ok {
-				metadata.Description = strings.Join(lines, "\n")
+				SetTitleOrDescription(s.GetMetadata(), lines)
 			}
 		}
 
-		metadata.AddExtension(jsonschema.XGoFieldName, sf.FieldName)
+		s.GetMetadata().AddExtension(jsonschema.XGoFieldName, sf.FieldName)
 
-		return propSchema
+		return s
 	}
 
 	return nil
