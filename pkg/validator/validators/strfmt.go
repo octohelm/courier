@@ -10,6 +10,10 @@ import (
 	"github.com/octohelm/courier/pkg/validator/internal"
 )
 
+func RegisterRegexpStrfmtValidator(regexpStr string, name string, aliases ...string) {
+	internal.Register(NewRegexpStrfmtValidatorProvider(regexpStr, name, aliases...))
+}
+
 func NewRegexpStrfmtValidatorProvider(regexpStr string, name string, aliases ...string) internal.ValidatorProvider {
 	re := regexp.MustCompile(regexpStr)
 
