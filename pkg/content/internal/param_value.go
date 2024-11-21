@@ -75,6 +75,12 @@ func (p *ParamValue) AddrValues(sf *jsonflags.StructField, n int) iter.Seq2[int,
 }
 
 func (p *ParamValue) UnmarshalValues(ctx context.Context, sf *jsonflags.StructField, values []string) error {
+	if len(values) == 0 {
+		if v, ok := sf.Tag.Lookup("default"); ok {
+			values = []string{v}
+		}
+	}
+
 	readers := make([]io.ReadCloser, len(values))
 	for i := range values {
 		readers[i] = io.NopCloser(bytes.NewBufferString(values[i]))

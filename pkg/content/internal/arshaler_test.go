@@ -15,7 +15,7 @@ import (
 )
 
 func TestRequestArshaler(t *testing.T) {
-	req, _ := http.NewRequest("GET", "http://0.0.0.0/users/{id}?limit=20&filter=1&filter=2", bytes.NewBufferString("test"))
+	req, _ := http.NewRequest("GET", "http://0.0.0.0/users/{id}?filter=1&filter=2", bytes.NewBufferString("test"))
 	req.Header.Set("Content-Type", "text/plain")
 	req.Header.Set("Cookie", "cookie=xxx")
 
@@ -35,7 +35,7 @@ func TestRequestArshaler(t *testing.T) {
 
 	testingx.Expect(t, op.ID, testingx.Be("1"))
 	testingx.Expect(t, op.ContentType, testingx.Be("text/plain"))
-	testingx.Expect(t, op.Limit, testingx.Be(20))
+	testingx.Expect(t, op.Limit, testingx.Be(10))
 	testingx.Expect(t, op.Filter, testingx.Equal([]string{"1", "2"}))
 	testingx.Expect(t, op.Data, testingx.Equal("test"))
 	testingx.Expect(t, op.Cookie, testingx.Equal("xxx"))
@@ -43,7 +43,7 @@ func TestRequestArshaler(t *testing.T) {
 	req2, err := internal.NewRequest(context.Background(), "GET", "/users/{id}", op)
 	testingx.Expect(t, err, testingx.BeNil[error]())
 	testingx.Expect(t, req2, testingutil.BeRequest(`
-GET /users/1?filter=1&filter=2&limit=20 HTTP/1.1
+GET /users/1?filter=1&filter=2&limit=10 HTTP/1.1
 Content-Length: 4
 Content-Type: text/plain; charset=utf-8
 Cookie: cookie=xxx
