@@ -1,9 +1,11 @@
 package jsonflags
 
 import (
+	"cmp"
 	"fmt"
 	"iter"
 	"reflect"
+	"slices"
 	"sync"
 
 	"github.com/go-json-experiment/json"
@@ -192,7 +194,9 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 	}
 
 	sfs := &StructFields{
-		flattened:     allFields,
+		flattened: slices.SortedFunc(slices.Values(allFields), func(a *StructField, b *StructField) int {
+			return cmp.Compare(a.index[0], b.index[0])
+		}),
 		byName:        make(map[string]*StructField, len(allFields)),
 		byLocatedName: make(map[locatedName]*StructField, len(allFields)),
 		located:       make(map[string][]*StructField, len(allFields)),
