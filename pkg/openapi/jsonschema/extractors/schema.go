@@ -60,16 +60,28 @@ func must[T any](ret T, err error) T {
 func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.Schema) {
 	sr := SchemaRegisterContext.From(ctx)
 
+	fillGoVendorType := func(typeRef string) {
+		if s != nil {
+			if !(strings.Contains(typeRef, "/internal/") || strings.Contains(typeRef, "/internal.")) {
+				s.GetMetadata().AddExtension(jsonschema.XGoVendorType, typeRef)
+			}
+		}
+	}
+
 	inst := reflect.New(t).Interface()
 
 	// named type
 	if pkgPath := t.PkgPath(); pkgPath != "" {
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
 
+		defer fillGoVendorType(typeRef)
+
 		ref := sr.RefString(typeRef)
 
 		if ok := sr.Record(typeRef); ok {
-			return &jsonschema.RefType{Ref: must(jsonschema.ParseURIReferenceString(ref))}
+			return &jsonschema.RefType{
+				Ref: must(jsonschema.ParseURIReferenceString(ref)),
+			}
 		} else {
 			defer func() {
 				if n := len(opt.EnumInDoc); n > 0 {
@@ -134,6 +146,8 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 				}
 			}()
 		}
+
+		defer fillGoVendorType(typeRef)
 
 		if g, ok := inst.(jsonschema.GoUnionType); ok {
 			if types := g.OneOf(); len(types) != 0 {
@@ -210,14 +224,6 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			s := g.OpenAPISchema()
 			return s
 		}
-
-		defer func() {
-			if s != nil {
-				if !(strings.Contains(typeRef, "/internal/") || strings.Contains(typeRef, "/internal.")) {
-					s.GetMetadata().AddExtension(jsonschema.XGoVendorType, typeRef)
-				}
-			}
-		}()
 
 		// TODO find better way
 		if typeRef == "mime/multipart.FileHeader" || typeRef == "io.ReadCloser" {

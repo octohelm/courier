@@ -2,6 +2,7 @@ package org
 
 import (
 	"context"
+	"github.com/octohelm/courier/example/pkg/domain/org"
 	"time"
 
 	"github.com/octohelm/courier/example/apis/org/operator"
@@ -30,7 +31,7 @@ func (c *GetOrg) Output(ctx context.Context) (any, error) {
 	return &Detail{
 		Info: Info{
 			Name: c.OrgName,
-			Type: TYPE__GOV,
+			Type: org.TYPE__GOV,
 		},
 	}, nil
 }

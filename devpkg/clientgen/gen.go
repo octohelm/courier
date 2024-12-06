@@ -202,7 +202,15 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 					}
 					return gengo.ID(gengo.UpperCamelCase(p.Name))
 				}(),
-				"TypeDef":  g.typeOfSchema(c, p.Schema),
+				"TypeDef": func() any {
+					s := g.typeOfSchema(c, p.Schema)
+
+					if _, ok := getSchemaExt(p.Schema, jsonschema.XGoStarLevel); ok {
+						return gengo.Snippet{gengo.T: `*@Type`, "Type": s}
+					}
+
+					return s
+				}(),
 				"extraTag": fieldPropExtraTag(p.Schema),
 				"doc":      gengo.Comment(p.Description),
 			}
@@ -264,17 +272,17 @@ func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 
 	if t.Schema != nil {
 		// when vendor imported in client, will be use the imported type
-		if v, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XGoVendorType); ok {
+		if x, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XGoVendorType); ok {
 			imports := c.Package("").Imports()
 
-			pkgPath, _ := gengo.PkgImportPathAndExpose(v.(string))
+			pkgPath, _ := gengo.PkgImportPathAndExpose(x.(string))
 
 			if _, ok := imports[pkgPath]; ok {
 				c.Render(gengo.Snippet{gengo.T: `
 type @Type = @TypeRef
 `,
 					"Type":    gengo.ID(name),
-					"TypeRef": gengo.ID(v),
+					"TypeRef": gengo.ID(x),
 				})
 
 				return nil
@@ -510,7 +518,6 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 	}
 
 	for name, propSchema := range schema.Properties.KeyValues() {
-
 		propDecls[name] = gengo.Snippet{gengo.T: `
 @doc
 @FieldName @TypeDef ` + "`" + `json:@name name:@name @extraTags` + "`" + `
@@ -529,9 +536,11 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 			}(),
 			"TypeDef": func() any {
 				s := g.typeOfSchema(c, propSchema)
+
 				if _, ok := getSchemaExt(propSchema, jsonschema.XGoStarLevel); ok {
 					return gengo.Snippet{gengo.T: `*@Type`, "Type": s}
 				}
+
 				return s
 			}(),
 			"extraTags": fieldPropExtraTag(propSchema),

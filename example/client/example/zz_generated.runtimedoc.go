@@ -117,7 +117,7 @@ func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 func (v ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "OrgName":
+		case "OrgId":
 			return []string{}, true
 
 		}
@@ -138,80 +138,17 @@ func (v ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v OrgDetail) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "CreatedAt":
-			return []string{}, true
-		case "Name":
-			return []string{
-				"组织名称",
-			}, true
-		case "Type":
-			return []string{
-				"组织类型",
-			}, true
-
-		}
-
-		return nil, false
-	}
-	return []string{}, true
-}
-
-func (v OrgInfo) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "Name":
-			return []string{
-				"组织名称",
-			}, true
-		case "Type":
-			return []string{
-				"组织类型",
-			}, true
-
-		}
-
-		return nil, false
-	}
-	return []string{}, true
-}
-
-func (v OrgInfoAsDataList) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "Data":
-			return []string{}, true
-		case "Extra":
-			return []string{}, true
-		case "Total":
-			return []string{}, true
-
-		}
-
-		return nil, false
-	}
-	return []string{}, true
-}
-
-func (OrgType) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
-func (StringAsFilter) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
 func (Time) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 func (v UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "ReadCloser":
+		case "IoReadCloser":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ReadCloser, names...); ok {
+		if doc, ok := runtimeDoc(v.IoReadCloser, names...); ok {
 			return doc, ok
 		}
 
@@ -225,11 +162,11 @@ func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Scope":
 			return []string{}, true
-		case "ReadCloser":
+		case "IoReadCloser":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ReadCloser, names...); ok {
+		if doc, ok := runtimeDoc(v.IoReadCloser, names...); ok {
 			return doc, ok
 		}
 

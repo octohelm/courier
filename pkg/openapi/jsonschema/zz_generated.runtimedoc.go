@@ -295,8 +295,6 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
-		case "Properties":
-			return []string{}, true
 		case "PropertyNames":
 			return []string{}, true
 		case "AdditionalProperties":
@@ -343,9 +341,6 @@ func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (Props) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
 func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {

@@ -1,6 +1,7 @@
 package httprouter_test
 
 import (
+	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 	"net/http"
 	"testing"
 	"time"
@@ -83,7 +84,7 @@ Server: test (GetOrg)
 				testingutil.ShouldReturnWhenRequest(&AddOrg{
 					Info: org.Info{
 						Name: "x",
-						Type: org.TYPE__GOV,
+						Type: domainorg.TYPE__GOV,
 					},
 				}, `
 HTTP/0.0 204 No Content

@@ -123,6 +123,9 @@ func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	}, true
 }
 
+func (ID) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 func (v Info) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
@@ -147,6 +150,8 @@ func (v Info) RuntimeDoc(names ...string) ([]string, bool) {
 func (v ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
+		case "ID":
+			return []string{}, true
 
 		}
 
@@ -168,8 +173,4 @@ func (v ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{
 		"拉取组织列表",
 	}, true
-}
-
-func (Type) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
 }

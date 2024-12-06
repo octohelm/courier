@@ -11,7 +11,8 @@ import (
 
 type UploadBlob struct {
 	courierhttp.MethodPost `path:"/blobs"`
-	Blob                   io.ReadCloser `in:"body" mime:"octet-stream"`
+
+	Blob io.ReadCloser `in:"body" mime:"octet-stream"`
 }
 
 func (req *UploadBlob) Output(ctx context.Context) (any, error) {

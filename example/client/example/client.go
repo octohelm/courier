@@ -7,10 +7,15 @@ import (
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
+
+	_ "github.com/octohelm/courier/example/apis/org"
+	_ "github.com/octohelm/courier/example/pkg/domain/org"
+	_ "github.com/octohelm/courier/example/pkg/filter"
 	_ "github.com/octohelm/courier/pkg/statuserror"
+	_ "io"
 )
 
-// +gengo:client:openapi=http://0.0.0.0:8080/api/example
+// +gengo:client:openapi=http://0.0.0.0:9001/api/example
 type Client client.Client
 
 func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) courier.Result {

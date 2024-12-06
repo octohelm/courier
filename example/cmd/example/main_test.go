@@ -15,6 +15,7 @@ import (
 	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/example/client/example"
+	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
@@ -71,7 +72,7 @@ func TestAll(t *testing.T) {
 		resp, err := example.Do(ctx, org)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 		testingx.Expect(t, resp.Name, testingx.Be(org.OrgName))
-		testingx.Expect(t, resp.Type, testingx.Be(example.ORG_TYPE__Gov))
+		testingx.Expect(t, resp.Type, testingx.Be(domainorg.TYPE__GOV))
 	})
 
 	t.Run("Do Some Request with h2", func(t *testing.T) {
@@ -92,7 +93,7 @@ func TestAll(t *testing.T) {
 
 	t.Run("Upload", func(t *testing.T) {
 		v := &example.UploadBlob{
-			ReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
+			IoReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
 		}
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
@@ -100,8 +101,8 @@ func TestAll(t *testing.T) {
 
 	t.Run("UploadStoreBlob", func(t *testing.T) {
 		v := &example.UploadStoreBlob{
-			Scope:      "a/b/c",
-			ReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
+			Scope:        "a/b/c",
+			IoReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
 		}
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())

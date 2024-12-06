@@ -2,8 +2,9 @@ package org
 
 import (
 	"bytes"
-	github_com_pkg_errors "errors"
 	"fmt"
+
+	"errors"
 )
 
 type Type int
@@ -15,7 +16,7 @@ const (
 	TYPE__COMPANY // 企事业单位
 )
 
-var InvalidType = github_com_pkg_errors.New("invalid Type")
+var InvalidType = errors.New("invalid Type")
 
 func (Type) EnumValues() []any {
 	return []any{

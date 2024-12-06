@@ -3,6 +3,7 @@ package org
 import (
 	"context"
 	"fmt"
+	"github.com/octohelm/courier/example/pkg/domain/org"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/validator"
 )
@@ -27,7 +28,7 @@ type Info struct {
 	// 组织名称
 	Name string `json:"name" validate:"@string[0,5]"`
 	// 组织类型
-	Type Type `json:"type,omitzero"`
+	Type org.Type `json:"type,omitzero"`
 }
 
 type info2 Info
