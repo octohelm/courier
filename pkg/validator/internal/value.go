@@ -117,7 +117,9 @@ func (va *Pointer) UnmarshalJSONV2(dec *jsontext.Decoder, options json.Options) 
 			}
 		}
 
-		va.SetZero()
+		if va.CanAddr() {
+			va.SetZero()
+		}
 		return nil
 	}
 
