@@ -7,7 +7,7 @@ type InfoObject struct {
 	TermsOfService string   `json:"termsOfService,omitzero"`
 	Contact        *Contact `json:"contact,omitzero"`
 	License        *License `json:"license,omitzero"`
-	Version        string   `json:"version"`
+	Version        string   `json:"version,omitzero"`
 }
 
 type Contact struct {

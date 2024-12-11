@@ -14,9 +14,12 @@ func runtimeDoc(v any, names ...string) ([]string, bool) {
 	return nil, false
 }
 
+func (BuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 func (BuildOptionFunc) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
-func (OpenAPIBuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
+func (PkgNamingPrefix) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

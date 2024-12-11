@@ -42,7 +42,8 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.Middlewa
 
 	routes := cr.Routes()
 
-	oas := openapi.DefaultOpenAPIBuildFunc(cr)
+	oas := openapi.DefaultBuildFunc(cr)
+	oas.Title = service
 
 	handlers := make([]request.RouteHandler, 0, len(routes))
 

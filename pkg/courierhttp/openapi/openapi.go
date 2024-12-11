@@ -3,9 +3,12 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"github.com/octohelm/gengo/pkg/gengo"
+	"maps"
 	"net/http"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -19,15 +22,14 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
 	"github.com/octohelm/courier/pkg/statuserror"
-	"github.com/octohelm/gengo/pkg/gengo"
 	"github.com/octohelm/x/ptr"
 )
 
-type OpenAPIBuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
+type BuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
 
 var cached = sync.Map{}
 
-var DefaultOpenAPIBuildFunc = func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
+var DefaultBuildFunc = func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 	if v, ok := cached.Load(r); ok {
 		return v.(*openapi.OpenAPI)
 	}
@@ -58,6 +60,28 @@ func Naming(naming func(t string) string) BuildOptionFunc {
 	}
 }
 
+var defaultPkgNamingPrefix = PkgNamingPrefix{}
+
+func RegisterPkgNamingPrefix(pkgPath string, prefix string) {
+	defaultPkgNamingPrefix.Register(pkgPath, prefix)
+}
+
+type PkgNamingPrefix map[string]string
+
+func (p PkgNamingPrefix) Prefix(pkgPath string, name string) string {
+	for _, pp := range slices.Sorted(maps.Keys(p)) {
+		if strings.HasPrefix(pkgPath, pp) {
+			return gengo.UpperCamelCase(p[pp] + "_" + name)
+		}
+	}
+
+	return gengo.UpperCamelCase(name)
+}
+
+func (p PkgNamingPrefix) Register(pkgPath string, prefix string) {
+	p[pkgPath] = prefix
+}
+
 type BuildOptionFunc func(o *buildOption)
 
 type buildOption struct {
@@ -75,11 +99,14 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 	}
 
 	if b.opt.naming == nil {
-		b.opt.naming = func(t string) string {
+		naming := func(t string) string {
+			var pkgPath string
+
 			splitter := map[string]bool{
 				"internal": true,
 				"pkg":      true,
 				"apis":     true,
+				"api":      true,
 				"client":   true,
 				"domain":   true,
 			}
@@ -99,12 +126,17 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 				str.WriteString("As")
 
 				if j := strings.LastIndex(base, "."); j > 0 {
+					pkgPath = base[0:j]
 					str.WriteString(base[j+1:])
 				} else {
 					str.WriteString(base)
 				}
 
-				return gengo.UpperCamelCase(str.String())
+				return defaultPkgNamingPrefix.Prefix(pkgPath, str.String())
+			}
+
+			if j := strings.LastIndex(t, "."); j > 0 {
+				pkgPath = t[0:j]
 			}
 
 			parts := strings.Split(t, "/")
@@ -125,11 +157,13 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 			parts = strings.Split(t, ".")
 
 			if len(parts) == 2 && strings.ToLower(parts[0]) == strings.ToLower(parts[1]) {
-				return gengo.UpperCamelCase(parts[0])
+				return defaultPkgNamingPrefix.Prefix(pkgPath, parts[0])
 			}
 
-			return gengo.UpperCamelCase(t)
+			return defaultPkgNamingPrefix.Prefix(pkgPath, t)
 		}
+
+		b.opt.naming = naming
 	}
 
 	routes := r.Routes()
