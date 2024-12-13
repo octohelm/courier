@@ -171,6 +171,12 @@ func (r *response[T]) SetMetadata(key string, values ...string) {
 		r.meta = map[string][]string{}
 	}
 	r.meta[key] = values
+
+	if r.contentType == "" || len(values) > 0 {
+		if textproto.CanonicalMIMEHeaderKey(key) == "Content-Type" {
+			r.contentType = values[0]
+		}
+	}
 }
 
 func (r *response[T]) SetCookies(cookies []*http.Cookie) {
