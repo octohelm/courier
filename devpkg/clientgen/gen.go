@@ -467,6 +467,8 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) geng
 			}
 		}
 		return gengo.SnippetT("string")
+	case *jsonschema.BooleanType:
+		return gengo.SnippetT("bool")
 	case *jsonschema.ArrayType:
 		if x.Items != nil {
 			if x.MaxItems != nil && x.MinItems != nil && *x.MaxItems == *x.MinItems {
