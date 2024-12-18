@@ -10,11 +10,11 @@ import (
 	"strings"
 
 	"github.com/octohelm/courier/internal/jsonflags"
-
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/validator"
 	contextx "github.com/octohelm/x/context"
 	reflectx "github.com/octohelm/x/reflect"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type RuntimeDocer interface {
@@ -325,6 +325,29 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 
 			if propSchema != nil {
 				structSchema.SetProperty(f.Name, propSchema, !(f.Omitempty || f.Omitzero))
+			}
+		}
+
+		v := reflect.New(t).Interface()
+		if manifest, ok := v.(interface {
+			GetObjectKind() schema.ObjectKind
+		}); ok {
+			apiVersion, kind := manifest.GetObjectKind().GroupVersionKind().ToAPIVersionAndKind()
+
+			if kind != "" {
+				if _, ok := structSchema.Properties.Get("kind"); ok {
+					structSchema.SetProperty("kind", &jsonschema.EnumType{
+						Enum: []any{kind},
+					}, false)
+				}
+			}
+
+			if apiVersion != "" {
+				if _, ok := structSchema.Properties.Get("apiVersion"); ok {
+					structSchema.SetProperty("apiVersion", &jsonschema.EnumType{
+						Enum: []any{apiVersion},
+					}, false)
+				}
 			}
 		}
 
