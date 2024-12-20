@@ -3,7 +3,7 @@ package openapi
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/courier/pkg/validator"
 	"maps"
 	"net/http"
 	"reflect"
@@ -22,6 +22,7 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
 	"github.com/octohelm/courier/pkg/statuserror"
+	"github.com/octohelm/gengo/pkg/gengo"
 	"github.com/octohelm/x/ptr"
 )
 
@@ -403,6 +404,16 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 		}
 
 		schema := b.SchemaFromType(ctx, reflect.New(field.Type).Interface(), false)
+		if schema != nil {
+			_, err := extractors.PatchSchemaValidation(schema, validator.Option{
+				Type: field.Type,
+				Rule: field.Tag.Get("validate"),
+			})
+
+			if err != nil {
+				panic(err)
+			}
+		}
 
 		if schema != nil && docer != nil {
 			if lines, ok := docer.RuntimeDoc(field.FieldName); ok {
