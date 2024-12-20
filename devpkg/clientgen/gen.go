@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"go/types"
+	"log/slog"
 	"net/http"
 	"net/url"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -99,7 +99,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	for p, oo := range g.oas.Paths {
 		for method, o := range oo.Operations {
 			if shouldGenerate(o) {
-				if err := g.genOperation(c, toColonPath(p), gengo.UpperCamelCase(strings.ToLower(method)), o); err != nil {
+				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), o); err != nil {
 					return err
 				}
 			}
@@ -146,6 +146,11 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 @doc
 type @Operation struct {
 	@courierhttpMethod@method ` + "`" + `path:@path` + "`" + `
+	
+	@Operation'Parameters
+}
+
+type @Operation'Parameters struct {
 	@parameters
 	@requestBody
 }
@@ -193,7 +198,8 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 					if p.Required != nil && *p.Required {
 						return p.Name
 					}
-					return fmt.Sprintf("%s,omitempty", p.Name)
+
+					return fmt.Sprintf("%s,omitzero", p.Name)
 				}(),
 				"in": p.In,
 				"FieldName": func() any {
@@ -262,6 +268,13 @@ func fieldPropExtraTag(s jsonschema.Schema) func(sw gengo.SnippetWriter) {
 				"validate": validate.(string),
 			})
 		}
+
+		if defaultValue := s.GetMetadata().Default; defaultValue != nil {
+			sw.Render(gengo.Snippet{
+				gengo.T:   " default:@default",
+				"default": fmt.Sprintf("%v", defaultValue),
+			})
+		}
 	}
 }
 
@@ -286,6 +299,12 @@ type @Type = @TypeRef
 				})
 
 				return nil
+			} else {
+				if pkgPath != "" {
+					c.Logger().WithValues(
+						slog.String("import", pkgPath),
+					).Info(fmt.Sprintf("not imported, will gen full type"))
+				}
 			}
 		}
 	}
@@ -570,15 +589,6 @@ struct {
 			}
 		},
 	}
-}
-
-var reBraceToColon = regexp.MustCompile(`/\{([^/]+)\}`)
-
-func toColonPath(path string) string {
-	return reBraceToColon.ReplaceAllStringFunc(path, func(str string) string {
-		name := reBraceToColon.FindAllStringSubmatch(str, -1)[0][1]
-		return "/:" + name
-	})
 }
 
 func getSchemaExt(schema jsonschema.Schema, name string) (any, bool) {
