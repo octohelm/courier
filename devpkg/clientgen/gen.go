@@ -385,16 +385,17 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 		return nil
 	}
 
-	c.Render(gengo.Snippet{gengo.T: `
+	if enumType, ok := t.Schema.(*jsonschema.EnumType); ok {
+		c.Render(gengo.Snippet{gengo.T: `
+// +gengo:enum
 type @Type @TypeDef
 
 `,
 
-		"Type":    gengo.ID(name),
-		"TypeDef": t.Decl,
-	})
+			"Type":    gengo.ID(name),
+			"TypeDef": t.Decl,
+		})
 
-	if enumType, ok := t.Schema.(*jsonschema.EnumType); ok {
 		enumLabels := make([]string, len(enumType.Enum))
 
 		if xEnumLabels, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XEnumLabels); ok {
@@ -424,7 +425,18 @@ const (
 				}
 			}),
 		})
+
+		return nil
 	}
+
+	c.Render(gengo.Snippet{gengo.T: `
+type @Type @TypeDef
+
+`,
+
+		"Type":    gengo.ID(name),
+		"TypeDef": t.Decl,
+	})
 
 	return nil
 }

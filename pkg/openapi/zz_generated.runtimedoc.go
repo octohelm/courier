@@ -5,11 +5,19 @@ DON'T EDIT THIS FILE
 package openapi
 
 // nolint:deadcode,unused
-func runtimeDoc(v any, names ...string) ([]string, bool) {
+func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
 		RuntimeDoc(names ...string) ([]string, bool)
 	}); ok {
-		return c.RuntimeDoc(names...)
+		doc, ok := c.RuntimeDoc(names...)
+		if ok {
+			if prefix != "" && len(doc) > 0 {
+				doc[0] = prefix + doc[0]
+				return doc, true
+			}
+
+			return doc, true
+		}
 	}
 	return nil, false
 }
@@ -78,22 +86,18 @@ func (v EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "ContentType":
 			return []string{}, true
-		case "HeadersObject":
-			return []string{}, true
 		case "Style":
 			return []string{}, true
 		case "Explode":
 			return []string{}, true
 		case "AllowReserved":
 			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.HeadersObject, names...); ok {
+		if doc, ok := runtimeDoc(v.HeadersObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -162,11 +166,9 @@ func (v MediaTypeObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Encoding":
 			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -180,23 +182,17 @@ func (v OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "OpenAPI":
 			return []string{}, true
-		case "InfoObject":
-			return []string{}, true
-		case "ComponentsObject":
-			return []string{}, true
 		case "Paths":
-			return []string{}, true
-		case "Ext":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.InfoObject, names...); ok {
+		if doc, ok := runtimeDoc(v.InfoObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.ComponentsObject, names...); ok {
+		if doc, ok := runtimeDoc(v.ComponentsObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -220,23 +216,17 @@ func (v OperationObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "RequestBody":
 			return []string{}, true
-		case "ResponsesObject":
-			return []string{}, true
-		case "CallbacksObject":
-			return []string{}, true
 		case "Deprecated":
-			return []string{}, true
-		case "Ext":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ResponsesObject, names...); ok {
+		if doc, ok := runtimeDoc(v.ResponsesObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.CallbacksObject, names...); ok {
+		if doc, ok := runtimeDoc(v.CallbacksObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -262,11 +252,9 @@ func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 			}, true
 		case "Explode":
 			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -278,6 +266,7 @@ func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 func (ParameterIn) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
+
 func (v ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
@@ -285,11 +274,9 @@ func (v ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "In":
 			return []string{}, true
-		case "Parameter":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Parameter, names...); ok {
+		if doc, ok := runtimeDoc(v.Parameter, "", names...); ok {
 			return doc, ok
 		}
 
@@ -303,6 +290,7 @@ func (v ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 func (ParameterStyle) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
+
 func (v PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
@@ -326,11 +314,9 @@ func (v PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "OpenAPI":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.OpenAPI, names...); ok {
+		if doc, ok := runtimeDoc(v.OpenAPI, "", names...); ok {
 			return doc, ok
 		}
 
@@ -346,16 +332,12 @@ func (v RequestBodyObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Required":
 			return []string{}, true
-		case "ContentObject":
-			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ContentObject, names...); ok {
+		if doc, ok := runtimeDoc(v.ContentObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -369,21 +351,15 @@ func (v ResponseObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Description":
 			return []string{}, true
-		case "HeadersObject":
-			return []string{}, true
-		case "ContentObject":
-			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.HeadersObject, names...); ok {
+		if doc, ok := runtimeDoc(v.HeadersObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.ContentObject, names...); ok {
+		if doc, ok := runtimeDoc(v.ContentObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 

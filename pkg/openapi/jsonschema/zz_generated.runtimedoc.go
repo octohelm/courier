@@ -5,11 +5,19 @@ DON'T EDIT THIS FILE
 package jsonschema
 
 // nolint:deadcode,unused
-func runtimeDoc(v any, names ...string) ([]string, bool) {
+func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
 		RuntimeDoc(names ...string) ([]string, bool)
 	}); ok {
-		return c.RuntimeDoc(names...)
+		doc, ok := c.RuntimeDoc(names...)
+		if ok {
+			if prefix != "" && len(doc) > 0 {
+				doc[0] = prefix + doc[0]
+				return doc, true
+			}
+
+			return doc, true
+		}
 	}
 	return nil, false
 }
@@ -19,19 +27,16 @@ func (AnchorString) RuntimeDoc(names ...string) ([]string, bool) {
 		"openapi:strfmt anchor",
 	}, true
 }
+
 func (v AnyType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -55,16 +60,12 @@ func (v ArrayType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "UniqueItems":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -78,16 +79,12 @@ func (v BooleanType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -148,16 +145,12 @@ func (v EnumType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Enum":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -184,16 +177,12 @@ func (v IntersectionType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "AllOf":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -219,11 +208,9 @@ func (v Metadata) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Deprecated":
 			return []string{}, true
-		case "Ext":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, names...); ok {
+		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -237,16 +224,12 @@ func (v NullType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -272,16 +255,12 @@ func (v NumberType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "ExclusiveMinimum":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -295,6 +274,8 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
+		case "Properties":
+			return []string{}, true
 		case "PropertyNames":
 			return []string{}, true
 		case "AdditionalProperties":
@@ -307,16 +288,12 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "MinProperties":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -328,11 +305,9 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "Schema":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Schema, names...); ok {
+		if doc, ok := runtimeDoc(v.Schema, "", names...); ok {
 			return doc, ok
 		}
 
@@ -348,16 +323,12 @@ func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "DynamicRef":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -369,6 +340,7 @@ func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 func (SchemaPrintOption) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
+
 func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
@@ -384,16 +356,12 @@ func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Pattern":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -515,16 +483,12 @@ func (v UnionType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 		case "Discriminator":
 			return []string{}, true
-		case "Core":
-			return []string{}, true
-		case "Metadata":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, names...); ok {
+		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, names...); ok {
+		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 

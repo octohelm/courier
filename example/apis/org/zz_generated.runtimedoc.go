@@ -5,11 +5,19 @@ DON'T EDIT THIS FILE
 package org
 
 // nolint:deadcode,unused
-func runtimeDoc(v any, names ...string) ([]string, bool) {
+func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
 		RuntimeDoc(names ...string) ([]string, bool)
 	}); ok {
-		return c.RuntimeDoc(names...)
+		doc, ok := c.RuntimeDoc(names...)
+		if ok {
+			if prefix != "" && len(doc) > 0 {
+				doc[0] = prefix + doc[0]
+				return doc, true
+			}
+
+			return doc, true
+		}
 	}
 	return nil, false
 }
@@ -30,11 +38,9 @@ func (v Cookie) RuntimeDoc(names ...string) ([]string, bool) {
 func (v CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "Info":
-			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Info, names...); ok {
+		if doc, ok := runtimeDoc(v.Info, "", names...); ok {
 			return doc, ok
 		}
 
@@ -80,13 +86,11 @@ func (v DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 func (v Detail) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		case "Info":
-			return []string{}, true
 		case "CreatedAt":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Info, names...); ok {
+		if doc, ok := runtimeDoc(v.Info, "", names...); ok {
 			return doc, ok
 		}
 
@@ -126,6 +130,7 @@ func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 func (ID) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
+
 func (v Info) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
