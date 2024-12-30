@@ -66,9 +66,9 @@ func TestAll(t *testing.T) {
 	ctx = logr.WithLogger(ctx, slog.Logger(slog.Default()))
 
 	t.Run("Do Some Request", func(t *testing.T) {
-		org := &example.GetOrg{
-			OrgName: "test",
-		}
+		org := &example.GetOrg{}
+		org.OrgName = "test"
+
 		resp, err := example.Do(ctx, org)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 		testingx.Expect(t, resp.Name, testingx.Be(org.OrgName))
@@ -76,9 +76,9 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("Do Some Request with h2", func(t *testing.T) {
-		org := &example.GetOrg{
-			OrgName: "test",
-		}
+		org := &example.GetOrg{}
+		org.OrgName = "test"
+
 		resp, err := example.Do(client.ContextWithRoundTripperCreator(ctx, func() http.RoundTripper {
 			return &http2.Transport{
 				AllowHTTP: true,
@@ -92,36 +92,36 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("Upload", func(t *testing.T) {
-		v := &example.UploadBlob{
-			IoReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
-		}
+		v := &example.UploadBlob{}
+		v.IoReadCloser = io.NopCloser(bytes.NewBufferString("1234567"))
+
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 	})
 
 	t.Run("UploadStoreBlob", func(t *testing.T) {
-		v := &example.UploadStoreBlob{
-			Scope:        "a/b/c",
-			IoReadCloser: io.NopCloser(bytes.NewBufferString("1234567")),
-		}
+		v := &example.UploadStoreBlob{}
+		v.Scope = "a/b/c"
+		v.IoReadCloser = io.NopCloser(bytes.NewBufferString("1234567"))
+
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 	})
 
 	t.Run("GetStoreBlob", func(t *testing.T) {
-		v := &example.GetStoreBlob{
-			Scope:  "a/b/c",
-			Digest: "xxx",
-		}
+		v := &example.GetStoreBlob{}
+		v.Scope = "a/b/c"
+		v.Digest = "xxx"
+
 		resp, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 		testingx.Expect(t, *resp, testingx.Be("a/b/c@xxx"))
 	})
 
 	t.Run("GetFile", func(t *testing.T) {
-		v := &example.GetFile{
-			Path: "a/b/c",
-		}
+		v := &example.GetFile{}
+		v.Path = "a/b/c"
+
 		resp, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
 		testingx.Expect(t, *resp, testingx.Be("a/b/c"))

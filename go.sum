@@ -4,6 +4,8 @@ github.com/go-courier/logr v0.3.1 h1:RcHM7qpO8OpuV+zFvJMXtJEspTnnYmT6uGiAomwb8X8
 github.com/go-courier/logr v0.3.1/go.mod h1:NQWi+TSv0rS1RfyWHv7MNEI5cNy9NR6k1n8R24uHgdY=
 github.com/go-json-experiment/json v0.0.0-20241217073543-e98bb04f08e3 h1:hz6fsrjvaG1CGM8NQFp+Zu9oBsDB0kCbnPdSTaPY/cE=
 github.com/go-json-experiment/json v0.0.0-20241217073543-e98bb04f08e3/go.mod h1:BWmvoE1Xia34f3l/ibJweyhrT+aROb/FQ6d+37F0e2s=
+github.com/go-json-experiment/json v0.0.0-20241230001524-0240acd0e023 h1:EE7GsEmJUfdMfkoxk/EU2tZHxzBwB9wRdHDIALY0Xus=
+github.com/go-json-experiment/json v0.0.0-20241230001524-0240acd0e023/go.mod h1:BWmvoE1Xia34f3l/ibJweyhrT+aROb/FQ6d+37F0e2s=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=
@@ -35,12 +37,18 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/octohelm/gengo v0.0.0-20241115071734-9f4b1461bafa h1:Qez9GuFhfQpzIMBHTykCvaaKR1m2ERTGl7ibw+PQ9jk=
 github.com/octohelm/gengo v0.0.0-20241115071734-9f4b1461bafa/go.mod h1:nEqtfNURVc62wke+9WrK+ojgzujzjrcrjhOg415Hghw=
+github.com/octohelm/gengo v0.0.0-20241227040918-5bca0aaef7d5 h1:GhB2lOrbIdoBw8g1ktlI1gA6WqWS83d8bqt9ffuCCU8=
+github.com/octohelm/gengo v0.0.0-20241227040918-5bca0aaef7d5/go.mod h1:Rni7e5dksqqO5nqv7i9024C29217Ynsniqcyqg0Jg4s=
 github.com/octohelm/x v0.0.0-20241125035954-3d4eebd9779d h1:wFLxsKyv4Vl91zGj7h3LvbdbTegk1dzoNNnOOe+fTFA=
 github.com/octohelm/x v0.0.0-20241125035954-3d4eebd9779d/go.mod h1:G5Bf8Ac4ZvdQiZ0wu2URwAFs5fviULjHHbB058iyzAg=
+github.com/octohelm/x v0.0.0-20241220070034-8d4a9441b90a h1:34eDQ9obtErdzEeX45+KmruleZdK+SmRMsOTgPbcJ2o=
+github.com/octohelm/x v0.0.0-20241220070034-8d4a9441b90a/go.mod h1:G5Bf8Ac4ZvdQiZ0wu2URwAFs5fviULjHHbB058iyzAg=
 github.com/onsi/ginkgo/v2 v2.21.0 h1:7rg/4f3rB88pb5obDgNZrNHrQ4e6WpjonchcpuBRnZM=
 github.com/onsi/ginkgo/v2 v2.21.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.36.1 h1:bJDPBO7ibjxcbHMgSCoo4Yj18UWbKDlLwX1x9sybDcw=
 github.com/onsi/gomega v1.36.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
+github.com/onsi/gomega v1.36.2 h1:koNYke6TVk6ZmnyHrCXba/T/MoLBXFjeC1PtvYgw0A8=
+github.com/onsi/gomega v1.36.2/go.mod h1:DdwyADRjrc825LhMEkD76cHR5+pUnjhUN8GlHlRPHzY=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
@@ -56,6 +64,8 @@ golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.32.0 h1:ZqPmj8Kzc+Y6e0+skZsuACbx+wzMgo5MQsJh9Qd6aYI=
 golang.org/x/net v0.32.0/go.mod h1:CwU0IoeOlnQQWJ6ioyFrfRuomB8GKF6KbYXZVyeXNfs=
+golang.org/x/net v0.33.0 h1:74SYHlV8BIgHIFC/LrYkOGIwL19eTYXQ5wc6TBuO36I=
+golang.org/x/net v0.33.0/go.mod h1:HXLR5J+9DxmrqMwG9qjGCxZ+zKXxBru04zlTvWlWuN4=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
