@@ -33,5 +33,5 @@ func UnmarshalDecode(dec *jsontext.Decoder, out any, options ...jsontext.Options
 		return errors.New("unmarshal target must be ptr value")
 	}
 
-	return ra.UnmarshalJSONV2(dec, json.JoinOptions(options...))
+	return ra.UnmarshalJSONFrom(dec, json.JoinOptions(options...))
 }

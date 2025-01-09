@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-courier/logr"
 	"github.com/octohelm/courier/pkg/content"
-
 	"github.com/octohelm/courier/pkg/courierhttp"
 )
 

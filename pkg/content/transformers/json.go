@@ -47,7 +47,7 @@ func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 		v = rv.Interface()
 	}
 
-	if direct, ok := v.(json.UnmarshalerV1); ok {
+	if direct, ok := v.(json.Unmarshaler); ok {
 		// avoid trim \n
 		raw, err := io.ReadAll(r)
 		if err != nil {
@@ -69,7 +69,7 @@ func (p *jsonTransformer) Prepare(ctx context.Context, v any) (internal.Content,
 		v = rv.Interface()
 	}
 
-	if direct, ok := v.(json.MarshalerV1); ok {
+	if direct, ok := v.(json.Marshaler); ok {
 		// avoid trim \n
 		raw, err := direct.MarshalJSON()
 		if err != nil {

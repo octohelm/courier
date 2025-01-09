@@ -100,7 +100,7 @@ func (v *transformers) New(option transformOption) (Transformer, error) {
 					mediaType = "octet"
 				} else if reflect.PointerTo(option.tpe).Implements(encodingTextUnmarshalerType) {
 					mediaType = "plain"
-				} else if reflect.PointerTo(option.tpe).Implements(jsonUnmarshalerV1Type) || reflect.PointerTo(option.tpe).Implements(jsonUnmarshalerV2Type) {
+				} else if reflect.PointerTo(option.tpe).Implements(jsonUnmarshalerType) || reflect.PointerTo(option.tpe).Implements(jsonUnmarshalerFromType) {
 					mediaType = "json"
 				}
 			}

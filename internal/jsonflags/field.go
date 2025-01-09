@@ -37,10 +37,10 @@ var (
 )
 
 var (
-	jsontextValueType     = reflect.TypeFor[jsontext.Value]()
-	textUnmarshalerType   = reflect.TypeFor[encoding.TextUnmarshaler]()
-	jsonUnmarshalerV1Type = reflect.TypeFor[json.UnmarshalerV1]()
-	jsonUnmarshalerV2Type = reflect.TypeFor[json.UnmarshalerV2]()
+	jsontextValueType       = reflect.TypeFor[jsontext.Value]()
+	textUnmarshalerType     = reflect.TypeFor[encoding.TextUnmarshaler]()
+	jsonUnmarshalerType     = reflect.TypeFor[json.Unmarshaler]()
+	jsonUnmarshalerFromType = reflect.TypeFor[json.UnmarshalerFrom]()
 )
 
 func UnmarshalFromString(typ reflect.Type) bool {

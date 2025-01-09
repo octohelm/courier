@@ -13,8 +13,8 @@ import (
 var ErrInvalidJSONSchemaObject = errors.New("invalid json schema object")
 var ErrInvalidJSONSchemaType = errors.New("invalid json schema type")
 
-var schemaUnmarshalers = json.UnmarshalFuncV2[*Schema](func(decoder *jsontext.Decoder, schema *Schema, o json.Options) error {
-	return (&schemaDecoder{schema: schema}).UnmarshalJSONV2(decoder, o)
+var schemaUnmarshalers = json.UnmarshalFromFunc[*Schema](func(decoder *jsontext.Decoder, schema *Schema, o json.Options) error {
+	return (&schemaDecoder{schema: schema}).UnmarshalJSONFrom(decoder, o)
 })
 
 type schemaDecoder struct {
@@ -23,7 +23,7 @@ type schemaDecoder struct {
 	anchors map[string]string
 }
 
-func (u *schemaDecoder) UnmarshalJSONV2(decoder *jsontext.Decoder, options json.Options) error {
+func (u *schemaDecoder) UnmarshalJSONFrom(decoder *jsontext.Decoder, options json.Options) error {
 	u.options = options
 
 	startToken, err := decoder.ReadToken()
