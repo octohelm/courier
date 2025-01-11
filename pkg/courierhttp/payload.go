@@ -201,6 +201,10 @@ func (r *response[T]) Meta() courier.Metadata {
 
 func (r *response[T]) WriteResponse(ctx context.Context, rw http.ResponseWriter, req RequestInfo) (finalErr error) {
 	defer func() {
+		if x, ok := r.v.(io.Closer); ok {
+			// close again to avoid some leak issue
+			_ = x.Close()
+		}
 		r.v = nil
 		if finalErr != nil {
 			logr.FromContext(ctx).Error(finalErr)
