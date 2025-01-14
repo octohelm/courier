@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package errors
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v ErrInvalidType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ErrInvalidType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -37,7 +39,7 @@ func (v ErrInvalidType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ErrMultipleOf) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ErrMultipleOf) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Topic":
@@ -54,7 +56,7 @@ func (v ErrMultipleOf) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ErrNotMatch) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ErrNotMatch) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Topic":
@@ -71,7 +73,7 @@ func (v ErrNotMatch) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v NotInEnumError) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *NotInEnumError) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Topic":
@@ -88,7 +90,7 @@ func (v NotInEnumError) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v OutOfRangeError) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *OutOfRangeError) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Topic":

@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package filter
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {

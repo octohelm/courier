@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package openapi
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,14 +24,14 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (BuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
+func (*BuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (BuildOptionFunc) RuntimeDoc(names ...string) ([]string, bool) {
+func (*BuildOptionFunc) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (PkgNamingPrefix) RuntimeDoc(names ...string) ([]string, bool) {
+func (*PkgNamingPrefix) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

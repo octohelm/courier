@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package internal
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v Any) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Any) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":
@@ -35,7 +37,7 @@ func (v Any) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Array) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Array) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":
@@ -48,7 +50,7 @@ func (v Array) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Pointer) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Pointer) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":
@@ -61,7 +63,7 @@ func (v Pointer) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Primitive) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Primitive) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "String":
@@ -76,7 +78,7 @@ func (v Primitive) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Record) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Record) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":
@@ -89,7 +91,7 @@ func (v Record) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Struct) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Struct) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":
@@ -102,7 +104,7 @@ func (v Struct) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ValidatorOption) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ValidatorOption) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -123,7 +125,7 @@ func (v ValidatorOption) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Value) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Value) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Validator":

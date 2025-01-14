@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package extractors
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,11 +24,11 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (FieldExclude) RuntimeDoc(names ...string) ([]string, bool) {
+func (*FieldExclude) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v FieldFilter) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *FieldFilter) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Exclude":
@@ -41,7 +43,7 @@ func (v FieldFilter) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Opt) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Opt) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Decl":
@@ -58,6 +60,6 @@ func (v Opt) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (TypeName) RuntimeDoc(names ...string) ([]string, bool) {
+func (*TypeName) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

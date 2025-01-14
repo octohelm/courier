@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package httprequest
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,6 +24,6 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (Params) RuntimeDoc(names ...string) ([]string, bool) {
+func (*Params) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

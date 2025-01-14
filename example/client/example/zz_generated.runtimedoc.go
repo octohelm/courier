@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package example
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v Client) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Client) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Endpoint":
@@ -39,12 +41,12 @@ func (v Client) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Cookie) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Cookie) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.CookieParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.CookieParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -53,7 +55,7 @@ func (v Cookie) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v CookieParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *CookieParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Token":
@@ -66,12 +68,12 @@ func (v CookieParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.CreateOrgParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.CreateOrgParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -80,12 +82,12 @@ func (v CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v CreateOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *CreateOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.OrgInfo, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.OrgInfo, "", names...); ok {
 			return doc, ok
 		}
 
@@ -94,12 +96,12 @@ func (v CreateOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.DeleteOrgParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.DeleteOrgParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -108,7 +110,7 @@ func (v DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v DeleteOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *DeleteOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "OrgName":
@@ -121,12 +123,12 @@ func (v DeleteOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetFile) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetFile) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.GetFileParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.GetFileParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -135,7 +137,7 @@ func (v GetFile) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetFileParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetFileParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Path":
@@ -148,12 +150,12 @@ func (v GetFileParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.GetOrgParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.GetOrgParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -162,7 +164,7 @@ func (v GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "OrgName":
@@ -175,12 +177,12 @@ func (v GetOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.GetStoreBlobParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.GetStoreBlobParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -189,7 +191,7 @@ func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v GetStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scope":
@@ -204,12 +206,12 @@ func (v GetStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.ListOrgParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.ListOrgParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -218,7 +220,7 @@ func (v ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
@@ -229,7 +231,7 @@ func (v ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ListOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ListOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "OrgId":
@@ -242,16 +244,16 @@ func (v ListOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (Time) RuntimeDoc(names ...string) ([]string, bool) {
+func (*Time) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.UploadBlobParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.UploadBlobParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -260,12 +262,12 @@ func (v UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v UploadBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UploadBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.IoReadCloser, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.IoReadCloser, "", names...); ok {
 			return doc, ok
 		}
 
@@ -274,12 +276,12 @@ func (v UploadBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.UploadStoreBlobParameters, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.UploadStoreBlobParameters, "", names...); ok {
 			return doc, ok
 		}
 
@@ -288,14 +290,14 @@ func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v UploadStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UploadStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scope":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.IoReadCloser, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.IoReadCloser, "", names...); ok {
 			return doc, ok
 		}
 

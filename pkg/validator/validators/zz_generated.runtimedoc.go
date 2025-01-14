@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package validators
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v FloatValidator) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *FloatValidator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "BitSize":
@@ -33,54 +35,16 @@ func (v FloatValidator) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Number, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Number, "", names...); ok {
 			return doc, ok
 		}
 
 		return nil, false
 	}
-	return []string{
-		"Validator for float32 and float64",
-		"",
-		"Rules:",
-		"",
-		"ranges",
-		"",
-		"\t@float[min,max]",
-		"\t@float[1,10] // value should large or equal than 1 and less or equal than 10",
-		"\t@float(1,10] // value should large than 1 and less or equal than 10",
-		"\t@float[1,10) // value should large or equal than 1",
-		"",
-		"\t@float[1,)  // value should large or equal than 1",
-		"\t@float[,1)  // value should less than 1",
-		"",
-		"enumeration",
-		"",
-		"\t@float{1.1,1.2,1.3} // value should be one of these",
-		"",
-		"multiple of some float value",
-		"",
-		"\t@float{%multipleOf}",
-		"\t@float{%2.2} // value should be multiple of 2.2",
-		"",
-		"max digits and decimal digits.",
-		"when defined, all values in rule should be under range of them.",
-		"",
-		"\t@float<MAX_DIGITS,DECIMAL_DIGITS>",
-		"\t@float<5,2> // will checkout these values invalid: 1.111 (decimal digits too many), 12345.6 (digits too many)",
-		"",
-		"composes",
-		"",
-		"\t@float<MAX_DIGITS,DECIMAL_DIGITS>[min,max]",
-		"",
-		"aliases:",
-		"",
-		"\t@float32 = @float<7>",
-		"\t@float64 = @float<15>",
-	}, true
+	return []string{"Validator for float32 and float64", "", "Rules:", "", "ranges", "", "\t@float[min,max]", "\t@float[1,10] // value should large or equal than 1 and less or equal than 10", "\t@float(1,10] // value should large than 1 and less or equal than 10", "\t@float[1,10) // value should large or equal than 1", "", "\t@float[1,)  // value should large or equal than 1", "\t@float[,1)  // value should less than 1", "", "enumeration", "", "\t@float{1.1,1.2,1.3} // value should be one of these", "", "multiple of some float value", "", "\t@float{%multipleOf}", "\t@float{%2.2} // value should be multiple of 2.2", "", "max digits and decimal digits.", "when defined, all values in rule should be under range of them.", "", "\t@float<MAX_DIGITS,DECIMAL_DIGITS>", "\t@float<5,2> // will checkout these values invalid: 1.111 (decimal digits too many), 12345.6 (digits too many)", "", "composes", "", "\t@float<MAX_DIGITS,DECIMAL_DIGITS>[min,max]", "", "aliases:", "", "\t@float32 = @float<7>", "\t@float64 = @float<15>"}, true
 }
 
-func (v IntegerValidator[T]) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *IntegerValidator[T]) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Unsigned":
@@ -89,61 +53,16 @@ func (v IntegerValidator[T]) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Number, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Number, "", names...); ok {
 			return doc, ok
 		}
 
 		return nil, false
 	}
-	return []string{
-		"Rules:",
-		"",
-		"ranges",
-		"",
-		"\t@int[min,max]",
-		"\t@int[1,10] // value should large or equal than 1 and less or equal than 10",
-		"\t@int(1,10] // value should large than 1 and less or equal than 10",
-		"\t@int[1,10) // value should large or equal than 1",
-		"",
-		"\t@int[1,)  // value should large or equal than 1 and less than the maxinum of int32",
-		"\t@int[,1)  // value should less than 1 and large or equal than the mininum of int32",
-		"\t@int  // value should less or equal than maxinum of int32 and large or equal than the mininum of int32",
-		"",
-		"enumeration",
-		"",
-		"\t@int{1,2,3} // should one of these values",
-		"",
-		"multiple of some integer value",
-		"",
-		"\t@int{%multipleOf}",
-		"\t@int{%2} // should be multiple of 2",
-		"",
-		"bit size in parameter",
-		"",
-		"\t@int<8>",
-		"\t@int<16>",
-		"\t@int<32>",
-		"\t@int<64>",
-		"",
-		"composes",
-		"",
-		"\t@int<8>[1,]",
-		"",
-		"aliases:",
-		"",
-		"\t@int8 = @int<8>",
-		"\t@int16 = @int<16>",
-		"\t@int32 = @int<32>",
-		"\t@int64 = @int<64>",
-		"",
-		"Tips:",
-		"for JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER",
-		"",
-		"\tint<53>",
-	}, true
+	return []string{"Rules:", "", "ranges", "", "\t@int[min,max]", "\t@int[1,10] // value should large or equal than 1 and less or equal than 10", "\t@int(1,10] // value should large than 1 and less or equal than 10", "\t@int[1,10) // value should large or equal than 1", "", "\t@int[1,)  // value should large or equal than 1 and less than the maxinum of int32", "\t@int[,1)  // value should less than 1 and large or equal than the mininum of int32", "\t@int  // value should less or equal than maxinum of int32 and large or equal than the mininum of int32", "", "enumeration", "", "\t@int{1,2,3} // should one of these values", "", "multiple of some integer value", "", "\t@int{%multipleOf}", "\t@int{%2} // should be multiple of 2", "", "bit size in parameter", "", "\t@int<8>", "\t@int<16>", "\t@int<32>", "\t@int<64>", "", "composes", "", "\t@int<8>[1,]", "", "aliases:", "", "\t@int8 = @int<8>", "\t@int16 = @int<16>", "\t@int32 = @int<32>", "\t@int64 = @int<64>", "", "Tips:", "for JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER", "", "\tint<53>"}, true
 }
 
-func (v MapValidator) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *MapValidator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "MinProperties":
@@ -155,19 +74,10 @@ func (v MapValidator) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"Validator for map",
-		"",
-		"Rules:",
-		"",
-		"\t@map<KEY_RULE, ELEM_RULE>[minSize,maxSize]",
-		"\t@map<KEY_RULE, ELEM_RULE>[length]",
-		"",
-		"\t@map<@string{A,B,C},@int[0]>[,100]",
-	}, true
+	return []string{"Validator for map", "", "Rules:", "", "\t@map<KEY_RULE, ELEM_RULE>[minSize,maxSize]", "\t@map<KEY_RULE, ELEM_RULE>[length]", "", "\t@map<@string{A,B,C},@int[0]>[,100]"}, true
 }
 
-func (v Number[T]) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Number[T]) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Minimum":
@@ -190,7 +100,7 @@ func (v Number[T]) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v SliceValidator) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *SliceValidator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "MinItems":
@@ -202,27 +112,14 @@ func (v SliceValidator) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"Validator for slice",
-		"",
-		"Rules:",
-		"",
-		"\t@slice<ELEM_RULE>[minLen,maxLen]",
-		"\t@slice<ELEM_RULE>[length]",
-		"",
-		"\t@slice<@string{A,B,C}>[,100]",
-		"",
-		"Aliases",
-		"",
-		"\t@array = @slice // and range must to be use length",
-	}, true
+	return []string{"Validator for slice", "", "Rules:", "", "\t@slice<ELEM_RULE>[minLen,maxLen]", "\t@slice<ELEM_RULE>[length]", "", "\t@slice<@string{A,B,C}>[,100]", "", "Aliases", "", "\t@array = @slice // and range must to be use length"}, true
 }
 
-func (StrLenMode) RuntimeDoc(names ...string) ([]string, bool) {
+func (*StrLenMode) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v StringValidator) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *StringValidator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Pattern":
@@ -240,46 +137,5 @@ func (v StringValidator) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"Validator for string",
-		"",
-		"Rules:",
-		"",
-		"\t@string/regexp/",
-		"\t@string{VALUE_1,VALUE_2,VALUE_3}",
-		"\t@string<StrLenMode>[from,to]",
-		"\t@string<StrLenMode>[length]",
-		"",
-		"ranges",
-		"",
-		"\t@string[min,max]",
-		"\t@string[length]",
-		"\t@string[1,10] // string length should large or equal than 1 and less or equal than 10",
-		"\t@string[1,]  // string length should large or equal than 1 and less than the maxinum of int32",
-		"\t@string[,1]  // string length should less than 1 and large or equal than 0",
-		"\t@string[10]  // string length should be equal 10",
-		"",
-		"enumeration",
-		"",
-		"\t@string{A,B,C} // should one of these values",
-		"",
-		"regexp",
-		"",
-		"\t@string/\\w+/ // string values should match \\w+",
-		"",
-		"since we use / as wrapper for regexp, we need to use \\ to escape /",
-		"",
-		"length mode in parameter",
-		"",
-		"\t@string<length> // use string length directly",
-		"\t@string<rune_count> // use rune count as string length",
-		"",
-		"composes",
-		"",
-		"\t@string<>[1,]",
-		"",
-		"aliases:",
-		"",
-		"\t@char = @string<rune_count>",
-	}, true
+	return []string{"Validator for string", "", "Rules:", "", "\t@string/regexp/", "\t@string{VALUE_1,VALUE_2,VALUE_3}", "\t@string<StrLenMode>[from,to]", "\t@string<StrLenMode>[length]", "", "ranges", "", "\t@string[min,max]", "\t@string[length]", "\t@string[1,10] // string length should large or equal than 1 and less or equal than 10", "\t@string[1,]  // string length should large or equal than 1 and less than the maxinum of int32", "\t@string[,1]  // string length should less than 1 and large or equal than 0", "\t@string[10]  // string length should be equal 10", "", "enumeration", "", "\t@string{A,B,C} // should one of these values", "", "regexp", "", "\t@string/\\w+/ // string values should match \\w+", "", "since we use / as wrapper for regexp, we need to use \\ to escape /", "", "length mode in parameter", "", "\t@string<length> // use string length directly", "\t@string<rune_count> // use rune count as string length", "", "composes", "", "\t@string<>[1,]", "", "aliases:", "", "\t@char = @string<rune_count>"}, true
 }

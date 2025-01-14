@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package openapi
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v CallbacksObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *CallbacksObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Callbacks":
@@ -35,7 +37,7 @@ func (v CallbacksObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ComponentsObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ComponentsObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Schemas":
@@ -45,13 +47,10 @@ func (v ComponentsObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"https://spec.openapis.org/oas/latest.html#components-object",
-		"FIXME now only support schemas",
-	}, true
+	return []string{"https://spec.openapis.org/oas/latest.html#components-object", "FIXME now only support schemas"}, true
 }
 
-func (v Contact) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Contact) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Name":
@@ -68,7 +67,7 @@ func (v Contact) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ContentObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ContentObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Content":
@@ -81,7 +80,7 @@ func (v ContentObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "ContentType":
@@ -94,10 +93,10 @@ func (v EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.HeadersObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.HeadersObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -106,7 +105,7 @@ func (v EncodingObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v HeadersObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *HeadersObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Headers":
@@ -119,7 +118,7 @@ func (v HeadersObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v InfoObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *InfoObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Title":
@@ -139,12 +138,10 @@ func (v InfoObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"https://spec.openapis.org/oas/latest.html#infoObject",
-	}, true
+	return []string{"https://spec.openapis.org/oas/latest.html#infoObject"}, true
 }
 
-func (v License) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *License) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Name":
@@ -159,7 +156,7 @@ func (v License) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v MediaTypeObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *MediaTypeObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Schema":
@@ -168,7 +165,7 @@ func (v MediaTypeObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -177,7 +174,7 @@ func (v MediaTypeObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "OpenAPI":
@@ -186,13 +183,13 @@ func (v OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.InfoObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.InfoObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.ComponentsObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.ComponentsObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -201,7 +198,7 @@ func (v OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v OperationObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *OperationObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Tags":
@@ -220,13 +217,13 @@ func (v OperationObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ResponsesObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.ResponsesObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.CallbacksObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.CallbacksObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -235,7 +232,7 @@ func (v OperationObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Schema":
@@ -254,7 +251,7 @@ func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -263,11 +260,11 @@ func (v Parameter) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (ParameterIn) RuntimeDoc(names ...string) ([]string, bool) {
+func (*ParameterIn) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Name":
@@ -276,22 +273,20 @@ func (v ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Parameter, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Parameter, "", names...); ok {
 			return doc, ok
 		}
 
 		return nil, false
 	}
-	return []string{
-		"https://spec.openapis.org/oas/latest.html#parameter-object",
-	}, true
+	return []string{"https://spec.openapis.org/oas/latest.html#parameter-object"}, true
 }
 
-func (ParameterStyle) RuntimeDoc(names ...string) ([]string, bool) {
+func (*ParameterStyle) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Summary":
@@ -305,18 +300,15 @@ func (v PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"https://spec.openapis.org/oas/latest.html#pathItemObject",
-		"no need $ref, server, parameters",
-	}, true
+	return []string{"https://spec.openapis.org/oas/latest.html#pathItemObject", "no need $ref, server, parameters"}, true
 }
 
-func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.OpenAPI, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.OpenAPI, "", names...); ok {
 			return doc, ok
 		}
 
@@ -325,7 +317,7 @@ func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v RequestBodyObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *RequestBodyObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Description":
@@ -334,10 +326,10 @@ func (v RequestBodyObject) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.ContentObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.ContentObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -346,20 +338,20 @@ func (v RequestBodyObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ResponseObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ResponseObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Description":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.HeadersObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.HeadersObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.ContentObject, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.ContentObject, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -368,7 +360,7 @@ func (v ResponseObject) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ResponsesObject) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ResponsesObject) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Responses":

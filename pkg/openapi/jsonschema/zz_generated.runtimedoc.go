@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package jsonschema
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,21 +24,21 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (AnchorString) RuntimeDoc(names ...string) ([]string, bool) {
+func (*AnchorString) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{
 		"openapi:strfmt anchor",
 	}, true
 }
 
-func (v AnyType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *AnyType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -45,7 +47,7 @@ func (v AnyType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ArrayType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ArrayType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -62,10 +64,10 @@ func (v ArrayType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -74,17 +76,17 @@ func (v ArrayType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v BooleanType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *BooleanType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -93,7 +95,7 @@ func (v BooleanType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Core) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Core) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Schema":
@@ -125,7 +127,7 @@ func (v Core) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Discriminator) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Discriminator) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "PropertyName":
@@ -140,17 +142,17 @@ func (v Discriminator) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v EnumType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *EnumType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Enum":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -159,7 +161,7 @@ func (v EnumType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Ext) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Ext) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Extensions":
@@ -172,17 +174,17 @@ func (v Ext) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v IntersectionType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *IntersectionType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "AllOf":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -191,7 +193,7 @@ func (v IntersectionType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Metadata) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Metadata) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Title":
@@ -210,7 +212,7 @@ func (v Metadata) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Ext, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Ext, "", names...); ok {
 			return doc, ok
 		}
 
@@ -219,17 +221,17 @@ func (v Metadata) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v NullType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *NullType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -238,7 +240,7 @@ func (v NullType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v NumberType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *NumberType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -257,10 +259,10 @@ func (v NumberType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -269,7 +271,7 @@ func (v NumberType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -290,10 +292,10 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -302,12 +304,12 @@ func (v ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 
 		}
-		if doc, ok := runtimeDoc(v.Schema, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Schema, "", names...); ok {
 			return doc, ok
 		}
 
@@ -316,7 +318,7 @@ func (v Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *RefType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Ref":
@@ -325,10 +327,10 @@ func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -337,11 +339,11 @@ func (v RefType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (SchemaPrintOption) RuntimeDoc(names ...string) ([]string, bool) {
+func (*SchemaPrintOption) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *StringType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Type":
@@ -358,10 +360,10 @@ func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 
@@ -370,7 +372,7 @@ func (v StringType) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v URIReferenceString) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *URIReferenceString) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scheme":
@@ -418,12 +420,10 @@ func (v URIReferenceString) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"openapi:strfmt uri-reference",
-	}, true
+	return []string{"openapi:strfmt uri-reference"}, true
 }
 
-func (v URIString) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *URIString) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scheme":
@@ -471,12 +471,10 @@ func (v URIString) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"openapi:strfmt uri",
-	}, true
+	return []string{"openapi:strfmt uri"}, true
 }
 
-func (v UnionType) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UnionType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "OneOf":
@@ -485,10 +483,10 @@ func (v UnionType) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.Core, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
 		}
-		if doc, ok := runtimeDoc(v.Metadata, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.Metadata, "", names...); ok {
 			return doc, ok
 		}
 

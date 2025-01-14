@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package jsonflags
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,11 +24,11 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (Casing) RuntimeDoc(names ...string) ([]string, bool) {
+func (*Casing) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v FieldOptions) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *FieldOptions) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Name":
@@ -59,7 +61,7 @@ func (v FieldOptions) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }
 
-func (v StructField) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *StructField) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "FieldName":
@@ -70,7 +72,7 @@ func (v StructField) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{}, true
 
 		}
-		if doc, ok := runtimeDoc(v.FieldOptions, "", names...); ok {
+		if doc, ok := runtimeDoc(&v.FieldOptions, "", names...); ok {
 			return doc, ok
 		}
 

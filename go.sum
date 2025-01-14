@@ -4,6 +4,8 @@ github.com/go-courier/logr v0.3.1 h1:RcHM7qpO8OpuV+zFvJMXtJEspTnnYmT6uGiAomwb8X8
 github.com/go-courier/logr v0.3.1/go.mod h1:NQWi+TSv0rS1RfyWHv7MNEI5cNy9NR6k1n8R24uHgdY=
 github.com/go-json-experiment/json v0.0.0-20250108213703-50a1ba2c17a5 h1:J41FZZU97oH0czMi3QfuuKeiPy/blurtxILVviuC04k=
 github.com/go-json-experiment/json v0.0.0-20250108213703-50a1ba2c17a5/go.mod h1:BWmvoE1Xia34f3l/ibJweyhrT+aROb/FQ6d+37F0e2s=
+github.com/go-json-experiment/json v0.0.0-20250113184934-d8c9bc4f8854 h1:xIKlfS6x7Jti9Xyga3iYMVusEWtUR2hXbeAf7Q21vho=
+github.com/go-json-experiment/json v0.0.0-20250113184934-d8c9bc4f8854/go.mod h1:BWmvoE1Xia34f3l/ibJweyhrT+aROb/FQ6d+37F0e2s=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=
@@ -28,13 +30,15 @@ github.com/lunixbochs/vtclean v1.0.0/go.mod h1:pHhQNgMf3btfWnGBVipUOjRYhoOsdGqdm
 github.com/mattn/go-colorable v0.1.10/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
+github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
+github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/octohelm/gengo v0.0.0-20250104080658-4527b142baef h1:7hDRGVqHHnbIEEvGUU6GlUWOEUX6IU1aPdLITJ5IMDE=
-github.com/octohelm/gengo v0.0.0-20250104080658-4527b142baef/go.mod h1:Rni7e5dksqqO5nqv7i9024C29217Ynsniqcyqg0Jg4s=
+github.com/octohelm/gengo v0.0.0-20250114031122-612df07e4139 h1:9xKKZaEwkMnwo6X+6IceB+sVHNCmlfmyEbjMHXS0U5w=
+github.com/octohelm/gengo v0.0.0-20250114031122-612df07e4139/go.mod h1:Rni7e5dksqqO5nqv7i9024C29217Ynsniqcyqg0Jg4s=
 github.com/octohelm/x v0.0.0-20250109055815-dda0e47e75ea h1:QDKqkUvOnt3DNbluYUwI1FiCuHZwSBEbyUikQG+cvTM=
 github.com/octohelm/x v0.0.0-20250109055815-dda0e47e75ea/go.mod h1:gP93DM1Djmpbu3+fOLSkrXxh0TlJDSa5kmFGNgZWUuo=
 github.com/onsi/ginkgo/v2 v2.22.1 h1:QW7tbJAUDyVDVOM5dFa7qaybo+CRfR7bemlQUN6Z8aM=

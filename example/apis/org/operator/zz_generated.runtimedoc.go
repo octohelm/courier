@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package operator
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v GroupOrgs) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GroupOrgs) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 

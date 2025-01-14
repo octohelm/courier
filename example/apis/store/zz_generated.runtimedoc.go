@@ -4,6 +4,8 @@ DON'T EDIT THIS FILE
 */
 package store
 
+import _ "embed"
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {
@@ -22,7 +24,7 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scope":
@@ -34,12 +36,10 @@ func (v GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"获取 blob",
-	}, true
+	return []string{"获取 blob"}, true
 }
 
-func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Scope":
@@ -51,7 +51,5 @@ func (v UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{
-		"上传 blob",
-	}, true
+	return []string{"上传 blob"}, true
 }
