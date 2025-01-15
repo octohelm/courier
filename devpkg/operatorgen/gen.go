@@ -2,6 +2,7 @@ package operatorgen
 
 import (
 	"fmt"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	"go/ast"
 	"go/constant"
 	"go/types"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
 	typex "github.com/octohelm/x/types"
@@ -58,20 +58,20 @@ func (g *operatorGen) generateReturns(c gengo.Context, named *types.Named) {
 func (g *operatorGen) generateErrorsReturn(c gengo.Context, named *types.Named, fn *types.Func) {
 	statusErrors := statusErrorScanner.StatusErrorsInFunc(c, fn)
 	if len(statusErrors) > 0 {
-		c.Render(gengo.Snippet{
-			gengo.T: `
+		c.RenderT(`
 func (*@Type) ResponseErrors() []error {
 	return []error{
 		@statusErrors
 	}
 }
 
-`,
-			"Type": gengo.ID(named.Obj()),
-			"statusErrors": gengo.MapSnippet(statusErrors, func(statusError *statuserror.ErrorResponse) gengo.Snippet {
-				return gengo.Snippet{
-					gengo.T:       "@statusError,",
-					"statusError": statusError,
+`, snippet.Args{
+			"Type": snippet.ID(named.Obj()),
+			"statusErrors": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+				for _, statusError := range statusErrors {
+					if !yield(snippet.Sprintf("%v,\n", statusError)) {
+						return
+					}
 				}
 			}),
 		})
@@ -105,8 +105,7 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 	}
 
 	if isNil(tpe) {
-		c.Render(gengo.Snippet{
-			gengo.T: `
+		c.RenderT(`
 func (*@Type) ResponseContent() any {
 	return nil
 }
@@ -115,9 +114,9 @@ func (*@Type) ResponseData() *@courierNoContent {
 	return new(@courierNoContent)
 }
 
-`,
-			"Type":             gengo.ID(named.Obj()),
-			"courierNoContent": gengo.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
+`, snippet.Args{
+			"Type":             snippet.ID(named.Obj()),
+			"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 		})
 
 	} else if types.IsInterface(tpe) && !strings.Contains(tpe.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
@@ -144,14 +143,14 @@ func (*@Type) ResponseData() *@courierNoContent {
 										}
 
 										if statueCode, ok := valueOf(v.Value).(int64); ok {
-											c.Render(gengo.Snippet{gengo.T: `
+											c.RenderT(`
 func (*@Type) ResponseStatusCode() int {
 	return @statueCode
 }
 
-`,
-												"Type":       gengo.ID(named.Obj()),
-												"statueCode": int(statueCode),
+`, snippet.Args{
+												"Type":       snippet.ID(named.Obj()),
+												"statueCode": snippet.Value(int(statueCode)),
 											})
 										}
 									}
@@ -160,14 +159,14 @@ func (*@Type) ResponseStatusCode() int {
 									if p := c.LocateInPackage(node.Pos()); p != nil {
 										v, _ := p.Eval(callExpr.Args[0])
 										if contentType, ok := valueOf(v.Value).(string); ok {
-											c.Render(gengo.Snippet{gengo.T: `
+											c.RenderT(`
 func (*@Type) ResponseContentType() string {
 	return @contentType
 }
 
-`,
-												"Type":        gengo.ID(named.Obj()),
-												"contentType": contentType,
+`, snippet.Args{
+												"Type":        snippet.ID(named.Obj()),
+												"contentType": snippet.Value(contentType),
 											})
 										}
 									}
@@ -185,7 +184,7 @@ func (*@Type) ResponseContentType() string {
 			return
 		}
 
-		c.Render(gengo.Snippet{gengo.T: `
+		c.RenderT(`
 func (*@Type) ResponseContent() any {
 	return new(@ReturnType)
 }
@@ -194,9 +193,9 @@ func (*@Type) ResponseData() *@ReturnType {
 	return new(@ReturnType)
 }
 
-`,
-			"Type":       gengo.ID(named.Obj()),
-			"ReturnType": gengo.ID(tpe),
+`, snippet.Args{
+			"Type":       snippet.ID(named.Obj()),
+			"ReturnType": snippet.ID(tpe),
 		})
 	}
 }
@@ -215,16 +214,16 @@ func (g *operatorGen) generateRegister(c gengo.Context, named *types.Named) {
 
 	if registers, ok := tags["gengo:operator:register"]; ok {
 		for _, register := range registers {
-			c.Render(gengo.Snippet{gengo.T: `
+			c.RenderT(`
 			
 func init() {
 	@R.Register(@courierNewRouter(&@Operator{}))
 }
 			
-			`,
-				"R":                gengo.ID(register),
-				"courierNewRouter": gengo.ID("github.com/octohelm/courier/pkg/courier.NewRouter"),
-				"Operator":         gengo.ID(named.Obj()),
+			`, snippet.Args{
+				"R":                snippet.ID(register),
+				"courierNewRouter": snippet.ID("github.com/octohelm/courier/pkg/courier.NewRouter"),
+				"Operator":         snippet.ID(named.Obj()),
 			})
 		}
 	}

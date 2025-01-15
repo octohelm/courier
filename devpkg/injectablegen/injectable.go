@@ -1,6 +1,7 @@
 package injectablegen
 
 import (
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	"go/types"
 	"reflect"
 	"strings"
@@ -100,8 +101,7 @@ func (g *injectableGen) genAsProvider(c gengo.Context, t interface {
 }, impl string, forAlias bool) error {
 	switch x := t.Underlying().(type) {
 	case *types.Interface:
-		c.Render(gengo.Snippet{
-			gengo.T: `
+		c.RenderT(`
 type context@Type struct{}
 
 func @Type'FromContext(ctx @contextContext) (@Type, bool) {
@@ -114,10 +114,10 @@ func @Type'FromContext(ctx @contextContext) (@Type, bool) {
 func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
    return @contextWithValue(ctx, context@Type{}, tpe)
 }
-`,
-			"Type":             gengo.ID(t.Obj()),
-			"contextContext":   gengo.ID("context.Context"),
-			"contextWithValue": gengo.ID("context.WithValue"),
+`, snippet.Args{
+			"Type":             snippet.ID(t.Obj()),
+			"contextContext":   snippet.ID("context.Context"),
+			"contextWithValue": snippet.ID("context.WithValue"),
 		})
 	case *types.Struct:
 		hasProvideFields := func() bool {
@@ -133,7 +133,7 @@ func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
 			return false
 		}()
 
-		provideFields := func(sw gengo.SnippetWriter) {
+		provideFields := snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 			if forAlias {
 				return
 			}
@@ -158,53 +158,55 @@ func @Type'InjectContext(ctx @contextContext, tpe @Type) (@contextContext) {
 					optional := strings.Contains(injectTag, ",opt")
 
 					if optional {
-						sw.Render(gengo.Snippet{
-							gengo.T: `
+						if !yield(snippet.T(`
 if p.@Field != nil {
 	ctx = @FieldType'InjectContext(ctx, p.@Field)
 }
-`,
-							"Field":     gengo.ID(f.Name()),
-							"FieldType": gengo.ID(typ),
-						})
+`, snippet.Args{
+							"Field":     snippet.ID(f.Name()),
+							"FieldType": snippet.ID(typ),
+						})) {
+							return
+						}
 					} else {
-						sw.Render(gengo.Snippet{
-							gengo.T: `
+						if !yield(snippet.T(`
 ctx = @FieldType'InjectContext(ctx, p.@Field)
-`,
-							"Field":     gengo.ID(f.Name()),
-							"FieldType": gengo.ID(typ),
-						})
+`, snippet.Args{
+							"Field":     snippet.ID(f.Name()),
+							"FieldType": snippet.ID(typ),
+						})) {
+							return
+						}
 					}
 				}
 
 				if !injectExists && !provideExists {
 					if g.hasPublicInjectContext(c, f.Type()) {
-						sw.Render(gengo.Snippet{
-							gengo.T: `
+						if !yield(snippet.T(`
 ctx = p.@Field.InjectContext(ctx)
-`,
-							"Field": gengo.ID(f.Name()),
-						})
+`, snippet.Args{
+							"Field": snippet.ID(f.Name()),
+						})) {
+							return
+						}
 						continue
 					}
 				}
 			}
-		}
+		})
 
 		if impl != "" {
 			if !forAlias {
-				c.Render(gengo.Snippet{
-					gengo.T: `
+				c.RenderT(`
 func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
    @provideFields		
    return @injectContext(ctx, p)
 }
 
-`,
-					"Type":           gengo.ID(t.Obj()),
-					"injectContext":  gengo.ID(impl + "InjectContext"),
-					"contextContext": gengo.ID("context.Context"),
+`, snippet.Args{
+					"Type":           snippet.ID(t.Obj()),
+					"injectContext":  snippet.ID(impl + "InjectContext"),
+					"contextContext": snippet.ID("context.Context"),
 					"provideFields":  provideFields,
 				})
 			}
@@ -213,8 +215,7 @@ func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
 		}
 
 		if !hasProvideFields {
-			c.Render(gengo.Snippet{
-				gengo.T: `
+			c.RenderT(`
 type context@Type struct{}
 
 func @Type'FromContext(ctx @contextContext) (*@Type, bool) {
@@ -228,41 +229,39 @@ func @Type'InjectContext(ctx @contextContext, tpe *@Type) (@contextContext) {
    return @contextWithValue(ctx, context@Type{}, tpe)
 }
 
-`,
-				"Type":             gengo.ID(t.Obj()),
-				"contextContext":   gengo.ID("context.Context"),
-				"contextWithValue": gengo.ID("context.WithValue"),
+`, snippet.Args{
+				"Type":             snippet.ID(t.Obj()),
+				"contextContext":   snippet.ID("context.Context"),
+				"contextWithValue": snippet.ID("context.WithValue"),
 			})
 		}
 
 		if !forAlias {
 			if hasProvideFields {
-				c.Render(gengo.Snippet{
-					gengo.T: `
+				c.RenderT(`
 func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
    @provideFields
    return ctx
 }
-`,
-					"Type":             gengo.ID(t.Obj()),
-					"contextContext":   gengo.ID("context.Context"),
-					"contextWithValue": gengo.ID("context.WithValue"),
+`, snippet.Args{
+					"Type":             snippet.ID(t.Obj()),
+					"contextContext":   snippet.ID("context.Context"),
+					"contextWithValue": snippet.ID("context.WithValue"),
 					"provideFields":    provideFields,
 				})
 
 				return nil
 			}
 
-			c.Render(gengo.Snippet{
-				gengo.T: `
+			c.RenderT(`
 func (p *@Type) InjectContext(ctx @contextContext) (@contextContext) {
    @provideFields
    return @Type'InjectContext(ctx, p)
 }
-`,
-				"Type":             gengo.ID(t.Obj()),
-				"contextContext":   gengo.ID("context.Context"),
-				"contextWithValue": gengo.ID("context.WithValue"),
+`, snippet.Args{
+				"Type":             snippet.ID(t.Obj()),
+				"contextContext":   snippet.ID("context.Context"),
+				"contextWithValue": snippet.ID("context.WithValue"),
 				"provideFields":    provideFields,
 			})
 		}
@@ -277,18 +276,17 @@ func (g *injectableGen) genAsInjectable(c gengo.Context, t *types.Named) error {
 		return nil
 	}
 
-	c.Render(gengo.Snippet{
-		gengo.T: `
+	c.RenderT(`
 func(v *@Type) Init(ctx @contextContext) error {
    @injectableFields		
 
    return nil
 }
 
-`,
-		"Type":           gengo.ID(t.Obj()),
-		"contextContext": gengo.ID("context.Context"),
-		"injectableFields": func(sw gengo.SnippetWriter) {
+`, snippet.Args{
+		"Type":           snippet.ID(t.Obj()),
+		"contextContext": snippet.ID("context.Context"),
+		"injectableFields": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 			for i := 0; i < structType.NumFields(); i++ {
 				f := structType.Field(i)
 				structTag := reflect.StructTag(structType.Tag(i))
@@ -305,38 +303,40 @@ func(v *@Type) Init(ctx @contextContext) error {
 						typ = x.Elem()
 					}
 
-					sw.Render(gengo.Snippet{
-						gengo.T: `
+					if !yield(snippet.T(`
 if value, ok := @FieldType'FromContext(ctx); ok {
 	v.@Field = value
 } @elseOr
-`,
-						"Field":     gengo.ID(f.Name()),
-						"FieldType": gengo.ID(typ),
-						"elseOr": func(sw gengo.SnippetWriter) {
+`, snippet.Args{
+						"Field":     snippet.ID(f.Name()),
+						"FieldType": snippet.ID(typ),
+						"elseOr": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 							if !strings.Contains(injectTag, ",opt") {
-								sw.Render(gengo.Snippet{
-									gengo.T: `else {
+								if !yield(snippet.T(`else {
 return @errorsErrorf("missing provider %T.@Field", v)
 }
-`,
-									"Field":        gengo.ID(f.Name()),
-									"errorsErrorf": gengo.ID("fmt.Errorf"),
-								})
+`, snippet.Args{
+									"Field":        snippet.ID(f.Name()),
+									"errorsErrorf": snippet.ID("fmt.Errorf"),
+								})) {
+									return
+								}
 							}
-						},
-					})
+						}),
+					})) {
+						return
+					}
 				}
 			}
 
 			if g.hasBeforeInit(c, t.Obj().Pkg(), types.NewPointer(t.Obj().Type())) {
-				sw.Render(gengo.Snippet{
-					gengo.T: `
+				if !yield(snippet.Block(`
 if err := v.beforeInit(ctx); err != nil {
 	return err
 }
-`,
-				})
+`)) {
+					return
+				}
 			}
 
 			for i := 0; i < structType.NumFields(); i++ {
@@ -351,27 +351,28 @@ if err := v.beforeInit(ctx); err != nil {
 				}
 
 				if g.hasPublicInit(c, f.Type()) {
-					sw.Render(gengo.Snippet{
-						gengo.T: `
+					if !yield(snippet.T(`
 if err := v.@Field.Init(ctx); err != nil {
 	return err
 }
-`,
-						"Field": gengo.ID(f.Name()),
-					})
+`, snippet.Args{
+						"Field": snippet.ID(f.Name()),
+					})) {
+						return
+					}
 				}
 			}
 
 			if g.hasAfterInit(c, t.Obj().Pkg(), types.NewPointer(t.Obj().Type())) {
-				sw.Render(gengo.Snippet{
-					gengo.T: `
+				if !yield(snippet.Block(`
 if err := v.afterInit(ctx); err != nil {
 	return err
 }
-`,
-				})
+`)) {
+					return
+				}
 			}
-		},
+		}),
 	})
 	return nil
 }

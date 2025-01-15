@@ -48,7 +48,9 @@ func (v *CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"创建组织"}, true
+	return []string{
+		"创建组织",
+	}, true
 }
 
 func (v *DataList[T]) RuntimeDoc(names ...string) ([]string, bool) {
@@ -78,7 +80,9 @@ func (v *DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"删除组织"}, true
+	return []string{
+		"删除组织",
+	}, true
 }
 
 func (v *Detail) RuntimeDoc(names ...string) ([]string, bool) {
@@ -120,7 +124,9 @@ func (v *GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"查询组织信息"}, true
+	return []string{
+		"查询组织信息",
+	}, true
 }
 
 func (*ID) RuntimeDoc(names ...string) ([]string, bool) {
@@ -143,7 +149,9 @@ func (v *Info) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"组织详情"}, true
+	return []string{
+		"组织详情",
+	}, true
 }
 
 func (v *ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
@@ -156,7 +164,9 @@ func (v *ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"拉取组织列表"}, true
+	return []string{
+		"拉取组织列表",
+	}, true
 }
 
 func (v *ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
@@ -167,5 +177,7 @@ func (v *ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"拉取组织列表"}, true
+	return []string{
+		"拉取组织列表",
+	}, true
 }

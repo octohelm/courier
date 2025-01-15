@@ -36,7 +36,9 @@ func (v *GetStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"获取 blob"}, true
+	return []string{
+		"获取 blob",
+	}, true
 }
 
 func (v *UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
@@ -51,5 +53,7 @@ func (v *UploadStoreBlob) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"上传 blob"}, true
+	return []string{
+		"上传 blob",
+	}, true
 }

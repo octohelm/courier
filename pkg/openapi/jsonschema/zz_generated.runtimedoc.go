@@ -420,7 +420,9 @@ func (v *URIReferenceString) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"openapi:strfmt uri-reference"}, true
+	return []string{
+		"openapi:strfmt uri-reference",
+	}, true
 }
 
 func (v *URIString) RuntimeDoc(names ...string) ([]string, bool) {
@@ -471,7 +473,9 @@ func (v *URIString) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"openapi:strfmt uri"}, true
+	return []string{
+		"openapi:strfmt uri",
+	}, true
 }
 
 func (v *UnionType) RuntimeDoc(names ...string) ([]string, bool) {

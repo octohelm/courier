@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"go/types"
+	"iter"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,6 +19,7 @@ import (
 	"github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 )
 
 func init() {
@@ -31,7 +34,7 @@ type clientGen struct {
 type typ struct {
 	Alias  bool
 	Schema jsonschema.Schema
-	Decl   gengo.Snippet
+	Decl   snippet.Snippet
 }
 
 func (g *clientGen) Name() string {
@@ -142,10 +145,10 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 		}
 	}
 
-	c.Render(gengo.Snippet{gengo.T: `
+	c.RenderT(`
 @doc
 type @Operation struct {
-	@courierhttpMethod@method ` + "`" + `path:@path` + "`" + `
+	@courierhttpMethod@method `+"`"+`path:@path`+"`"+`
 	
 	@Operation'Parameters
 }
@@ -156,72 +159,94 @@ type @Operation'Parameters struct {
 }
 
 @ResponseData
-`,
-
-		"contextContext":           gengo.ID("context.Context"),
-		"courierhttpMethod":        gengo.ID("github.com/octohelm/courier/pkg/courierhttp.Method"),
-		"courierMetadata":          gengo.ID("github.com/octohelm/courier/pkg/courier.Metadata"),
-		"courierResult":            gengo.ID("github.com/octohelm/courier/pkg/courier.Result"),
-		"courierClientFromContext": gengo.ID("github.com/octohelm/courier/pkg/courier.ClientFromContext"),
-		"Operation":                gengo.ID(operation.OperationId),
-		"method":                   gengo.ID(method),
-		"path":                     path,
-		"pkgName":                  c.Package("").Pkg().Name(),
-		"doc":                      gengo.Comment(operation.Description),
-		"ResponseData": func() gengo.Snippet {
+`, snippet.Args{
+		"contextContext":           snippet.ID("context.Context"),
+		"courierhttpMethod":        snippet.ID("github.com/octohelm/courier/pkg/courierhttp.Method"),
+		"courierMetadata":          snippet.ID("github.com/octohelm/courier/pkg/courier.Metadata"),
+		"courierResult":            snippet.ID("github.com/octohelm/courier/pkg/courier.Result"),
+		"courierClientFromContext": snippet.ID("github.com/octohelm/courier/pkg/courier.ClientFromContext"),
+		"Operation":                snippet.ID(operation.OperationId),
+		"method":                   snippet.ID(method),
+		"path":                     snippet.Value(path),
+		"doc":                      snippet.Comment(operation.Description),
+		"ResponseData": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 			if hasResponse {
-				return gengo.Snippet{gengo.T: `
+				if !yield(snippet.T(`
 func (r *@Operation) ResponseData() (*@Operation'Response) {
 	return new(@Operation'Response)
 }
-`,
-					"Operation": gengo.ID(operation.OperationId),
+`, snippet.Args{
+					"Operation": snippet.ID(operation.OperationId),
+				})) {
+					return
 				}
+
 			}
 
-			return gengo.Snippet{gengo.T: `
+			if !yield(snippet.T(`
 func (r *@Operation) ResponseData() (*@courierNoContent) {
 	return new(@courierNoContent)
 }
 
-`,
-				"Operation":        gengo.ID(operation.OperationId),
-				"courierNoContent": gengo.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
+`, snippet.Args{
+				"Operation":        snippet.ID(operation.OperationId),
+				"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
+			})) {
+				return
 			}
-		}(),
-		"parameters": gengo.MapSnippet(operation.Parameters, func(p *openapi.ParameterObject) gengo.Snippet {
-			return gengo.Snippet{gengo.T: `
+			return
+		}),
+		"parameters": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+			for _, p := range operation.Parameters {
+				t := snippet.T(`
 @doc
-@FieldName @TypeDef ` + "`" + `name:@name in:@in@extraTag` + "`" + `
-`,
-				"name": func() any {
-					if p.Required != nil && *p.Required {
-						return p.Name
-					}
+@FieldName @TypeDef `+"`"+`name:@name in:@in@extraTag`+"`"+`
+`, snippet.Args{
+					"name": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+						if p.Required != nil && *p.Required {
+							if !yield(snippet.Value(p.Name)) {
+								return
+							}
+							return
+						}
+						if !yield(snippet.Value(fmt.Sprintf("%s,omitzero", p.Name))) {
+							return
+						}
+						return
+					}),
+					"in": snippet.Value(p.In),
+					"FieldName": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+						if goFieldName, ok := getSchemaExt(p.Schema, jsonschema.XGoFieldName); ok {
+							yield(snippet.ID(goFieldName.(string)))
+							return
+						}
+						yield(snippet.ID(gengo.UpperCamelCase(p.Name)))
+						return
+					}),
+					"TypeDef": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+						s := g.typeOfSchema(c, p.Schema)
 
-					return fmt.Sprintf("%s,omitzero", p.Name)
-				}(),
-				"in": p.In,
-				"FieldName": func() any {
-					if goFieldName, ok := getSchemaExt(p.Schema, jsonschema.XGoFieldName); ok {
-						return gengo.ID(goFieldName.(string))
-					}
-					return gengo.ID(gengo.UpperCamelCase(p.Name))
-				}(),
-				"TypeDef": func() any {
-					s := g.typeOfSchema(c, p.Schema)
+						if _, ok := getSchemaExt(p.Schema, jsonschema.XGoStarLevel); ok {
+							if !yield(snippet.Sprintf(`*%T`, s)) {
+								return
+							}
+							return
+						}
 
-					if _, ok := getSchemaExt(p.Schema, jsonschema.XGoStarLevel); ok {
-						return gengo.Snippet{gengo.T: `*@Type`, "Type": s}
-					}
+						if !yield(snippet.Sprintf(`%T`, s)) {
+							return
+						}
+					}),
+					"extraTag": fieldPropExtraTag(p.Schema),
+					"doc":      snippet.Comment(p.Description),
+				})
 
-					return s
-				}(),
-				"extraTag": fieldPropExtraTag(p.Schema),
-				"doc":      gengo.Comment(p.Description),
+				if !yield(t) {
+					return
+				}
 			}
 		}),
-		"requestBody": func(sw gengo.SnippetWriter) {
+		"requestBody": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 			if operation.RequestBody == nil || operation.RequestBody.Content == nil {
 				return
 			}
@@ -230,52 +255,56 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 				mt := operation.RequestBody.Content[contentType]
 
 				if contentType == "octet-stream" {
-					sw.Render(gengo.Snippet{gengo.T: `
-@Type ` + "`" + `in:"body" mime:@mime` + "`" + `
-`,
+					if !yield(snippet.T(`
+@Type `+"`"+`in:"body" mime:@mime`+"`"+`
+`, snippet.Args{
 
-						"mime": "application/octet-stream",
-						"Type": gengo.ID("io.ReadCloser"),
-					})
+						"mime": snippet.Value("application/octet-stream"),
+						"Type": snippet.ID("io.ReadCloser"),
+					})) {
+						return
+					}
 					continue
 				}
 
-				sw.Render(gengo.Snippet{gengo.T: `
-@FieldName @Type ` + "`" + `in:"body" mime:@mime` + "`" + `
-`,
+				if !yield(snippet.T(`
+@FieldName @Type `+"`"+`in:"body" mime:@mime`+"`"+`
+`, snippet.Args{
 
-					"mime": contentType,
+					"mime": snippet.Value(contentType),
 					"Type": g.typeOfSchema(c, mt.Schema),
-					"FieldName": func() any {
+					"FieldName": func() snippet.Snippet {
 						if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
-							return gengo.ID(goFieldName.(string))
+							return snippet.ID(goFieldName.(string))
 						}
-						return gengo.ID("")
+						return snippet.ID("")
 					}(),
-				})
+				})) {
+					return
+				}
 			}
-		},
+		}),
 	})
 
 	return nil
 }
 
-func fieldPropExtraTag(s jsonschema.Schema) func(sw gengo.SnippetWriter) {
-	return func(sw gengo.SnippetWriter) {
-		if validate, ok := s.GetMetadata().GetExtension(jsonschema.XTagValidate); ok {
-			sw.Render(gengo.Snippet{
-				gengo.T:    " validate:@validate",
-				"validate": validate.(string),
-			})
-		}
+func fieldPropExtraTag(s jsonschema.Schema) snippet.Snippet {
+	return snippet.Func(func(ctx context.Context) iter.Seq[string] {
+		return func(yield func(string) bool) {
+			if validate, ok := s.GetMetadata().GetExtension(jsonschema.XTagValidate); ok {
+				if !yield(fmt.Sprintf(" validate:%q", validate.(string))) {
+					return
+				}
+			}
 
-		if defaultValue := s.GetMetadata().Default; defaultValue != nil {
-			sw.Render(gengo.Snippet{
-				gengo.T:   " default:@default",
-				"default": fmt.Sprintf("%v", defaultValue),
-			})
+			if defaultValue := s.GetMetadata().Default; defaultValue != nil {
+				if !yield(fmt.Sprintf(" default:%q", fmt.Sprintf("%v", defaultValue))) {
+					return
+				}
+			}
 		}
-	}
+	})
 }
 
 func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
@@ -291,11 +320,11 @@ func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 			pkgPath, _ := gengo.PkgImportPathAndExpose(x.(string))
 
 			if _, ok := imports[pkgPath]; ok {
-				c.Render(gengo.Snippet{gengo.T: `
+				c.RenderT(`
 type @Type = @TypeRef
-`,
-					"Type":    gengo.ID(name),
-					"TypeRef": gengo.ID(x),
+`, snippet.Args{
+					"Type":    snippet.ID(name),
+					"TypeRef": snippet.ID(x),
 				})
 
 				return nil
@@ -310,12 +339,12 @@ type @Type = @TypeRef
 	}
 
 	if t.Alias {
-		c.Render(gengo.Snippet{gengo.T: `
+		c.RenderT(`
 type @Type = @TypeDef
 
-`,
+`, snippet.Args{
 
-			"Type":    gengo.ID(name),
+			"Type":    snippet.ID(name),
 			"TypeDef": t.Decl,
 		})
 
@@ -323,16 +352,16 @@ type @Type = @TypeDef
 	}
 
 	if unionType, ok := t.Schema.(*jsonschema.UnionType); ok {
-		c.Render(gengo.Snippet{gengo.T: `
+		c.RenderT(`
 type @Type struct {
-	Underlying any ` + "`" + `json:"-"` + "`" + `
+	Underlying any `+"`"+`json:"-"`+"`"+`
 }
-`,
-			"Type": gengo.ID(name),
+`, snippet.Args{
+			"Type": snippet.ID(name),
 		})
 
 		if unionType.Discriminator != nil {
-			c.Render(gengo.Snippet{gengo.T: `
+			c.RenderT(`
 func (@Type) Discriminator() string {
 	return @DiscriminatorPropertyName
 }
@@ -362,23 +391,26 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 	}
 	return @jsonMarshal(m.Underlying)
 }
-`,
-				"taggedunionUnmarshal": gengo.ID("github.com/octohelm/courier/pkg/validator/taggedunion.Unmarshal"),
-				"jsonMarshal":          gengo.ID("github.com/octohelm/courier/pkg/validator.Marshal"),
+`, snippet.Args{
+				"taggedunionUnmarshal": snippet.ID("github.com/octohelm/courier/pkg/validator/taggedunion.Unmarshal"),
+				"jsonMarshal":          snippet.ID("github.com/octohelm/courier/pkg/validator.Marshal"),
 
-				"Type":                      gengo.ID(name),
-				"DiscriminatorPropertyName": unionType.Discriminator.PropertyName,
-				"MappingValues": func(sw gengo.SnippetWriter) {
-					for kind, s := range unionType.Discriminator.Mapping {
+				"Type":                      snippet.ID(name),
+				"DiscriminatorPropertyName": snippet.Value(unionType.Discriminator.PropertyName),
+				"MappingValues": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+					for _, kind := range slices.Sorted(maps.Keys(unionType.Discriminator.Mapping)) {
+						s := unionType.Discriminator.Mapping[kind]
 
-						sw.Render(gengo.Snippet{gengo.T: `
+						if !yield(snippet.T(`
 @Key: &@Type{},
-`,
-							"Key":  kind,
+`, snippet.Args{
+							"Key":  snippet.ID(kind),
 							"Type": g.typeOfSchema(c, s),
-						})
+						})) {
+							return
+						}
 					}
-				},
+				}),
 			})
 		}
 
@@ -386,13 +418,12 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 	}
 
 	if enumType, ok := t.Schema.(*jsonschema.EnumType); ok {
-		c.Render(gengo.Snippet{gengo.T: `
+		c.RenderT(`
 // +gengo:enum
 type @Type @TypeDef
 
-`,
-
-			"Type":    gengo.ID(name),
+`, snippet.Args{
+			"Type":    snippet.ID(name),
 			"TypeDef": t.Decl,
 		})
 
@@ -408,20 +439,24 @@ type @Type @TypeDef
 			}
 		}
 
-		c.Render(gengo.Snippet{gengo.T: `
+		c.RenderT(`
 const (
 	@enums
 )
 
-`,
-			"enums": gengo.MapSnippet(enumType.Enum, func(enum any) gengo.Snippet {
-				return gengo.Snippet{gengo.T: `
+`, snippet.Args{
+			"enums": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+				for _, enum := range enumType.Enum {
+					if !yield(snippet.T(`
 @NamePrefix'__@OrgName @Type = @value
-`,
-					"Type":       gengo.ID(gengo.UpperCamelCase(name)),
-					"NamePrefix": gengo.ID(gengo.UpperSnakeCase(name)),
-					"OrgName":    gengo.ID(gengo.UpperCamelCase(enum.(string))),
-					"value":      enum,
+`, snippet.Args{
+						"Type":       snippet.ID(gengo.UpperCamelCase(name)),
+						"NamePrefix": snippet.ID(gengo.UpperSnakeCase(name)),
+						"OrgName":    snippet.ID(gengo.UpperCamelCase(enum.(string))),
+						"value":      snippet.Value(enum),
+					})) {
+						return
+					}
 				}
 			}),
 		})
@@ -429,29 +464,27 @@ const (
 		return nil
 	}
 
-	c.Render(gengo.Snippet{gengo.T: `
+	c.RenderT(`
 type @Type @TypeDef
 
-`,
-
-		"Type":    gengo.ID(name),
+`, snippet.Args{
+		"Type":    snippet.ID(name),
 		"TypeDef": t.Decl,
 	})
 
 	return nil
 }
 
-func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) gengo.Snippet {
+func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) snippet.Snippet {
 	switch x := schema.(type) {
 	case *jsonschema.EnumType:
-		return gengo.SnippetT("string")
+		return snippet.Block("string")
 	case *jsonschema.UnionType:
 		// just look for walk sub schemas
 		for _, s := range x.OneOf {
 			g.typeOfSchema(c, s)
 		}
-
-		return gengo.SnippetT("struct { }")
+		return snippet.Block("struct { }")
 	case *jsonschema.IntersectionType:
 		if len(x.AllOf) > 0 {
 			// when one is the object
@@ -467,52 +500,38 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) geng
 			s := g.oas.Schemas[name]
 			g.types.Store(name, nil)
 
-			snippet := g.typeOfSchema(c, s)
-
 			g.types.Store(name, &typ{
 				Schema: s,
-				Decl:   snippet,
+				Decl:   g.typeOfSchema(c, s),
 			})
 		}
 
-		return gengo.Snippet{
-			gengo.T: "@Type",
-			"Type":  gengo.ID(name),
-		}
+		return snippet.ID(name)
 	case *jsonschema.NumberType:
 		if format, ok := x.GetExtension("x-format"); ok {
-			return gengo.SnippetT(format.(string))
+			return snippet.Block(format.(string))
 		}
 
 		switch x.Type {
 		case "integer":
-			return gengo.SnippetT("int64")
+			return snippet.Block("int64")
 		}
-		return gengo.SnippetT("float64")
+		return snippet.Block("float64")
 	case *jsonschema.StringType:
 		switch x.Format {
 		case "binary":
-			return gengo.Snippet{
-				gengo.T:        "@ioReadCloser",
-				"ioReadCloser": gengo.ID("io.ReadCloser"),
-			}
+			return snippet.ID("io.ReadCloser")
 		}
-		return gengo.SnippetT("string")
+		return snippet.Block("string")
 	case *jsonschema.BooleanType:
-		return gengo.SnippetT("bool")
+		return snippet.Block("bool")
 	case *jsonschema.ArrayType:
 		if x.Items != nil {
 			if x.MaxItems != nil && x.MinItems != nil && *x.MaxItems == *x.MinItems {
-				return gengo.Snippet{gengo.T: "[@n]@TypeDef",
-					"n":       *x.MaxItems,
-					"TypeDef": g.typeOfSchema(c, x.Items),
-				}
+				return snippet.Sprintf("[%v]%T", *x.MaxItems, g.typeOfSchema(c, x.Items))
 			}
 		}
-
-		return gengo.Snippet{gengo.T: "[]@TypeDef",
-			"TypeDef": g.typeOfSchema(c, x.Items),
-		}
+		return snippet.Sprintf("[]%T", g.typeOfSchema(c, x.Items))
 	case *jsonschema.ObjectType:
 		if elemSchema := x.AdditionalProperties; elemSchema != nil {
 			var keySchema jsonschema.Schema = jsonschema.String()
@@ -521,28 +540,25 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) geng
 				keySchema = x.PropertyNames
 			}
 
-			return gengo.Snippet{gengo.T: `map[@KeyType]@ElemType`,
-				"KeyType":  g.typeOfSchema(c, keySchema),
-				"ElemType": g.typeOfSchema(c, elemSchema),
-			}
+			return snippet.Sprintf("map[%T]%T", g.typeOfSchema(c, keySchema), g.typeOfSchema(c, elemSchema))
 		}
 
 		return g.structFromSchema(c, x)
 	}
 
-	return gengo.SnippetT("any")
+	return snippet.Block("any")
 }
 
-func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, extends ...jsonschema.Schema) gengo.Snippet {
-	extendedDecls := make([]gengo.Snippet, len(extends))
-	propDecls := map[string]gengo.Snippet{}
+func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, extends ...jsonschema.Schema) snippet.Snippet {
+	extendedDecls := make([]snippet.Snippet, len(extends))
+	propDecls := map[string]snippet.Snippet{}
 
 	for i := range extends {
-		extendedDecls[i] = gengo.Snippet{gengo.T: `
+		extendedDecls[i] = snippet.T(`
 @TypeDefEmbedded
-`,
+`, snippet.Args{
 			"TypeDefEmbedded": g.typeOfSchema(c, extends[i]),
-		}
+		})
 	}
 
 	requiredFieldSet := map[string]bool{}
@@ -551,56 +567,54 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 	}
 
 	for name, propSchema := range schema.Properties.KeyValues() {
-		propDecls[name] = gengo.Snippet{gengo.T: `
+		propDecls[name] = snippet.T(`
 @doc
-@FieldName @TypeDef ` + "`" + `json:@name name:@name @extraTags` + "`" + `
-`,
-			"name": func() any {
+@FieldName @TypeDef `+"`"+`json:@name name:@name @extraTags`+"`"+`
+`, snippet.Args{
+			"name": snippet.Value(func() any {
 				if requiredFieldSet[name] {
 					return name
 				}
 				return fmt.Sprintf("%s,omitempty", name)
-			}(),
-			"FieldName": func() any {
+			}()),
+			"FieldName": func() snippet.Snippet {
 				if goFieldName, ok := getSchemaExt(propSchema, jsonschema.XGoFieldName); ok {
-					return gengo.ID(goFieldName.(string))
+					return snippet.ID(goFieldName.(string))
 				}
-				return gengo.ID(gengo.UpperCamelCase(name))
+				return snippet.ID(gengo.UpperCamelCase(name))
 			}(),
-			"TypeDef": func() any {
+			"TypeDef": func() snippet.Snippet {
 				s := g.typeOfSchema(c, propSchema)
 
 				if _, ok := getSchemaExt(propSchema, jsonschema.XGoStarLevel); ok {
-					return gengo.Snippet{gengo.T: `*@Type`, "Type": s}
+					return snippet.Sprintf("*%T", s)
 				}
 
 				return s
 			}(),
 			"extraTags": fieldPropExtraTag(propSchema),
-			"doc":       gengo.Comment(propSchema.GetMetadata().Description),
-		}
+			"doc":       snippet.Comment(propSchema.GetMetadata().Description),
+		})
 	}
 
-	return gengo.Snippet{gengo.T: `
+	return snippet.T(`
 struct { 
 	@fields
-} `,
-		"fields": func(sw gengo.SnippetWriter) {
-			for i := range extendedDecls {
-				sw.Render(extendedDecls[i])
+} `, snippet.Args{
+		"fields": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+			for _, decl := range extendedDecls {
+				if !yield(decl) {
+					return
+				}
 			}
 
-			names := make([]string, 0)
-			for fieldName := range propDecls {
-				names = append(names, fieldName)
+			for _, name := range slices.Sorted(maps.Keys(propDecls)) {
+				if !yield(propDecls[name]) {
+					return
+				}
 			}
-			sort.Strings(names)
-
-			for _, name := range names {
-				sw.Render(propDecls[name])
-			}
-		},
-	}
+		}),
+	})
 }
 
 func getSchemaExt(schema jsonschema.Schema, name string) (any, bool) {
@@ -609,6 +623,5 @@ func getSchemaExt(schema jsonschema.Schema, name string) (any, bool) {
 			return v, true
 		}
 	}
-
 	return nil, false
 }

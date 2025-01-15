@@ -47,7 +47,10 @@ func (v *ComponentsObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"https://spec.openapis.org/oas/latest.html#components-object", "FIXME now only support schemas"}, true
+	return []string{
+		"https://spec.openapis.org/oas/latest.html#components-object",
+		"FIXME now only support schemas",
+	}, true
 }
 
 func (v *Contact) RuntimeDoc(names ...string) ([]string, bool) {
@@ -138,7 +141,9 @@ func (v *InfoObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"https://spec.openapis.org/oas/latest.html#infoObject"}, true
+	return []string{
+		"https://spec.openapis.org/oas/latest.html#infoObject",
+	}, true
 }
 
 func (v *License) RuntimeDoc(names ...string) ([]string, bool) {
@@ -279,7 +284,9 @@ func (v *ParameterObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"https://spec.openapis.org/oas/latest.html#parameter-object"}, true
+	return []string{
+		"https://spec.openapis.org/oas/latest.html#parameter-object",
+	}, true
 }
 
 func (*ParameterStyle) RuntimeDoc(names ...string) ([]string, bool) {
@@ -300,7 +307,10 @@ func (v *PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 
 		return nil, false
 	}
-	return []string{"https://spec.openapis.org/oas/latest.html#pathItemObject", "no need $ref, server, parameters"}, true
+	return []string{
+		"https://spec.openapis.org/oas/latest.html#pathItemObject",
+		"no need $ref, server, parameters",
+	}, true
 }
 
 func (v *Payload) RuntimeDoc(names ...string) ([]string, bool) {

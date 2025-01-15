@@ -4,6 +4,7 @@ import (
 	"go/types"
 
 	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 )
 
 func init() {
@@ -20,7 +21,7 @@ func (g *unitstr) GenerateType(c gengo.Context, t *types.Named) error {
 	if b, ok := t.Obj().Type().Underlying().(*types.Basic); ok {
 		switch b.Kind() {
 		case types.Uint64, types.Uint32, types.Uint16, types.Uint8, types.Uint:
-			c.Render(gengo.Snippet{gengo.T: `
+			c.RenderT(`
 func(id *@Type) UnmarshalText(text []byte) error {
 	str := string(text)
 	if len(str) == 0 {
@@ -46,15 +47,14 @@ func (id @Type) String() string {
 	return @strconvFormatUint(uint64(id), 10)
 }
 
-`,
-				"Type":              gengo.ID(t.Obj()),
-				"strconvParseUint":  gengo.ID("strconv.ParseUint"),
-				"strconvFormatUint": gengo.ID("strconv.FormatUint"),
+`, snippet.Args{
+				"Type":              snippet.ID(t.Obj()),
+				"strconvParseUint":  snippet.PkgExpose("strconv", "ParseUint"),
+				"strconvFormatUint": snippet.PkgExpose("strconv", "FormatUint"),
 			})
 		default:
 
 		}
-
 	}
 
 	return nil
