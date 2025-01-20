@@ -181,6 +181,7 @@ func (r *@Operation) ResponseData() (*@Operation'Response) {
 					return
 				}
 
+				return
 			}
 
 			if !yield(snippet.T(`
@@ -404,7 +405,7 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 						if !yield(snippet.T(`
 @Key: &@Type{},
 `, snippet.Args{
-							"Key":  snippet.ID(kind),
+							"Key":  snippet.Value(kind),
 							"Type": g.typeOfSchema(c, s),
 						})) {
 							return
