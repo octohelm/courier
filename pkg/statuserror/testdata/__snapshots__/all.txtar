@@ -3,28 +3,22 @@
   "code": 500,
   "errors": [
     {
-      "code": 500,
-      "key": "InternalServerError",
-      "msg": "test error",
+      "code": "InternalServerError",
+      "message": "test error",
       "source": "x@v1"
     }
   ],
-  "key": "InternalServerError",
-  "msg": "test error",
-  "source": "x@v1"
+  "msg": "test error"
 }
 -- status_code_wrap_error.json --
 {
   "code": 409,
   "errors": [
     {
-      "code": 409,
-      "key": "Conflict",
-      "msg": "test error",
+      "code": "Conflict",
+      "message": "test error",
       "source": "x@v1"
     }
   ],
-  "key": "Conflict",
-  "msg": "test error",
-  "source": "x@v1"
+  "msg": "test error"
 }

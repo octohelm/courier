@@ -1,16 +1,10 @@
 package statuserror
 
 import (
-	"fmt"
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
-	"github.com/octohelm/x/ptr"
-	"github.com/octohelm/x/slices"
-	"go/ast"
 	"net/http"
-	"path/filepath"
-	"reflect"
 	"strconv"
+
+	"github.com/octohelm/x/slices"
 )
 
 func AsErrorResponse(err error, source string) *ErrorResponse {
@@ -28,15 +22,15 @@ func AsErrorResponse(err error, source string) *ErrorResponse {
 			continue
 		}
 
-		ee := asErrorResponse(e, source, loc)
-
+		ee := asDescriptor(e, source, loc)
 		if er == nil {
-			er = ptr.Ptr(*ee)
+			er = &ErrorResponse{}
 
-			if er.Code == http.StatusBadRequest {
-				er.Pointer = ""
-				er.Location = ""
-				er.Msg = http.StatusText(er.Code)
+			er.Msg = ee.Message
+			er.Code = ee.Status
+
+			if ee.Status == http.StatusBadRequest {
+				er.Msg = http.StatusText(ee.Status)
 			}
 		}
 
@@ -50,7 +44,6 @@ func AsErrorResponse(err error, source string) *ErrorResponse {
 	if er == nil {
 		return &ErrorResponse{
 			Code: http.StatusInternalServerError,
-			Key:  "InternalServerError",
 			Msg:  err.Error(),
 		}
 	}
@@ -58,85 +51,10 @@ func AsErrorResponse(err error, source string) *ErrorResponse {
 	return er
 }
 
-func asErrorResponse(err error, source string, loc string) *ErrorResponse {
-	if errResp, ok := err.(*ErrorResponse); ok {
-		return errResp
-	}
-
-	er := &ErrorResponse{
-		Source:   source,
-		Location: loc,
-	}
-
-	if w, ok := err.(interface{ Unwrap() error }); ok {
-		if e := w.Unwrap(); e != nil {
-			er.Msg = e.Error()
-		}
-	}
-
-	if er.Msg == "" {
-		er.Msg = err.Error()
-	}
-
-	if v, ok := err.(WithStatusCode); ok {
-		er.Code = v.StatusCode()
-	}
-
-	if v, ok := err.(WithJSONPointer); ok {
-		er.Pointer = v.JSONPointer()
-		er.Code = http.StatusBadRequest
-		er.Key = "InvalidParameter"
-	}
-
-	if v, ok := err.(WithErrKey); ok {
-		er.Key = v.ErrKey()
-	}
-
-	if er.Key == "" {
-		rv := reflect.TypeOf(err)
-		for rv.Kind() == reflect.Ptr {
-			rv = rv.Elem()
-		}
-
-		if ast.IsExported(rv.Name()) {
-			if p := rv.PkgPath(); p != "" {
-				er.Key = filepath.Base(p) + "." + rv.Name()
-			} else {
-				er.Key = rv.Name()
-			}
-		}
-	}
-
-	if er.Key == "" {
-		er.Key = "InternalServerError"
-	}
-
-	if er.Code == 0 {
-		er.Code = http.StatusInternalServerError
-	}
-
-	return er
-}
-
 type ErrorResponse struct {
-	Code int    `json:"code,omitempty"`
-	Key  string `json:"key"`
-	Msg  string `json:"msg"`
-
-	Location string           `json:"location,omitzero"`
-	Pointer  jsontext.Pointer `json:"pointer,omitzero"`
-	Source   string           `json:"source,omitzero"`
-
-	Errors []*ErrorResponse `json:"errors,omitzero"`
-}
-
-func (e *ErrorResponse) UnmarshalErrorResponse(statusCode int, raw []byte) error {
-	if err := json.Unmarshal(raw, e); err != nil {
-		e.Code = statusCode
-		e.Key = "UpstreamError"
-		e.Msg = string(raw)
-	}
-	return nil
+	Code   int           `json:"code,omitzero"`
+	Msg    string        `json:"msg"`
+	Errors []*Descriptor `json:"errors,omitzero"`
 }
 
 func (e *ErrorResponse) StatusCode() int {
@@ -147,13 +65,9 @@ func (e *ErrorResponse) StatusCode() int {
 	return e.Code
 }
 
-func (e *ErrorResponse) Error() string {
-	return fmt.Sprintf("%s{code=%d,msg=%q}", e.Key, e.Code, e.Msg)
-}
-
 func (e *ErrorResponse) Unwrap() []error {
 	if e.Errors != nil {
-		return slices.Map(e.Errors, func(e *ErrorResponse) error {
+		return slices.Map(e.Errors, func(e *Descriptor) error {
 			return e
 		})
 	}

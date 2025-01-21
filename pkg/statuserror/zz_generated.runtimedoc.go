@@ -24,20 +24,37 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	return nil, false
 }
 
-func (v *ErrorResponse) RuntimeDoc(names ...string) ([]string, bool) {
+func (v *Descriptor) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Code":
 			return []string{}, true
-		case "Key":
-			return []string{}, true
-		case "Msg":
+		case "Message":
 			return []string{}, true
 		case "Location":
 			return []string{}, true
 		case "Pointer":
 			return []string{}, true
 		case "Source":
+			return []string{}, true
+		case "Status":
+			return []string{}, true
+		case "Errors":
+			return []string{}, true
+
+		}
+
+		return nil, false
+	}
+	return []string{}, true
+}
+
+func (v *ErrorResponse) RuntimeDoc(names ...string) ([]string, bool) {
+	if len(names) > 0 {
+		switch names[0] {
+		case "Code":
+			return []string{}, true
+		case "Msg":
 			return []string{}, true
 		case "Errors":
 			return []string{}, true

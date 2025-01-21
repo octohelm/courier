@@ -59,10 +59,10 @@ func (*GetOrg) ResponseData() *Detail {
 
 func (*GetOrg) ResponseErrors() []error {
 	return []error{
-		&(statuserror.ErrorResponse{
-			Code: 404,
-			Key:  "org.ErrNotFound",
-			Msg:  "{OrgName}: 组织不存在",
+		&(statuserror.Descriptor{
+			Code:    "org.ErrNotFound",
+			Message: "{OrgName}: 组织不存在",
+			Status:  404,
 		}),
 	}
 }

@@ -68,10 +68,19 @@ func (*@Type) ResponseErrors() []error {
 `, snippet.Args{
 			"Type": snippet.ID(named.Obj()),
 			"statusErrors": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+				added := map[string]bool{}
+
 				for _, statusError := range statusErrors {
+					x := statusError.Error()
+					if _, ok := added[x]; ok {
+						continue
+					}
+
 					if !yield(snippet.Sprintf("%v,\n", statusError)) {
 						return
 					}
+
+					added[x] = true
 				}
 			}),
 		})

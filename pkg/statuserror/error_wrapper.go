@@ -4,29 +4,29 @@ import (
 	"fmt"
 )
 
-func Wrap(err error, statusCode int, key string) error {
+func Wrap(err error, statusCode int, code string) error {
 	if err == nil {
 		return nil
 	}
 
 	return &statusError{
 		statusCode: statusCode,
-		key:        key,
+		code:       code,
 		wrapError:  wrapError{err},
 	}
 }
 
 type statusError struct {
 	statusCode int
-	key        string
+	code       string
 
 	wrapError
 }
 
-var _ WithErrKey = &statusError{}
+var _ WithErrCode = &statusError{}
 
-func (e *statusError) ErrKey() string {
-	return e.key
+func (e *statusError) ErrCode() string {
+	return e.code
 }
 
 var _ WithStatusCode = &statusError{}
@@ -36,7 +36,7 @@ func (e *statusError) StatusCode() int {
 }
 
 func (e *statusError) Error() string {
-	return fmt.Sprintf("%s{ code=%d, msg=%q }", e.key, e.statusCode, e.err)
+	return fmt.Sprintf("%s{message=%q,statusCode=%d}", e.code, e.err, e.statusCode)
 }
 
 type wrapError struct {

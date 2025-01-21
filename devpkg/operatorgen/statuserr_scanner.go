@@ -12,26 +12,25 @@ import (
 	"sort"
 	"strconv"
 
-	typex "github.com/octohelm/x/types"
-
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
+	typex "github.com/octohelm/x/types"
 )
 
 func newStatusErrScanner() *statusErrScanner {
 	return &statusErrScanner{
-		statusErrorTypes: map[*types.Named][]*statuserror.ErrorResponse{},
-		errorsUsed:       map[*types.Func][]*statuserror.ErrorResponse{},
+		statusErrorTypes: map[*types.Named][]*statuserror.Descriptor{},
+		errorsUsed:       map[*types.Func][]*statuserror.Descriptor{},
 	}
 }
 
 type statusErrScanner struct {
-	statusErrorTypes map[*types.Named][]*statuserror.ErrorResponse
-	errorsUsed       map[*types.Func][]*statuserror.ErrorResponse
+	statusErrorTypes map[*types.Named][]*statuserror.Descriptor
+	errorsUsed       map[*types.Func][]*statuserror.Descriptor
 }
 
-var statusErr = reflect.TypeOf(statuserror.ErrorResponse{})
+var statusErr = reflect.TypeOf(statuserror.Descriptor{})
 
 func isTypeStatusErr(named *types.Named) bool {
 	if o := named.Obj(); o != nil {
@@ -55,7 +54,7 @@ func identChainOfCallFunc(expr ast.Expr) (list []*ast.Ident) {
 	return
 }
 
-func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types.Func) []*statuserror.ErrorResponse {
+func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types.Func) []*statuserror.Descriptor {
 	if typeFunc == nil {
 		return nil
 	}
@@ -64,7 +63,7 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 		return statusErrList
 	}
 
-	s.errorsUsed[typeFunc] = []*statuserror.ErrorResponse{}
+	s.errorsUsed[typeFunc] = []*statuserror.Descriptor{}
 
 	pkg := ctx.Package(typeFunc.Pkg().Path())
 
@@ -111,16 +110,16 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 	return s.errorsUsed[typeFunc]
 }
 
-func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*statuserror.ErrorResponse) {
-	m := map[string]*statuserror.ErrorResponse{}
+func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*statuserror.Descriptor) {
+	m := map[string]*statuserror.Descriptor{}
 
 	errs := append(s.errorsUsed[typeFunc], statusErrs...)
 	for i := range errs {
 		s := errs[i]
-		m[fmt.Sprintf("%s%d", s.Key, s.Code)] = s
+		m[fmt.Sprintf("%s%d", s.Code, s.Status)] = s
 	}
 
-	next := make([]*statuserror.ErrorResponse, 0)
+	next := make([]*statuserror.Descriptor, 0)
 	for k := range m {
 		next = append(next, m[k])
 	}
@@ -134,8 +133,8 @@ func (s *statusErrScanner) appendStateErrs(typeFunc *types.Func, statusErrs ...*
 
 func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengotypes.Package, obj types.Object, callIdent *ast.Ident, x *ast.CallExpr) bool {
 	if callIdent.Name == "Wrap" && obj.Pkg().Path() == statusErr.PkgPath() {
-		code := 0
-		key := ""
+		statusCode := 0
+		code := ""
 		msg := ""
 		desc := make([]string, 0)
 
@@ -150,10 +149,10 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 			}
 
 			switch i {
-			case 0: // code
-				code, _ = strconv.Atoi(tv.Value.String())
-			case 1: // key
-				key, _ = strconv.Unquote(tv.Value.String())
+			case 0: // statusCode
+				statusCode, _ = strconv.Atoi(tv.Value.String())
+			case 1: // code
+				code, _ = strconv.Unquote(tv.Value.String())
 			case 2: // msg
 				msg, _ = strconv.Unquote(tv.Value.String())
 			default:
@@ -162,15 +161,15 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 			}
 		}
 
-		if code > 0 {
+		if statusCode > 0 {
 			if msg == "" {
-				msg = key
+				msg = code
 			}
 
-			s.appendStateErrs(typeFunc, &statuserror.ErrorResponse{
-				Key:  key,
-				Code: code,
-				Msg:  msg,
+			s.appendStateErrs(typeFunc, &statuserror.Descriptor{
+				Code:    code,
+				Status:  statusCode,
+				Message: msg,
 			})
 		}
 
@@ -215,19 +214,19 @@ func (s *statusErrScanner) resolveStateCode(ctx gengo.Context, named *types.Name
 	return 0, false
 }
 
-func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.ErrorResponse) {
+func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.Descriptor) {
 	if named.Obj() == nil {
 		return nil
 	}
 
-	serr := &statuserror.ErrorResponse{
-		Key:  filepath.Base(named.Obj().Pkg().Path()) + "." + named.Obj().Name(),
-		Code: http.StatusInternalServerError,
+	serr := &statuserror.Descriptor{
+		Code:   filepath.Base(named.Obj().Pkg().Path()) + "." + named.Obj().Name(),
+		Status: http.StatusInternalServerError,
 	}
 
 	code, ok := s.resolveStateCode(ctx, named)
 	if ok {
-		serr.Code = code
+		serr.Status = code
 	}
 
 	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("Error")
@@ -245,14 +244,14 @@ func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, nam
 					str, err := strconv.Unquote(x.Value)
 					if err == nil {
 						e := &(*serr)
-						e.Msg = str
+						e.Message = str
 						list = append(list, e)
 					}
 				case *ast.CallExpr:
 					if selectExpr, ok := x.Fun.(*ast.SelectorExpr); ok {
 						if selectExpr.Sel.Name == "Sprintf" {
 							e := &(*serr)
-							e.Msg = fmtSprintfArgsAsTemplate(x.Args)
+							e.Message = fmtSprintfArgsAsTemplate(x.Args)
 							list = append(list, e)
 						}
 					}

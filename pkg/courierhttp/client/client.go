@@ -148,7 +148,7 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 		if r.c.NewError != nil {
 			body = r.c.NewError()
 		} else {
-			body = &statuserror.ErrorResponse{
+			body = &statuserror.Descriptor{
 				Source: r.Response.Request.Host,
 			}
 		}
