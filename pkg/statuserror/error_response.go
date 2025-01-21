@@ -52,8 +52,11 @@ func AsErrorResponse(err error, source string) *ErrorResponse {
 }
 
 type ErrorResponse struct {
-	Code   int           `json:"code,omitzero"`
-	Msg    string        `json:"msg"`
+	// 错误状态码
+	Code int `json:"code,omitzero"`
+	// 错误信息
+	Msg string `json:"msg,omitzero"`
+	// 错误详情
 	Errors []*Descriptor `json:"errors,omitzero"`
 }
 

@@ -28,18 +28,30 @@ func (v *Descriptor) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Code":
-			return []string{}, true
+			return []string{
+				"错误编码",
+			}, true
 		case "Message":
-			return []string{}, true
+			return []string{
+				"错误信息",
+			}, true
 		case "Location":
-			return []string{}, true
+			return []string{
+				"错误参数位置 query, header, path, body 等",
+			}, true
 		case "Pointer":
-			return []string{}, true
+			return []string{
+				"错误参数 json pointer",
+			}, true
 		case "Source":
-			return []string{}, true
+			return []string{
+				"引起错误的源",
+			}, true
 		case "Status":
 			return []string{}, true
 		case "Errors":
+			return []string{}, true
+		case "Extra":
 			return []string{}, true
 
 		}
@@ -53,15 +65,25 @@ func (v *ErrorResponse) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
 		case "Code":
-			return []string{}, true
+			return []string{
+				"错误状态码",
+			}, true
 		case "Msg":
-			return []string{}, true
+			return []string{
+				"错误信息",
+			}, true
 		case "Errors":
-			return []string{}, true
+			return []string{
+				"错误详情",
+			}, true
 
 		}
 
 		return nil, false
 	}
+	return []string{}, true
+}
+
+func (*IntOrString) RuntimeDoc(names ...string) ([]string, bool) {
 	return []string{}, true
 }

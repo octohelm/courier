@@ -31,11 +31,16 @@ type WithJSONPointer interface {
 type IntOrString string
 
 type Descriptor struct {
-	Code     string           `json:"code,omitzero"`
-	Message  string           `json:"message,omitzero"`
-	Location string           `json:"location,omitzero"`
-	Pointer  jsontext.Pointer `json:"pointer,omitzero"`
-	Source   string           `json:"source,omitzero"`
+	// 错误编码
+	Code string `json:"code,omitzero"`
+	// 错误信息
+	Message string `json:"message,omitzero"`
+	// 错误参数位置 query, header, path, body 等
+	Location string `json:"location,omitzero"`
+	// 错误参数 json pointer
+	Pointer jsontext.Pointer `json:"pointer,omitzero"`
+	// 引起错误的源
+	Source string `json:"source,omitzero"`
 
 	Status int           `json:"-"`
 	Errors []*Descriptor `json:"-"`

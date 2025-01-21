@@ -355,11 +355,21 @@ func (b *scanner) scanResponseError(ctx context.Context, op *openapi.OperationOb
 			}
 
 			mt := &openapi.MediaTypeObject{}
-			mt.Schema = b.SchemaFromType(
-				ctx,
-				returnErrors[0],
-				false,
-			)
+
+			switch x := returnErrors[0].(type) {
+			case *statuserror.Descriptor:
+				mt.Schema = b.SchemaFromType(
+					ctx,
+					&statuserror.ErrorResponse{},
+					false,
+				)
+			default:
+				mt.Schema = b.SchemaFromType(
+					ctx,
+					x,
+					false,
+				)
+			}
 
 			errResp.AddContent("application/json", mt)
 
