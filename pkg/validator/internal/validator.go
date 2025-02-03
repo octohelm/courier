@@ -3,13 +3,12 @@ package internal
 import (
 	"cmp"
 	"fmt"
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"reflect"
 	"sync"
 
-	"github.com/octohelm/courier/internal/jsonflags"
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
-
 	"github.com/go-json-experiment/json/jsontext"
+	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
 
@@ -277,11 +276,12 @@ func (o *wrapValidator) Key() ValidatorOption {
 }
 
 func (o *wrapValidator) Validate(value jsontext.Value) error {
-	if !o.optional {
-		switch value.Kind() {
-		case 'n':
-			return &validatorerrors.ErrMissingRequired{}
+	switch value.Kind() {
+	case 'n':
+		if o.optional {
+			return nil
 		}
+		return &validatorerrors.ErrMissingRequired{}
 	}
 	if o.underlying == nil {
 		return nil

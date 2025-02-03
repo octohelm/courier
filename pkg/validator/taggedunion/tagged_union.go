@@ -74,7 +74,7 @@ func UnmarshalDecode(dec *jsontext.Decoder, ut Type) error {
 
 		if v, ok := ut.Mapping()[discriminatorValue]; ok {
 			if err := validator.UnmarshalDecode(jsontext.NewDecoder(buf), v); err != nil {
-				return err
+				return validatorerrors.PrefixJSONPointer(err, dec.StackPointer())
 			}
 			ut.SetUnderlying(v)
 			return nil
