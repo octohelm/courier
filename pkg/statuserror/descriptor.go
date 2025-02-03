@@ -2,13 +2,13 @@ package statuserror
 
 import (
 	"fmt"
-	"github.com/go-json-experiment/json"
 	"go/ast"
 	"net/http"
 	"path/filepath"
 	"reflect"
 	"strconv"
 
+	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 )
 
@@ -35,17 +35,20 @@ type Descriptor struct {
 	Code string `json:"code,omitzero"`
 	// 错误信息
 	Message string `json:"message,omitzero"`
+	// 错误详情
+	Description string `json:"description,omitzero"`
 	// 错误参数位置 query, header, path, body 等
 	Location string `json:"location,omitzero"`
 	// 错误参数 json pointer
 	Pointer jsontext.Pointer `json:"pointer,omitzero"`
 	// 引起错误的源
 	Source string `json:"source,omitzero"`
-
-	Status int           `json:"-"`
-	Errors []*Descriptor `json:"-"`
+	// 错误链
+	Errors []*Descriptor `json:"errors,omitzero"`
 
 	Extra map[string]any `json:",inline"`
+
+	Status int `json:"-"`
 }
 
 func (e *Descriptor) UnmarshalErrorResponse(statusCode int, raw []byte) error {
@@ -55,14 +58,26 @@ func (e *Descriptor) UnmarshalErrorResponse(statusCode int, raw []byte) error {
 		return nil
 	}
 
-	v, _ := strconv.ParseInt(e.Code, 10, 64)
-	if v > 0 {
-		e.Status = 0
+	if code, _ := strconv.ParseInt(e.Code, 10, 64); code > 0 {
+		e.Status = int(code)
+	}
+
+	if e.Message == "" && len(e.Errors) == 1 {
+		*e = *e.Errors[0]
 	}
 
 	if e.Extra != nil {
-		if msg, ok := e.Extra["msg"].(string); ok {
-			e.Message = msg
+		if v, ok := e.Extra["msg"].(string); ok {
+			e.Message = v
+			delete(e.Extra, "msg")
+		}
+		if v, ok := e.Extra["title"].(string); ok {
+			e.Message = v
+			delete(e.Extra, "title")
+		}
+		if v, ok := e.Extra["detail"].(string); ok {
+			e.Description = v
+			delete(e.Extra, "detail")
 		}
 	}
 

@@ -35,6 +35,10 @@ func (v *Descriptor) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{
 				"错误信息",
 			}, true
+		case "Description":
+			return []string{
+				"错误详情",
+			}, true
 		case "Location":
 			return []string{
 				"错误参数位置 query, header, path, body 等",
@@ -47,11 +51,13 @@ func (v *Descriptor) RuntimeDoc(names ...string) ([]string, bool) {
 			return []string{
 				"引起错误的源",
 			}, true
-		case "Status":
-			return []string{}, true
 		case "Errors":
-			return []string{}, true
+			return []string{
+				"错误链",
+			}, true
 		case "Extra":
+			return []string{}, true
+		case "Status":
 			return []string{}, true
 
 		}
