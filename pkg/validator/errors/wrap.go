@@ -3,10 +3,11 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/statuserror"
-	"strings"
 )
 
 func WrapLocation(err error, location string) error {

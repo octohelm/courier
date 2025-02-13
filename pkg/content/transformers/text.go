@@ -3,13 +3,14 @@ package transformers
 import (
 	"bytes"
 	"context"
+	"io"
+	"mime"
+	"reflect"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/content/internal"
 	"github.com/octohelm/courier/pkg/validator"
-	"io"
-	"mime"
-	"reflect"
 )
 
 func init() {

@@ -1,10 +1,11 @@
 package extractors
 
 import (
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"iter"
 	"slices"
 	"strings"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 func SetTitleOrDescription(metadata *jsonschema.Metadata, lines []string) {

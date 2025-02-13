@@ -1,11 +1,12 @@
 package injectablegen
 
 import (
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	"go/types"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 
 	"github.com/octohelm/gengo/pkg/gengo"
 )

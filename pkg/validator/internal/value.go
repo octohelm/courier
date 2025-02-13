@@ -31,9 +31,9 @@ type Value struct {
 	Validator Validator
 }
 
-func (va *Value) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) (err error) {
+func (va *Value) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) (err error) {
 	if va.Kind() == reflect.Pointer {
-		return (&Pointer{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Pointer{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	}
 
 	typ := va.Type()
@@ -41,7 +41,7 @@ func (va *Value) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) 
 	if reflect.PointerTo(typ).Implements(jsonUnmarshalerFromType) {
 		prefix := dec.StackPointer()
 
-		if err := va.Addr().Interface().(json.UnmarshalerFrom).UnmarshalJSONFrom(dec, options); err != nil {
+		if err := json.UnmarshalDecode(dec, va.Addr().Interface(), options); err != nil {
 			return validatorerrors.PrefixJSONPointer(err, prefix)
 		}
 
@@ -64,35 +64,35 @@ func (va *Value) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) 
 	}
 
 	if reflect.PointerTo(typ).Implements(textUnmarshalerType) {
-		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	}
 
 	if typ == jsontextValueType || typ == bytesType {
-		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	}
 
 	switch typ.Kind() {
 	case reflect.String:
-		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Bool:
-		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Float32, reflect.Float64:
-		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Primitive{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Struct:
-		return (&Struct{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Struct{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Map:
-		return (&Record{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Record{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Slice, reflect.Array:
 		if reflect.SliceOf(va.Type().Elem()).AssignableTo(bytesType) {
-			return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+			return (&Primitive{Value: va.Value, String: true, Validator: va.Validator}).UnmarshalDecode(dec, options)
 		}
-		return (&Array{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Array{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	case reflect.Interface:
-		return (&Any{Value: va.Value, Validator: va.Validator}).UnmarshalJSONFrom(dec, options)
+		return (&Any{Value: va.Value, Validator: va.Validator}).UnmarshalDecode(dec, options)
 	default:
 		return &json.SemanticError{GoType: va.Value.Type()}
 	}
@@ -104,7 +104,7 @@ type Pointer struct {
 	Validator Validator
 }
 
-func (va *Pointer) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (va *Pointer) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	if dec.PeekKind() == 'n' {
 		raw, err := dec.ReadValue()
 		if err != nil {
@@ -125,7 +125,7 @@ func (va *Pointer) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options
 
 	if va.CanAddr() {
 		rv := reflect.New(va.Type().Elem())
-		if err := (&Value{Value: rv.Elem(), Validator: va.Validator}).UnmarshalJSONFrom(dec, options); err != nil {
+		if err := (&Value{Value: rv.Elem(), Validator: va.Validator}).UnmarshalDecode(dec, options); err != nil {
 			return err
 		}
 
@@ -136,7 +136,7 @@ func (va *Pointer) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options
 	if va.IsNil() {
 		va.Set(reflect.New(va.Type().Elem()))
 	}
-	if err := (&Value{Value: va.Elem(), Validator: va.Validator}).UnmarshalJSONFrom(dec, options); err != nil {
+	if err := (&Value{Value: va.Elem(), Validator: va.Validator}).UnmarshalDecode(dec, options); err != nil {
 		return err
 	}
 	return nil
@@ -148,7 +148,7 @@ type Any struct {
 	Validator Validator
 }
 
-func (v *Any) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (v *Any) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	if dec.PeekKind() == 'n' {
 		if _, err := dec.ReadToken(); err != nil {
 			return err
@@ -172,7 +172,7 @@ type Primitive struct {
 	Validator Validator
 }
 
-func (t *Primitive) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (t *Primitive) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	tok := dec.PeekKind()
 	switch tok {
 	case '[':
@@ -250,7 +250,7 @@ type Record struct {
 	Validator Validator
 }
 
-func (va *Record) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (va *Record) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	tok, err := dec.ReadToken()
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func (va *Record) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 			// init key
 			propName.SetZero()
 			// read key
-			if keyErr := propName.UnmarshalJSONFrom(dec, options); keyErr != nil {
+			if keyErr := propName.UnmarshalDecode(dec, options); keyErr != nil {
 				if !validatorerrors.IsValidationError(keyErr) {
 					return keyErr
 				}
@@ -350,7 +350,7 @@ func (va *Record) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 			}
 
 			// read value
-			if propErr := propValue.UnmarshalJSONFrom(dec, options); propErr != nil {
+			if propErr := propValue.UnmarshalDecode(dec, options); propErr != nil {
 				if !validatorerrors.IsValidationError(propErr) {
 					return propErr
 				}
@@ -390,7 +390,7 @@ type Struct struct {
 	Validator Validator
 }
 
-func (va *Struct) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (va *Struct) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	tok, err := dec.ReadToken()
 	if err != nil {
 		return err
@@ -467,7 +467,7 @@ func (va *Struct) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 				return err
 			}
 
-			if err := (&Value{Value: sf.GetOrNewAt(va.Value), Validator: validator}).UnmarshalJSONFrom(dec, va.patchJsonOptions(sf, options)); err != nil {
+			if err := (&Value{Value: sf.GetOrNewAt(va.Value), Validator: validator}).UnmarshalDecode(dec, va.patchJsonOptions(sf, options)); err != nil {
 				if !validatorerrors.IsValidationError(err) {
 					return err
 				}
@@ -485,7 +485,7 @@ func (va *Struct) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 				return err
 			}
 
-			if err := (&Value{Value: inlineFallback.GetOrNewAt(va.Value)}).UnmarshalJSONFrom(jsontext.NewDecoder(unknown), options); err != nil {
+			if err := (&Value{Value: inlineFallback.GetOrNewAt(va.Value)}).UnmarshalDecode(jsontext.NewDecoder(unknown), options); err != nil {
 				if validatorerrors.IsValidationError(err) {
 					errs = append(errs, err)
 				}
@@ -536,7 +536,7 @@ func (va *Struct) validateRequiredOrSetDefaultIfNeeds(f *jsonflags.StructFields,
 		jsonOptions := va.patchJsonOptions(sf, options)
 
 		subDec := jsontext.NewDecoder(bytes.NewBuffer(value), jsonOptions)
-		if err := v.UnmarshalJSONFrom(subDec, jsonOptions); err != nil {
+		if err := v.UnmarshalDecode(subDec, jsonOptions); err != nil {
 			pointer := prefix
 			if pointer == "" {
 				pointer += "/"
@@ -576,7 +576,7 @@ type Array struct {
 	Validator Validator
 }
 
-func (va *Array) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) error {
+func (va *Array) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	tok, err := dec.ReadToken()
 	if err != nil {
 		return err
@@ -632,7 +632,7 @@ func (va *Array) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options) 
 				itemValue.SetZero()
 			}
 
-			if err := itemValue.UnmarshalJSONFrom(dec, options); err != nil {
+			if err := itemValue.UnmarshalDecode(dec, options); err != nil {
 				if !validatorerrors.IsValidationError(err) {
 					va.SetLen(i)
 

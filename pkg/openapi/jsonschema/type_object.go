@@ -134,7 +134,7 @@ func (p *Props) Delete(key string) (didDelete bool) {
 
 var _ json.UnmarshalerFrom = &Props{}
 
-func (props *Props) UnmarshalJSONFrom(d *jsontext.Decoder, options json.Options) error {
+func (props *Props) UnmarshalJSONFrom(d *jsontext.Decoder) error {
 	t, err := d.ReadToken()
 	if err != nil {
 		if err == io.EOF {
@@ -188,7 +188,9 @@ func (props *Props) UnmarshalJSONFrom(d *jsontext.Decoder, options json.Options)
 	return nil
 }
 
-func (p Props) MarshalJSONTo(encoder *jsontext.Encoder, options json.Options) error {
+var _ json.MarshalerTo = Props{}
+
+func (p Props) MarshalJSONTo(encoder *jsontext.Encoder) error {
 	if err := encoder.WriteToken(jsontext.BeginObject); err != nil {
 		return err
 	}
@@ -209,8 +211,6 @@ func (p Props) MarshalJSONTo(encoder *jsontext.Encoder, options json.Options) er
 
 	return nil
 }
-
-var _ json.MarshalerTo = Props{}
 
 func (t ObjectType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 	opt := printOption{}

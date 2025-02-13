@@ -2,13 +2,14 @@ package operatorgen
 
 import (
 	"fmt"
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	"go/ast"
 	"go/constant"
 	"go/types"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"

@@ -2,9 +2,10 @@ package internal
 
 import (
 	"encoding"
-	"github.com/go-json-experiment/json"
 	"io"
 	"reflect"
+
+	"github.com/go-json-experiment/json"
 )
 
 var (

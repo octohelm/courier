@@ -2,8 +2,9 @@ package transformers
 
 import (
 	"context"
-	"github.com/go-courier/logr"
 	"io"
+
+	"github.com/go-courier/logr"
 )
 
 func NewContent(contentType string) *Content {

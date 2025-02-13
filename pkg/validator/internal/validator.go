@@ -3,9 +3,10 @@ package internal
 import (
 	"cmp"
 	"fmt"
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"reflect"
 	"sync"
+
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/internal/jsonflags"

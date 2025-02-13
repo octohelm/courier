@@ -3,10 +3,11 @@ package request
 import (
 	"context"
 	"fmt"
-	contextx "github.com/octohelm/x/context"
 	"net/http"
 	"strings"
 	"sync"
+
+	contextx "github.com/octohelm/x/context"
 
 	"github.com/octohelm/courier/internal/httprequest"
 

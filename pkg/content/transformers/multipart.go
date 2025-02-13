@@ -3,9 +3,6 @@ package transformers
 import (
 	"context"
 	"errors"
-	"github.com/octohelm/courier/internal/jsonflags"
-	"github.com/octohelm/courier/pkg/content/internal"
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -13,6 +10,10 @@ import (
 	"net/textproto"
 	"reflect"
 	"strconv"
+
+	"github.com/octohelm/courier/internal/jsonflags"
+	"github.com/octohelm/courier/pkg/content/internal"
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 )
 
 func init() {

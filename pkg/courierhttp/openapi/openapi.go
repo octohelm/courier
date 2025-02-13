@@ -3,7 +3,6 @@ package openapi
 import (
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/validator"
 	"maps"
 	"net/http"
 	"reflect"
@@ -11,6 +10,8 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/octohelm/courier/pkg/validator"
 
 	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/internal/request"

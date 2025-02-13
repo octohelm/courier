@@ -1,10 +1,11 @@
 package httprouter_test
 
 import (
-	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 	"net/http"
 	"testing"
 	"time"
+
+	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 
 	testingx "github.com/octohelm/x/testing"
 

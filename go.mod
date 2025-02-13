@@ -4,13 +4,13 @@ go 1.24.0
 
 require (
 	github.com/go-courier/logr v0.3.1
-	github.com/octohelm/gengo v0.0.0-20250208093034-2a09863d11f8
-	github.com/octohelm/x v0.0.0-20250212034859-0e2c4f726784
+	github.com/octohelm/gengo v0.0.0-20250213040207-59af51fbf311
+	github.com/octohelm/x v0.0.0-20250213100717-a5d72cc790e0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/go-json-experiment/json v0.0.0-20250212230008-60a0516c2895
+	github.com/go-json-experiment/json v0.0.0-20250213060926-925ba3f173fa
 	github.com/juju/ansiterm v1.0.0
 	github.com/onsi/gomega v1.36.2
 	golang.org/x/net v0.35.0

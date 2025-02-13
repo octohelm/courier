@@ -8,11 +8,12 @@ import (
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 
+	_ "io"
+
 	_ "github.com/octohelm/courier/example/apis/org"
 	_ "github.com/octohelm/courier/example/pkg/domain/org"
 	_ "github.com/octohelm/courier/example/pkg/filter"
 	_ "github.com/octohelm/courier/pkg/statuserror"
-	_ "io"
 )
 
 // +gengo:client:openapi=http://0.0.0.0:9001/api/example

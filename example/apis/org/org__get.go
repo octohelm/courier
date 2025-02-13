@@ -2,8 +2,9 @@ package org
 
 import (
 	"context"
-	"github.com/octohelm/courier/example/pkg/domain/org"
 	"time"
+
+	"github.com/octohelm/courier/example/pkg/domain/org"
 
 	"github.com/octohelm/courier/example/apis/org/operator"
 	"github.com/octohelm/courier/pkg/courier"

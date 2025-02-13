@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/octohelm/courier/pkg/courierhttp/transport"
-	testingx "github.com/octohelm/x/testing"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+
+	"github.com/octohelm/courier/pkg/courierhttp/transport"
+	testingx "github.com/octohelm/x/testing"
 )
 
 func ShouldReturnWhenRequest(req any, expect string) testingx.Matcher[http.Handler] {
