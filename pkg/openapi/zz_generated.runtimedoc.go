@@ -29,7 +29,6 @@ func (v *CallbacksObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Callbacks":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -42,7 +41,6 @@ func (v *ComponentsObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Schemas":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -75,7 +73,6 @@ func (v *ContentObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Content":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -113,7 +110,6 @@ func (v *HeadersObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Headers":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -316,7 +312,6 @@ func (v *PathItemObject) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.OpenAPI, "", names...); ok {
 			return doc, ok
@@ -353,7 +348,6 @@ func (v *ResponseObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Description":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.HeadersObject, "", names...); ok {
 			return doc, ok
@@ -375,7 +369,6 @@ func (v *ResponsesObject) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Responses":
 			return []string{}, true
-
 		}
 
 		return nil, false

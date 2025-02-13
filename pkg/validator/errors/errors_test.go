@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ExampleErrMissingRequiredField() {
+func ExampleErrMissingRequired() {
 	fmt.Println(&ErrMissingRequired{})
 	// Output:
 	// missing required field
@@ -20,7 +20,7 @@ func ExampleErrNotMatch() {
 	// value should match /\d+/, but got 1
 }
 
-func ExampleMultipleOfError() {
+func ExampleErrMultipleOf() {
 	fmt.Println(&ErrMultipleOf{
 		Topic:      "value",
 		Current:    "11",

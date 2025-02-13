@@ -424,7 +424,7 @@ func (va *Struct) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 			unknown = new(bytes.Buffer)
 			unknownEnc = jsontext.NewEncoder(unknown)
 
-			if err := unknownEnc.WriteToken(jsontext.ObjectStart); err != nil {
+			if err := unknownEnc.WriteToken(jsontext.BeginObject); err != nil {
 				return err
 			}
 		}
@@ -481,7 +481,7 @@ func (va *Struct) UnmarshalJSONFrom(dec *jsontext.Decoder, options json.Options)
 		}
 
 		if hasInlineFallback {
-			if err := unknownEnc.WriteToken(jsontext.ObjectEnd); err != nil {
+			if err := unknownEnc.WriteToken(jsontext.EndObject); err != nil {
 				return err
 			}
 

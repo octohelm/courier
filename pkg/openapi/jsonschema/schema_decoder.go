@@ -79,7 +79,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 	unprocessed := bytes.NewBuffer(nil)
 	unprocessedEnc := jsontext.NewEncoder(unprocessed)
 
-	_ = unprocessedEnc.WriteToken(jsontext.ObjectStart)
+	_ = unprocessedEnc.WriteToken(jsontext.BeginObject)
 
 	var schema any
 	var additionalSchemas []Schema
@@ -192,7 +192,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 		_ = json.MarshalEncode(unprocessedEnc, v)
 	}
 
-	// read the ObjectEnd to mark decoder finished
+	// read the EndObject to mark decoder finished
 	t, err := decoder.ReadToken()
 	if err != nil {
 		return err

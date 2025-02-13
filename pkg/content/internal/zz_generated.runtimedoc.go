@@ -27,7 +27,6 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 func (v *ParamValue) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 
 		return nil, false
@@ -38,7 +37,6 @@ func (v *ParamValue) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *Request) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.ParamValue, "", names...); ok {
 			return doc, ok

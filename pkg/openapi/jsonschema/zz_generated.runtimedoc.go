@@ -33,7 +33,6 @@ func (*AnchorString) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *AnyType) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
@@ -81,7 +80,6 @@ func (v *BooleanType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
@@ -147,7 +145,6 @@ func (v *EnumType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Enum":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
@@ -166,7 +163,6 @@ func (v *Ext) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Extensions":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -179,7 +175,6 @@ func (v *IntersectionType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "AllOf":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
@@ -226,7 +221,6 @@ func (v *NullType) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Type":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.Core, "", names...); ok {
 			return doc, ok
@@ -307,7 +301,6 @@ func (v *ObjectType) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *Payload) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.Schema, "", names...); ok {
 			return doc, ok

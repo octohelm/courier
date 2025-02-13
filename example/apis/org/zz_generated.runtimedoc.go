@@ -29,7 +29,6 @@ func (v *Cookie) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Token":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -40,7 +39,6 @@ func (v *Cookie) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.Info, "", names...); ok {
 			return doc, ok
@@ -75,7 +73,6 @@ func (v *DeleteOrg) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "OrgName":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -90,7 +87,6 @@ func (v *Detail) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "CreatedAt":
 			return []string{}, true
-
 		}
 		if doc, ok := runtimeDoc(&v.Info, "", names...); ok {
 			return doc, ok
@@ -106,7 +102,6 @@ func (v *ErrNotFound) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "OrgName":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -119,7 +114,6 @@ func (v *GetOrg) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "OrgName":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -159,7 +153,6 @@ func (v *ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "ID":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -172,7 +165,6 @@ func (v *ListOrg) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 
 		return nil, false

@@ -27,7 +27,6 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 func (v *Content) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 		if doc, ok := runtimeDoc(&v.ReadCloser, "", names...); ok {
 			return doc, ok

@@ -33,7 +33,7 @@ func UnmarshalDecode(dec *jsontext.Decoder, ut Type) error {
 
 		buf := bytes.NewBuffer(nil)
 		enc := jsontext.NewEncoder(buf)
-		if err := enc.WriteToken(jsontext.ObjectStart); err != nil {
+		if err := enc.WriteToken(jsontext.BeginObject); err != nil {
 			return err
 		}
 
@@ -68,7 +68,7 @@ func UnmarshalDecode(dec *jsontext.Decoder, ut Type) error {
 			return err
 		}
 
-		if err := enc.WriteToken(jsontext.ObjectEnd); err != nil {
+		if err := enc.WriteToken(jsontext.EndObject); err != nil {
 			return err
 		}
 

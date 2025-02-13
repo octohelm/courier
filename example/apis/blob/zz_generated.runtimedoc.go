@@ -29,7 +29,6 @@ func (v *GetFile) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Path":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -42,7 +41,6 @@ func (v *UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Blob":
 			return []string{}, true
-
 		}
 
 		return nil, false

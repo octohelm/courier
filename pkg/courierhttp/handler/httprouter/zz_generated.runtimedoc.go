@@ -27,7 +27,6 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 func (v *OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 
 		return nil, false
@@ -38,7 +37,6 @@ func (v *OpenAPI) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *OpenAPIView) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-
 		}
 
 		return nil, false

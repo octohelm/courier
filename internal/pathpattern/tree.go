@@ -114,17 +114,17 @@ func (g *group[N]) add(method string, segs Segments, node N) {
 func (g *group[N]) PrintTo(w io.Writer, level int) {
 	if g.seg != nil {
 		if level > 0 {
-			_, _ = fmt.Fprintf(w, strings.Repeat("  ", level))
+			_, _ = fmt.Fprint(w, strings.Repeat("  ", level))
 		}
 
-		_, _ = fmt.Fprintf(w, g.seg.String())
+		_, _ = fmt.Fprint(w, g.seg.String())
 	}
 
 	if g.nodes.Len() > 0 {
 		for node := range g.nodes.Values() {
 			_, _ = fmt.Fprintf(w, "\n")
 			if level > 0 {
-				_, _ = fmt.Fprintf(w, strings.Repeat("  ", level+1))
+				_, _ = fmt.Fprint(w, strings.Repeat("  ", level+1))
 			}
 			_, _ = fmt.Fprintf(w, " => %s %s", (*node).Method(), (*node).PathSegments())
 		}

@@ -122,20 +122,20 @@ func (g *group) String() string {
 
 	d := g.depth()
 
-	_, _ = fmt.Fprintf(b, "\n")
-	_, _ = fmt.Fprintf(b, strings.Repeat("  ", d))
-	_, _ = fmt.Fprintf(b, g.part.String())
+	_, _ = fmt.Fprint(b, "\n")
+	_, _ = fmt.Fprint(b, strings.Repeat("  ", d))
+	_, _ = fmt.Fprint(b, g.part.String())
 
 	for _, c := range g.children {
-		_, _ = fmt.Fprintf(b, c.String())
+		_, _ = fmt.Fprint(b, c.String())
 	}
 
 	for _, h := range g.handlers {
-		_, _ = fmt.Fprintf(b, "\n")
-		_, _ = fmt.Fprintf(b, strings.Repeat("  ", d+1))
-		_, _ = fmt.Fprintf(b, h.Method())
-		_, _ = fmt.Fprintf(b, " ")
-		_, _ = fmt.Fprintf(b, h.PathSegments().String())
+		_, _ = fmt.Fprint(b, "\n")
+		_, _ = fmt.Fprint(b, strings.Repeat("  ", d+1))
+		_, _ = fmt.Fprint(b, h.Method())
+		_, _ = fmt.Fprint(b, " ")
+		_, _ = fmt.Fprint(b, h.PathSegments().String())
 	}
 
 	return b.String()

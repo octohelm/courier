@@ -26,5 +26,4 @@ func (in *Metadata) DeepCopyInto(out *Metadata) {
 	}
 	out.Deprecated = in.Deprecated
 	in.Ext.DeepCopyInto(&out.Ext)
-
 }

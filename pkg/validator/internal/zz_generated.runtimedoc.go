@@ -29,7 +29,6 @@ func (v *Any) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -42,7 +41,6 @@ func (v *Array) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -55,7 +53,6 @@ func (v *Pointer) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -83,7 +80,6 @@ func (v *Record) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -96,7 +92,6 @@ func (v *Struct) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
@@ -130,7 +125,6 @@ func (v *Value) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Validator":
 			return []string{}, true
-
 		}
 
 		return nil, false
