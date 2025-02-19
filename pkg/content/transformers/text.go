@@ -17,8 +17,7 @@ func init() {
 	internal.Register(&textTransformerProvider{})
 }
 
-type textTransformerProvider struct {
-}
+type textTransformerProvider struct{}
 
 func (p *textTransformerProvider) Names() []string {
 	return []string{

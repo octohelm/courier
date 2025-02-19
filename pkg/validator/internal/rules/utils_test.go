@@ -48,5 +48,4 @@ func TestSlashUnslash(t *testing.T) {
 			NewWithT(t).Expect(err).NotTo(BeNil())
 		})
 	}
-
 }

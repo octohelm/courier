@@ -16,8 +16,7 @@ func init() {
 	internal.Register(&urlencodedTransformerProvider{})
 }
 
-type urlencodedTransformerProvider struct {
-}
+type urlencodedTransformerProvider struct{}
 
 func (p *urlencodedTransformerProvider) Names() []string {
 	return []string{

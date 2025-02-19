@@ -2,9 +2,8 @@ package httprouter
 
 import (
 	"context"
-	"net/http"
-
 	"errors"
+	"net/http"
 
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"

@@ -43,13 +43,11 @@ func (g *group) childSegment() iter.Seq[string] {
 						}
 					}
 				}
-
 			}
 		}
 	}
 
 	return func(yield func(string) bool) {
-
 	}
 }
 

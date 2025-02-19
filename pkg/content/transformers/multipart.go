@@ -20,8 +20,7 @@ func init() {
 	internal.Register(&multipartTransformerProvider{})
 }
 
-type multipartTransformerProvider struct {
-}
+type multipartTransformerProvider struct{}
 
 func (p *multipartTransformerProvider) Names() []string {
 	return []string{

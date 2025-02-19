@@ -15,12 +15,10 @@ type IncomingTransport interface {
 }
 
 func NewIncomingTransport(ctx context.Context, v any) (IncomingTransport, error) {
-
 	return &incomingTransport{}, nil
 }
 
-type incomingTransport struct {
-}
+type incomingTransport struct{}
 
 func (t *incomingTransport) UnmarshalOperator(ctx context.Context, ireq courierhttp.RequestInfo, op any) error {
 	return content.UnmarshalRequestInfo(ireq, op)

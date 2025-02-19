@@ -59,7 +59,6 @@ func TestSchemaUnmarshal(t *testing.T) {
 				var schema Schema
 
 				err := json.Unmarshal([]byte(c.data), &schema, json.WithUnmarshalers(schemaUnmarshalers))
-
 				if err != nil {
 					fmt.Printf("#%v\n", err)
 				}

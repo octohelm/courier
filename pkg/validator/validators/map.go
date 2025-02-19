@@ -14,8 +14,7 @@ func init() {
 	internal.Register(&mapValidatorProvider{})
 }
 
-type mapValidatorProvider struct {
-}
+type mapValidatorProvider struct{}
 
 func (mapValidatorProvider) Names() []string {
 	return []string{"map", "record"}

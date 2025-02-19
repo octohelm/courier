@@ -17,8 +17,7 @@ func init() {
 	internal.Register(&octecTransformerProvider{})
 }
 
-type octecTransformerProvider struct {
-}
+type octecTransformerProvider struct{}
 
 func (p *octecTransformerProvider) Names() []string {
 	return []string{

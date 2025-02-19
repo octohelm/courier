@@ -39,5 +39,4 @@ func DoWith[Data any, Op interface{ ResponseData() *Data }](ctx context.Context,
 	return resp, err
 }
 
-type NoContent struct {
-}
+type NoContent struct{}

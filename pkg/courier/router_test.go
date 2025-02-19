@@ -9,9 +9,9 @@ import (
 )
 
 func ExampleNewRouter() {
-	var RouterRoot = NewRouter(&EmptyOperator{})
-	var RouterA = NewRouter(&OperatorA{})
-	var RouterB = NewRouter(&OperatorB{})
+	RouterRoot := NewRouter(&EmptyOperator{})
+	RouterA := NewRouter(&OperatorA{})
+	RouterB := NewRouter(&OperatorB{})
 
 	RouterRoot.Register(RouterA)
 	RouterRoot.Register(RouterB)
@@ -22,9 +22,9 @@ func ExampleNewRouter() {
 
 	fmt.Println(RouterRoot.Routes())
 	// Output:
-	//courier.EmptyOperator |> courier.OperatorA |> courier.OperatorA1?allowedRoles=ADMIN&allowedRoles=OWNER
-	//courier.EmptyOperator |> courier.OperatorA |> courier.OperatorA2
-	//courier.EmptyOperator |> courier.OperatorB |> courier.OperatorB1 |> courier.OperatorB2
+	// courier.EmptyOperator |> courier.OperatorA |> courier.OperatorA1?allowedRoles=ADMIN&allowedRoles=OWNER
+	// courier.EmptyOperator |> courier.OperatorA |> courier.OperatorA2
+	// courier.EmptyOperator |> courier.OperatorB |> courier.OperatorB1 |> courier.OperatorB2
 }
 
 type OperatorA struct{}

@@ -4,8 +4,7 @@ import (
 	"fmt"
 )
 
-type FakeTransport struct {
-}
+type FakeTransport struct{}
 
 func (FakeTransport) UnmarshalOperator(op Operator) error {
 	return nil
@@ -16,7 +15,7 @@ func (FakeTransport) Serve(router Router) error {
 }
 
 func ExampleRun() {
-	var RouterRoot = NewRouter(&EmptyOperator{})
+	RouterRoot := NewRouter(&EmptyOperator{})
 
 	Run(RouterRoot, &FakeTransport{})
 	// Output:

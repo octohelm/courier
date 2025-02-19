@@ -4,7 +4,22 @@ DON'T EDIT THIS FILE
 */
 package client
 
-import _ "embed"
+func (v *Client) RuntimeDoc(names ...string) ([]string, bool) {
+	if len(names) > 0 {
+		switch names[0] {
+		case "Endpoint":
+			return []string{}, true
+		case "NewError":
+			return []string{}, true
+		case "HttpTransports":
+			return []string{}, true
+
+		}
+
+		return nil, false
+	}
+	return []string{}, true
+}
 
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
@@ -22,21 +37,4 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 		}
 	}
 	return nil, false
-}
-
-func (v *Client) RuntimeDoc(names ...string) ([]string, bool) {
-	if len(names) > 0 {
-		switch names[0] {
-		case "Endpoint":
-			return []string{}, true
-		case "NewError":
-			return []string{}, true
-		case "HttpTransports":
-			return []string{}, true
-
-		}
-
-		return nil, false
-	}
-	return []string{}, true
 }

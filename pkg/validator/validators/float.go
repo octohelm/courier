@@ -18,8 +18,7 @@ func init() {
 	internal.Register(&floatValidatorProvider{})
 }
 
-type floatValidatorProvider struct {
-}
+type floatValidatorProvider struct{}
 
 func (c *floatValidatorProvider) Validator(rule *rules.Rule) (internal.Validator, error) {
 	validator := &FloatValidator{}

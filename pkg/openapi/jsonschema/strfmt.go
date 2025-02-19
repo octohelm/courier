@@ -1,11 +1,10 @@
 package jsonschema
 
 import (
+	"errors"
 	"net/url"
 	"regexp"
 	"strings"
-
-	"errors"
 )
 
 // openapi:strfmt uri
@@ -83,8 +82,10 @@ func (u URIReferenceString) MarshalText() ([]byte, error) {
 // openapi:strfmt anchor
 type AnchorString string
 
-var anchorPattern = "^[A-Za-z_][-A-Za-z0-9._]*$"
-var anchorPatternRe = regexp.MustCompile(anchorPattern)
+var (
+	anchorPattern   = "^[A-Za-z_][-A-Za-z0-9._]*$"
+	anchorPatternRe = regexp.MustCompile(anchorPattern)
+)
 
 func (s *AnchorString) UmarshalText(text []byte) error {
 	if anchorPatternRe.Match(text) {

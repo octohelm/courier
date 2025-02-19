@@ -94,7 +94,6 @@ Hstring: string
 
 		err = incomeTransport.UnmarshalOperator(context.Background(), httprequest.From(request), req2)
 		testingx.Expect(t, err, testingx.BeNil[error]())
-
 	})
 
 	t.Run("Should unmarshal header values from query values with prefix `x-param-header-`", func(t *testing.T) {

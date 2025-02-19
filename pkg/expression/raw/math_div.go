@@ -1,9 +1,8 @@
 package raw
 
 import (
-	"fmt"
-
 	"errors"
+	"fmt"
 )
 
 // Div

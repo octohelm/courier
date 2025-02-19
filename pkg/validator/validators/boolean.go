@@ -11,8 +11,7 @@ func init() {
 	internal.Register(&booleanValidatorProvider{})
 }
 
-type booleanValidatorProvider struct {
-}
+type booleanValidatorProvider struct{}
 
 func (booleanValidatorProvider) Names() []string {
 	return []string{
@@ -24,8 +23,7 @@ func (c *booleanValidatorProvider) Validator(rule *rules.Rule) (internal.Validat
 	return &booleanValidator{}, nil
 }
 
-type booleanValidator struct {
-}
+type booleanValidator struct{}
 
 func (validator *booleanValidator) String() string {
 	return "@bool"

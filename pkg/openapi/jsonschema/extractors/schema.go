@@ -386,7 +386,6 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 				}
 			}
 		}
-
 	}
 
 	propSchema := SchemaFromType(ctx, sf.Type, opt.WithDecl(false))

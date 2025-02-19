@@ -16,8 +16,7 @@ func init() {
 	internal.Register(&jsonTransformerProvider{})
 }
 
-type jsonTransformerProvider struct {
-}
+type jsonTransformerProvider struct{}
 
 func (p *jsonTransformerProvider) Names() []string {
 	return []string{

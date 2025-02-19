@@ -159,120 +159,118 @@ type fixture struct {
 	ret any
 }
 
-var (
-	cases = []struct {
-		summary  string
-		ex       Expression
-		fixtures []fixture
-	}{
-		{
-			summary: "str len",
-			ex:      Pipe(Len(), Eq(5)),
-			fixtures: []fixture{
-				{"12345", true},
-				{"123", false},
-			},
+var cases = []struct {
+	summary  string
+	ex       Expression
+	fixtures []fixture
+}{
+	{
+		summary: "str len",
+		ex:      Pipe(Len(), Eq(5)),
+		fixtures: []fixture{
+			{"12345", true},
+			{"123", false},
 		},
-		{
-			summary: "charCount",
-			ex:      Pipe(CharCount(), Eq(1)),
-			fixtures: []fixture{
-				{"😀", true},
-				{"😀😀", false},
-			},
+	},
+	{
+		summary: "charCount",
+		ex:      Pipe(CharCount(), Eq(1)),
+		fixtures: []fixture{
+			{"😀", true},
+			{"😀😀", false},
 		},
-		{
-			summary: "eq",
-			ex:      Eq(1.0),
-			fixtures: []fixture{
-				{1, true},
-				{2, false},
-			},
+	},
+	{
+		summary: "eq",
+		ex:      Eq(1.0),
+		fixtures: []fixture{
+			{1, true},
+			{2, false},
 		},
-		{
-			summary: "lt",
-			ex:      Lt(10),
-			fixtures: []fixture{
-				{1, true},
-				{10, false},
-				{11, false},
-			},
+	},
+	{
+		summary: "lt",
+		ex:      Lt(10),
+		fixtures: []fixture{
+			{1, true},
+			{10, false},
+			{11, false},
 		},
-		{
-			summary: "lte",
-			ex:      Lte(10),
-			fixtures: []fixture{
-				{1, true},
-				{10, true},
-				{11, false},
-			},
+	},
+	{
+		summary: "lte",
+		ex:      Lte(10),
+		fixtures: []fixture{
+			{1, true},
+			{10, true},
+			{11, false},
 		},
-		{
-			summary: "gt",
-			ex:      Gt(10),
-			fixtures: []fixture{
-				{11, true},
-				{10, false},
-				{1, false},
-			},
+	},
+	{
+		summary: "gt",
+		ex:      Gt(10),
+		fixtures: []fixture{
+			{11, true},
+			{10, false},
+			{1, false},
 		},
-		{
-			summary: "gte",
-			ex:      Gte(10),
-			fixtures: []fixture{
-				{11, true},
-				{10, true},
-				{1, false},
-			},
+	},
+	{
+		summary: "gte",
+		ex:      Gte(10),
+		fixtures: []fixture{
+			{11, true},
+			{10, true},
+			{1, false},
 		},
-		{
-			summary: "match",
-			ex:      Match("[a-z]+"),
-			fixtures: []fixture{
-				{"abc", true},
-				{"ABC", false},
-			},
+	},
+	{
+		summary: "match",
+		ex:      Match("[a-z]+"),
+		fixtures: []fixture{
+			{"abc", true},
+			{"ABC", false},
 		},
-		{
-			summary: "allOf",
-			ex:      AllOf(Gt(3), Lt(5)),
-			fixtures: []fixture{
-				{3, false},
-				{5, false},
-				{4, true},
-			},
+	},
+	{
+		summary: "allOf",
+		ex:      AllOf(Gt(3), Lt(5)),
+		fixtures: []fixture{
+			{3, false},
+			{5, false},
+			{4, true},
 		},
-		{
-			summary: "oneOf as or",
-			ex: OneOf(
-				Lte(3),
-				Gte(5),
-			),
-			fixtures: []fixture{
-				{4, false},
-				{5, true},
-				{3, true},
-			},
+	},
+	{
+		summary: "oneOf as or",
+		ex: OneOf(
+			Lte(3),
+			Gte(5),
+		),
+		fixtures: []fixture{
+			{4, false},
+			{5, true},
+			{3, true},
 		},
-		{
-			summary: "not",
-			ex:      Not(Lte(10)),
-			fixtures: []fixture{
-				{11, true},
-				{10, false},
-				{1, false},
-			},
+	},
+	{
+		summary: "not",
+		ex:      Not(Lte(10)),
+		fixtures: []fixture{
+			{11, true},
+			{10, false},
+			{1, false},
 		},
-		{
-			summary: "oneOf as enum",
-			ex:      OneOf(1, 3, 5),
-			fixtures: []fixture{
-				{4, false},
-				{3, true},
-			},
+	},
+	{
+		summary: "oneOf as enum",
+		ex:      OneOf(1, 3, 5),
+		fixtures: []fixture{
+			{4, false},
+			{3, true},
 		},
-	}
-)
+	},
+}
 
 func TestExpressions(t *testing.T) {
 	for i := range cases {

@@ -2,9 +2,8 @@ package org
 
 import (
 	"bytes"
-	"fmt"
-
 	"errors"
+	"fmt"
 )
 
 type Type int
@@ -24,6 +23,7 @@ func (Type) EnumValues() []any {
 		TYPE__COMPANY,
 	}
 }
+
 func (v Type) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
 }

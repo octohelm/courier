@@ -14,8 +14,7 @@ func init() {
 	internal.Register(&sliceValidatorProvider{})
 }
 
-type sliceValidatorProvider struct {
-}
+type sliceValidatorProvider struct{}
 
 func (sliceValidatorProvider) Names() []string {
 	return []string{"slice", "array"}

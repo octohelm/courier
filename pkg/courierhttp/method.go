@@ -2,8 +2,7 @@ package courierhttp
 
 import "net/http"
 
-type Method struct {
-}
+type Method struct{}
 
 type MethodGet struct{}
 

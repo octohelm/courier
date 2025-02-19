@@ -9,11 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
-
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
 	typex "github.com/octohelm/x/types"
 )
@@ -22,8 +21,7 @@ func init() {
 	gengo.Register(&operatorGen{})
 }
 
-type operatorGen struct {
-}
+type operatorGen struct{}
 
 func (g *operatorGen) Name() string {
 	return "operator"
@@ -128,7 +126,6 @@ func (*@Type) ResponseData() *@courierNoContent {
 			"Type":             snippet.ID(named.Obj()),
 			"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 		})
-
 	} else if types.IsInterface(tpe) && !strings.Contains(tpe.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
 		c.Logger().Warn(fmt.Errorf("%s return interface %s will be untyped jsonschema", named, tpe))
 	} else {

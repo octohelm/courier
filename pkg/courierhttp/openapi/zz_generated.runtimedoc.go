@@ -4,7 +4,17 @@ DON'T EDIT THIS FILE
 */
 package openapi
 
-import _ "embed"
+func (*BuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
+
+func (*BuildOptionFunc) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
+
+func (*PkgNamingPrefix) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
@@ -22,16 +32,4 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 		}
 	}
 	return nil, false
-}
-
-func (*BuildFunc) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
-
-func (*BuildOptionFunc) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
-
-func (*PkgNamingPrefix) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
 }

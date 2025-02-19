@@ -1,14 +1,15 @@
+//go:generate go tool gen .
 package example
 
 import (
 	"context"
 
-	contextx "github.com/octohelm/x/context"
-
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp/client"
+	contextx "github.com/octohelm/x/context"
 
 	_ "io"
+	_ "time"
 
 	_ "github.com/octohelm/courier/example/apis/org"
 	_ "github.com/octohelm/courier/example/pkg/domain/org"

@@ -420,7 +420,6 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 				Type: field.Type,
 				Rule: field.Tag.Get("validate"),
 			})
-
 			if err != nil {
 				panic(err)
 			}

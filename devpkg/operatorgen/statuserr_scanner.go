@@ -179,9 +179,7 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 	return false
 }
 
-var (
-	rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.WithStatusCode)(nil)).Elem())
-)
+var rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.WithStatusCode)(nil)).Elem())
 
 func isErrWithStatusCodeInterface(named *types.Named) bool {
 	if named != nil {

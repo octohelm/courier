@@ -47,7 +47,6 @@ func (p *ParamValue) AddrValues(sf *jsonflags.StructField, n int) iter.Seq2[int,
 	if p.CanMultiple(sf) {
 		if n == 0 {
 			return func(yield func(int, reflect.Value) bool) {
-
 			}
 		}
 

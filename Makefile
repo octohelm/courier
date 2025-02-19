@@ -8,13 +8,13 @@ test.race:
 	CGO_ENABLED=1 go test -v -race ./...
 
 fmt:
-	goimports -l -w .
+	go tool gofumpt -l -w .
 
 dep:
 	go get -u ./...
 
 gen:
-	go run ./tool/internal/cmd/gen
+	go generate ./...
 
 serve:
-	go run ./example/cmd/example
+	go tool example

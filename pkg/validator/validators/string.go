@@ -16,8 +16,7 @@ func init() {
 	internal.Register(&stringValidatorProvider{})
 }
 
-type stringValidatorProvider struct {
-}
+type stringValidatorProvider struct{}
 
 func (stringValidatorProvider) Names() []string {
 	return []string{

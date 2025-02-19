@@ -69,7 +69,6 @@ func (p *printer) PrintDoc(desc string) {
 			p.Return()
 		}
 	}
-
 }
 
 func (p *printer) printIndent() {

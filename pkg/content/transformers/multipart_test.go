@@ -85,8 +85,10 @@ text
 	testingx.Expect(t, op2.Body, testingx.Equal(op.Body))
 }
 
-var _ io.ReadCloser = File{}
-var _ internal.ReadCloserFrom = &File{}
+var (
+	_ io.ReadCloser           = File{}
+	_ internal.ReadCloserFrom = &File{}
+)
 
 type File struct {
 	Name string

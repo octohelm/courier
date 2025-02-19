@@ -2,16 +2,17 @@ package jsonschema
 
 import (
 	"bytes"
-	"fmt"
-
 	"errors"
+	"fmt"
 
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 )
 
-var ErrInvalidJSONSchemaObject = errors.New("invalid json schema object")
-var ErrInvalidJSONSchemaType = errors.New("invalid json schema type")
+var (
+	ErrInvalidJSONSchemaObject = errors.New("invalid json schema object")
+	ErrInvalidJSONSchemaType   = errors.New("invalid json schema type")
+)
 
 var schemaUnmarshalers = json.UnmarshalFromFunc[*Schema](func(decoder *jsontext.Decoder, schema *Schema) error {
 	return (&schemaDecoder{schema: schema}).UnmarshalJSONFrom(decoder)
@@ -224,7 +225,6 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 				schema = s
 			}
 		}
-
 	}
 
 	if len(additionalSchemas) > 0 {

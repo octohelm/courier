@@ -4,7 +4,13 @@ DON'T EDIT THIS FILE
 */
 package pathpattern
 
-import _ "embed"
+func (*Segments) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
+
+func (*Values) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
@@ -22,12 +28,4 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 		}
 	}
 	return nil, false
-}
-
-func (*Segments) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
-}
-
-func (*Values) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
 }

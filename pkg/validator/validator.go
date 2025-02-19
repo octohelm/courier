@@ -7,8 +7,10 @@ import (
 	_ "github.com/octohelm/courier/pkg/validator/validators"
 )
 
-type Creator = internal.ValidatorProvider
-type Option = internal.ValidatorOption
+type (
+	Creator = internal.ValidatorProvider
+	Option  = internal.ValidatorOption
+)
 
 type Validator = internal.Validator
 

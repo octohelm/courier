@@ -3,13 +3,12 @@ package expression
 import (
 	"context"
 	"encoding"
+	"errors"
 	"fmt"
 	"go/ast"
 	"reflect"
 	"strconv"
 	"strings"
-
-	"errors"
 
 	"github.com/octohelm/courier/pkg/expression/raw"
 )
@@ -128,8 +127,10 @@ func stringifyExpression(name string, args []any) string {
 	return b.String()
 }
 
-var tpeTextUnmarshalInterface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-var tpeRawValue = reflect.TypeOf((*raw.Value)(nil)).Elem()
+var (
+	tpeTextUnmarshalInterface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	tpeRawValue               = reflect.TypeOf((*raw.Value)(nil)).Elem()
+)
 
 func newEx(expr Expr) *exprCreator {
 	tpe := reflect.TypeOf(expr).Elem()

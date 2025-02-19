@@ -123,7 +123,6 @@ func (ss Segments) Chunk() iter.Seq[Segments] {
 				return
 			}
 		}
-
 	}
 }
 

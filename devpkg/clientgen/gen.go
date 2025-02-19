@@ -106,7 +106,6 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 					return err
 				}
 			}
-
 		}
 	}
 
@@ -172,7 +171,7 @@ type @Operation'Parameters struct {
 		"ResponseData": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 			if hasResponse {
 				if !yield(snippet.T(`
-func (r *@Operation) ResponseData() (*@Operation'Response) {
+func (@Operation) ResponseData() (*@Operation'Response) {
 	return new(@Operation'Response)
 }
 `, snippet.Args{
@@ -185,7 +184,7 @@ func (r *@Operation) ResponseData() (*@Operation'Response) {
 			}
 
 			if !yield(snippet.T(`
-func (r *@Operation) ResponseData() (*@courierNoContent) {
+func (@Operation) ResponseData() (*@courierNoContent) {
 	return new(@courierNoContent)
 }
 
@@ -259,7 +258,6 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 					if !yield(snippet.T(`
 @Type `+"`"+`in:"body" mime:@mime`+"`"+`
 `, snippet.Args{
-
 						"mime": snippet.Value("application/octet-stream"),
 						"Type": snippet.ID("io.ReadCloser"),
 					})) {
@@ -271,7 +269,6 @@ func (r *@Operation) ResponseData() (*@courierNoContent) {
 				if !yield(snippet.T(`
 @FieldName @Type `+"`"+`in:"body" mime:@mime`+"`"+`
 `, snippet.Args{
-
 					"mime": snippet.Value(contentType),
 					"Type": g.typeOfSchema(c, mt.Schema),
 					"FieldName": func() snippet.Snippet {
@@ -344,7 +341,6 @@ type @Type = @TypeRef
 type @Type = @TypeDef
 
 `, snippet.Args{
-
 			"Type":    snippet.ID(name),
 			"TypeDef": t.Decl,
 		})

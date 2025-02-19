@@ -18,8 +18,7 @@ type ValidationError interface {
 	ValidationError()
 }
 
-type validationError struct {
-}
+type validationError struct{}
 
 func (validationError) ValidationError() {
 }

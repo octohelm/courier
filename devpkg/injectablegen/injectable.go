@@ -99,7 +99,8 @@ func (g *injectableGen) GenerateAliasType(c gengo.Context, t *types.Alias) error
 func (g *injectableGen) genAsProvider(c gengo.Context, t interface {
 	Obj() *types.TypeName
 	Underlying() types.Type
-}, impl string, forAlias bool) error {
+}, impl string, forAlias bool,
+) error {
 	switch x := t.Underlying().(type) {
 	case *types.Interface:
 		c.RenderT(`

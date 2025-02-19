@@ -90,5 +90,4 @@ missing required field at /PtrInt
 missing required field at /PtrFloat
 missing required field at /PtrUint
 `)))
-
 }

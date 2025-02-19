@@ -2,9 +2,16 @@ module github.com/octohelm/courier
 
 go 1.24.0
 
+tool github.com/octohelm/courier/example/cmd/example
+
+tool (
+	github.com/octohelm/courier/tool/internal/cmd/gen
+	mvdan.cc/gofumpt
+)
+
 require (
-	github.com/go-courier/logr v0.3.1
-	github.com/octohelm/gengo v0.0.0-20250213040207-59af51fbf311
+	github.com/go-courier/logr v0.3.2
+	github.com/octohelm/gengo v0.0.0-20250219103331-fc799ce3110a
 	github.com/octohelm/x v0.0.0-20250213100717-a5d72cc790e0
 )
 

@@ -4,7 +4,9 @@ DON'T EDIT THIS FILE
 */
 package org
 
-import _ "embed"
+func (*Type) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
 
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
@@ -22,8 +24,4 @@ func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 		}
 	}
 	return nil, false
-}
-
-func (*Type) RuntimeDoc(names ...string) ([]string, bool) {
-	return []string{}, true
 }

@@ -40,7 +40,6 @@ func (f *StructField) GetOrNewAt(v reflect.Value) reflect.Value {
 	}
 
 	return v
-
 }
 
 type StructFields struct {

@@ -241,7 +241,6 @@ func (t *Primitive) unmarshal(value jsontext.Value, stackPointer jsontext.Pointe
 		return serr
 	}
 	return nil
-
 }
 
 type Record struct {

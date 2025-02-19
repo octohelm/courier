@@ -6,57 +6,14 @@ package example
 
 import (
 	io "io"
+	time "time"
 
-	apisorg "github.com/octohelm/courier/example/apis/org"
-	org "github.com/octohelm/courier/example/pkg/domain/org"
+	org "github.com/octohelm/courier/example/apis/org"
+	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 	filter "github.com/octohelm/courier/example/pkg/filter"
 	courier "github.com/octohelm/courier/pkg/courier"
 	courierhttp "github.com/octohelm/courier/pkg/courierhttp"
 )
-
-type GetStoreBlob struct {
-	courierhttp.MethodGet `path:"/api/example/v0/store/{scope}/blobs/{digest}"`
-
-	GetStoreBlobParameters
-}
-
-type GetStoreBlobParameters struct {
-	Scope string `name:"scope" in:"path"`
-
-	Digest string `name:"digest" in:"path"`
-}
-
-func (r *GetStoreBlob) ResponseData() *GetStoreBlobResponse {
-	return new(GetStoreBlobResponse)
-}
-
-type CreateOrg struct {
-	courierhttp.MethodPost `path:"/api/example/v0/orgs"`
-
-	CreateOrgParameters
-}
-
-type CreateOrgParameters struct {
-	OrgInfo `in:"body" mime:"application/json"`
-}
-
-func (r *CreateOrg) ResponseData() *courier.NoContent {
-	return new(courier.NoContent)
-}
-
-type ListOrg struct {
-	courierhttp.MethodGet `path:"/api/example/v0/orgs"`
-
-	ListOrgParameters
-}
-
-type ListOrgParameters struct {
-	OrgId *OrgIdAsFilter `name:"org~id,omitzero" in:"query"`
-}
-
-func (r *ListOrg) ResponseData() *ListOrgResponse {
-	return new(ListOrgResponse)
-}
 
 type UploadStoreBlob struct {
 	courierhttp.MethodPost `path:"/api/example/v0/store/{scope}/blobs/uploads"`
@@ -70,7 +27,61 @@ type UploadStoreBlobParameters struct {
 	IoReadCloser `in:"body" mime:"application/octet-stream"`
 }
 
-func (r *UploadStoreBlob) ResponseData() *courier.NoContent {
+func (UploadStoreBlob) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
+}
+
+type DeleteOrg struct {
+	courierhttp.MethodDelete `path:"/api/example/v0/orgs/{orgName}"`
+
+	DeleteOrgParameters
+}
+
+type DeleteOrgParameters struct {
+	OrgName string `name:"orgName" in:"path"`
+}
+
+func (DeleteOrg) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
+}
+
+type GetOrg struct {
+	courierhttp.MethodGet `path:"/api/example/v0/orgs/{orgName}"`
+
+	GetOrgParameters
+}
+
+type GetOrgParameters struct {
+	OrgName string `name:"orgName" in:"path"`
+}
+
+func (GetOrg) ResponseData() *GetOrgResponse {
+	return new(GetOrgResponse)
+}
+
+type GetFile struct {
+	courierhttp.MethodPost `path:"/api/example/v0/blobs/{path}"`
+
+	GetFileParameters
+}
+
+type GetFileParameters struct {
+	Path string `name:"path" in:"path"`
+}
+
+func (GetFile) ResponseData() *GetFileResponse {
+	return new(GetFileResponse)
+}
+
+type ListOrgOld struct {
+	courierhttp.MethodGet `path:"/api/example/v0/org"`
+
+	ListOrgOldParameters
+}
+
+type ListOrgOldParameters struct{}
+
+func (ListOrgOld) ResponseData() *courier.NoContent {
 	return new(courier.NoContent)
 }
 
@@ -84,62 +95,7 @@ type UploadBlobParameters struct {
 	IoReadCloser `in:"body" mime:"application/octet-stream"`
 }
 
-func (r *UploadBlob) ResponseData() *courier.NoContent {
-	return new(courier.NoContent)
-}
-
-type ListOrgOld struct {
-	courierhttp.MethodGet `path:"/api/example/v0/org"`
-
-	ListOrgOldParameters
-}
-
-type ListOrgOldParameters struct {
-}
-
-func (r *ListOrgOld) ResponseData() *courier.NoContent {
-	return new(courier.NoContent)
-}
-
-type GetFile struct {
-	courierhttp.MethodPost `path:"/api/example/v0/blobs/{path}"`
-
-	GetFileParameters
-}
-
-type GetFileParameters struct {
-	Path string `name:"path" in:"path"`
-}
-
-func (r *GetFile) ResponseData() *GetFileResponse {
-	return new(GetFileResponse)
-}
-
-type GetOrg struct {
-	courierhttp.MethodGet `path:"/api/example/v0/orgs/{orgName}"`
-
-	GetOrgParameters
-}
-
-type GetOrgParameters struct {
-	OrgName string `name:"orgName" in:"path"`
-}
-
-func (r *GetOrg) ResponseData() *GetOrgResponse {
-	return new(GetOrgResponse)
-}
-
-type DeleteOrg struct {
-	courierhttp.MethodDelete `path:"/api/example/v0/orgs/{orgName}"`
-
-	DeleteOrgParameters
-}
-
-type DeleteOrgParameters struct {
-	OrgName string `name:"orgName" in:"path"`
-}
-
-func (r *DeleteOrg) ResponseData() *courier.NoContent {
+func (UploadBlob) ResponseData() *courier.NoContent {
 	return new(courier.NoContent)
 }
 
@@ -153,23 +109,72 @@ type CookieParameters struct {
 	Token string `name:"token,omitzero" in:"cookie"`
 }
 
-func (r *Cookie) ResponseData() *CookieResponse {
+func (Cookie) ResponseData() *CookieResponse {
 	return new(CookieResponse)
 }
 
-type GetStoreBlobResponse = string
+type ListOrg struct {
+	courierhttp.MethodGet `path:"/api/example/v0/orgs"`
 
-type OrgType = org.Type
-type OrgInfoAsDataList = apisorg.DataList[apisorg.Info]
-type OrgIdAsFilter = filter.Filter[apisorg.ID]
-type Time string
+	ListOrgParameters
+}
 
-type GetOrgResponse = apisorg.Detail
-type GetFileResponse = string
+type ListOrgParameters struct {
+	OrgID *OrgIDAsFilter `name:"org~id,omitzero" in:"query"`
+}
 
-type ListOrgResponse = apisorg.DataList[apisorg.Info]
-type OrgDetail = apisorg.Detail
-type IoReadCloser = io.ReadCloser
-type CookieResponse = any
+func (ListOrg) ResponseData() *ListOrgResponse {
+	return new(ListOrgResponse)
+}
 
-type OrgInfo = apisorg.Info
+type CreateOrg struct {
+	courierhttp.MethodPost `path:"/api/example/v0/orgs"`
+
+	CreateOrgParameters
+}
+
+type CreateOrgParameters struct {
+	OrgInfo `in:"body" mime:"application/json"`
+}
+
+func (CreateOrg) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
+}
+
+type GetStoreBlob struct {
+	courierhttp.MethodGet `path:"/api/example/v0/store/{scope}/blobs/{digest}"`
+
+	GetStoreBlobParameters
+}
+
+type GetStoreBlobParameters struct {
+	Scope string `name:"scope" in:"path"`
+
+	Digest string `name:"digest" in:"path"`
+}
+
+func (GetStoreBlob) ResponseData() *GetStoreBlobResponse {
+	return new(GetStoreBlobResponse)
+}
+
+type (
+	OrgInfo              = org.Info
+	GetStoreBlobResponse = string
+)
+
+type (
+	OrgType         = domainorg.Type
+	IoReadCloser    = io.ReadCloser
+	OrgDetail       = org.Detail
+	ListOrgResponse = org.DataList[org.Info]
+	GetOrgResponse  = org.Detail
+	CookieResponse  = any
+)
+
+type (
+	Time            = time.Time
+	OrgIDAsFilter   = filter.Filter[org.ID]
+	GetFileResponse = string
+)
+
+type OrgInfoAsDataList = org.DataList[org.Info]
