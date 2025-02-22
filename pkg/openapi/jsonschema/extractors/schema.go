@@ -329,6 +329,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		}
 
 		v := reflect.New(t).Interface()
+
 		if manifest, ok := v.(interface {
 			GetObjectKind() schema.ObjectKind
 		}); ok {
@@ -343,6 +344,26 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			}
 
 			if apiVersion != "" {
+				if _, ok := structSchema.Properties.Get("apiVersion"); ok {
+					structSchema.SetProperty("apiVersion", &jsonschema.EnumType{
+						Enum: []any{apiVersion},
+					}, false)
+				}
+			}
+		}
+
+		if manifest, ok := v.(interface{ GetKind() string }); ok {
+			if kind := manifest.GetKind(); kind != "" {
+				if _, ok := structSchema.Properties.Get("kind"); ok {
+					structSchema.SetProperty("kind", &jsonschema.EnumType{
+						Enum: []any{kind},
+					}, false)
+				}
+			}
+		}
+
+		if manifest, ok := v.(interface{ GetAPIVersion() string }); ok {
+			if apiVersion := manifest.GetAPIVersion(); apiVersion != "" {
 				if _, ok := structSchema.Properties.Get("apiVersion"); ok {
 					structSchema.SetProperty("apiVersion", &jsonschema.EnumType{
 						Enum: []any{apiVersion},
