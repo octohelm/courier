@@ -58,7 +58,7 @@ func (g *operatorGen) generateErrorsReturn(c gengo.Context, named *types.Named, 
 	statusErrors := statusErrorScanner.StatusErrorsInFunc(c, fn)
 	if len(statusErrors) > 0 {
 		c.RenderT(`
-func (*@Type) ResponseErrors() []error {
+func (@Type) ResponseErrors() []error {
 	return []error{
 		@statusErrors
 	}
@@ -114,11 +114,11 @@ func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named,
 
 	if isNil(tpe) {
 		c.RenderT(`
-func (*@Type) ResponseContent() any {
+func (@Type) ResponseContent() any {
 	return nil
 }
 
-func (*@Type) ResponseData() *@courierNoContent {
+func (@Type) ResponseData() *@courierNoContent {
 	return new(@courierNoContent)
 }
 
@@ -151,7 +151,7 @@ func (*@Type) ResponseData() *@courierNoContent {
 
 										if statueCode, ok := valueOf(v.Value).(int64); ok {
 											c.RenderT(`
-func (*@Type) ResponseStatusCode() int {
+func (@Type) ResponseStatusCode() int {
 	return @statueCode
 }
 
@@ -167,7 +167,7 @@ func (*@Type) ResponseStatusCode() int {
 										v, _ := p.Eval(callExpr.Args[0])
 										if contentType, ok := valueOf(v.Value).(string); ok {
 											c.RenderT(`
-func (*@Type) ResponseContentType() string {
+func (@Type) ResponseContentType() string {
 	return @contentType
 }
 
@@ -192,11 +192,11 @@ func (*@Type) ResponseContentType() string {
 		}
 
 		c.RenderT(`
-func (*@Type) ResponseContent() any {
+func (@Type) ResponseContent() any {
 	return new(@ReturnType)
 }
 
-func (*@Type) ResponseData() *@ReturnType {
+func (@Type) ResponseData() *@ReturnType {
 	return new(@ReturnType)
 }
 
