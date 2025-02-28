@@ -60,7 +60,7 @@ func (o *ParameterObject) SetDefaultStyle() {
 
 	switch o.Style {
 	case ParameterStyleForm:
-		o.Explode = ptr.Bool(true)
+		o.Explode = ptr.Ptr(true)
 	}
 }
 
