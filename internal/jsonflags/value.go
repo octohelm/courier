@@ -24,3 +24,10 @@ type Wrapper interface {
 	Unwrap() any
 	StructField() *StructField
 }
+
+func Unwrap(v any) any {
+	if x, ok := v.(Wrapper); ok {
+		return x.Unwrap()
+	}
+	return v
+}

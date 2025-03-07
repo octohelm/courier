@@ -2,14 +2,14 @@ package transport_test
 
 import (
 	"context"
+	"github.com/octohelm/x/testing/bdd"
 	"net/http"
 	"testing"
 
 	"github.com/octohelm/courier/internal/httprequest"
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
-
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
 	testingx "github.com/octohelm/x/testing"
 )
@@ -23,12 +23,12 @@ func TestRequestTransformer(t *testing.T) {
 
 	type Queries struct {
 		QInt            int                   `name:"int" in:"query"`
-		QEmptyInt       int                   `name:"emptyInt,omitempty" in:"query"`
+		QEmptyInt       int                   `name:"emptyInt,omitzero" in:"query"`
 		QString         string                `name:"string" in:"query"`
 		QSlice          []string              `name:"slice" in:"query"`
-		QBytes          []byte                `name:"bytes,omitempty" in:"query"`
-		StartedAt       *testingutil.Datetime `name:"startedAt,omitempty" in:"query"`
-		QBytesOmitEmpty []byte                `name:"bytesOmit,omitempty" in:"query"`
+		QBytes          []byte                `name:"bytes,omitzero" in:"query"`
+		StartedAt       *testingutil.Datetime `name:"startedAt,omitzero" in:"query"`
+		QBytesOmitEmpty []byte                `name:"bytesOmit,omitzero" in:"query"`
 	}
 
 	type Cookies struct {
@@ -37,9 +37,9 @@ func TestRequestTransformer(t *testing.T) {
 	}
 
 	type Data struct {
-		A string `json:",omitempty" xml:",omitempty"`
-		B string `json:",omitempty" xml:",omitempty"`
-		C string `json:",omitempty" xml:",omitempty"`
+		A string `json:",omitzero" xml:",omitzero"`
+		B string `json:",omitzero" xml:",omitzero"`
+		C string `json:",omitzero" xml:",omitzero"`
 	}
 
 	t.Run("full in parameters", func(t *testing.T) {
@@ -116,4 +116,47 @@ Hstring: string
 			HBool:   true,
 		}))
 	})
+}
+
+func TestRequestTransformerWithDefaultValue(t *testing.T) {
+	t.Run("declare a operator", bdd.GivenT(func(b bdd.T) {
+		req := &struct {
+			courierhttp.MethodGet `path:"/"`
+			Limit                 int64 `name:"limit,omitzero" validate:"@int[-1,50] = 10" in:"query"`
+		}{}
+
+		it := bdd.Must(transport.NewIncomingTransport(b.Context(), req))
+
+		b.When("handle request with limit in range", func(b bdd.T) {
+			httpRequest := bdd.Must(http.NewRequest("GET", "/?limit=20", nil))
+
+			b.Then("parse parameters successful",
+				bdd.Nil(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
+			)
+
+			b.Then("value should set",
+				bdd.Equal(20, req.Limit),
+			)
+		})
+
+		b.When("handle request with empty limit", func(b bdd.T) {
+			httpRequest := bdd.Must(http.NewRequest("GET", "/", nil))
+
+			b.Then("parse parameters successful",
+				bdd.Nil(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
+			)
+
+			b.Then("default value should set",
+				bdd.Equal(10, req.Limit),
+			)
+		})
+
+		b.When("handle request with limit which out of range", func(b bdd.T) {
+			httpRequest := bdd.Must(http.NewRequest("GET", "/?limit=200", nil))
+
+			b.Then("parse parameters failed",
+				bdd.HasError(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
+			)
+		})
+	}))
 }

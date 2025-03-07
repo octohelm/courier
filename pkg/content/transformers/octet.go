@@ -3,6 +3,7 @@ package transformers
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/internal/jsonflags"
 	"io"
 	"mime"
 	"reflect"
@@ -39,7 +40,9 @@ func (p *octecTransformer) MediaType() string {
 	return p.mediaType
 }
 
-func (p *octecTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) error {
+func (p *octecTransformer) ReadAs(ctx context.Context, r io.ReadCloser, vv any) error {
+	v := jsonflags.Unwrap(vv)
+
 	rv, ok := v.(reflect.Value)
 	if ok {
 		v = rv.Interface()

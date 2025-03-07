@@ -52,8 +52,10 @@ type withFilename interface {
 
 var withFilenameType = reflect.TypeFor[withFilename]()
 
-func (p *multipartTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) error {
+func (p *multipartTransformer) ReadAs(ctx context.Context, r io.ReadCloser, vv any) error {
 	defer r.Close()
+
+	v := jsonflags.Unwrap(vv)
 
 	header := http.Header{}
 	if withHeader, ok := r.(internal.HeaderGetter); ok {

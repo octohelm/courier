@@ -120,6 +120,7 @@ func (va *Pointer) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) 
 		if va.CanAddr() {
 			va.SetZero()
 		}
+
 		return nil
 	}
 
@@ -128,7 +129,6 @@ func (va *Pointer) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) 
 		if err := (&Value{Value: rv.Elem(), Validator: va.Validator}).UnmarshalDecode(dec, options); err != nil {
 			return err
 		}
-
 		va.Set(rv)
 		return nil
 	}
@@ -211,15 +211,19 @@ func (t *Primitive) UnmarshalDecode(dec *jsontext.Decoder, options json.Options)
 	}
 }
 
-func (t *Primitive) unmarshal(value jsontext.Value, stackPointer jsontext.Pointer, options json.Options) error {
+func (t *Primitive) forceUnquote(value jsontext.Value) (jsontext.Value, error) {
 	if value.Kind() == '"' {
 		if !t.String {
-			unquote, err := jsontext.AppendUnquote(nil, value)
-			if err != nil {
-				return err
-			}
-			value = unquote
+			return jsontext.AppendUnquote(nil, value)
 		}
+	}
+	return value, nil
+}
+
+func (t *Primitive) unmarshal(v jsontext.Value, stackPointer jsontext.Pointer, options json.Options) error {
+	value, err := t.forceUnquote(v)
+	if err != nil {
+		return err
 	}
 
 	if validator := t.Validator; validator != nil {

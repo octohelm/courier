@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/internal/jsonflags"
+	"github.com/octohelm/courier/pkg/validator"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 )
 
@@ -75,16 +77,48 @@ func (p *ParamValue) AddrValues(sf *jsonflags.StructField, n int) iter.Seq2[int,
 
 func (p *ParamValue) UnmarshalValues(ctx context.Context, sf *jsonflags.StructField, values []string) error {
 	if len(values) == 0 {
-		if v, ok := sf.Tag.Lookup("default"); ok {
-			values = []string{v}
+		v, err := NewValidatorWithStructField(sf)
+		if err != nil {
+			return err
+		}
+		if defaultValuer, ok := v.(validator.WithDefaultValue); ok {
+			if defaultValue := defaultValuer.DefaultValue(); len(defaultValue) > 0 {
+				if defaultValue.Kind() == '"' {
+					unquote, err := jsontext.AppendUnquote(nil, defaultValue)
+					if err != nil {
+						return err
+					}
+					defaultValue = unquote
+				}
+				values = []string{string(defaultValue)}
+			}
 		}
 	}
-
 	readers := make([]io.ReadCloser, len(values))
 	for i := range values {
 		readers[i] = io.NopCloser(bytes.NewBufferString(values[i]))
 	}
 	return p.UnmarshalReaders(ctx, sf, readers)
+}
+
+func NewValidatorWithStructField(sf *jsonflags.StructField) (validator.Validator, error) {
+	opt := validator.Option{}
+
+	opt.Type = sf.Type
+	opt.String = sf.String
+	opt.Optional = cmp.Or(sf.Omitzero, sf.Omitempty)
+
+	if v, ok := sf.Tag.Lookup("validate"); ok {
+		opt.Rule = v
+	}
+
+	if v, ok := sf.Tag.Lookup("default"); ok {
+		if err := opt.SetDefaultValue(v); err != nil {
+			return nil, err
+		}
+	}
+
+	return validator.New(opt)
 }
 
 func (p *ParamValue) UnmarshalReaders(ctx context.Context, sf *jsonflags.StructField, readers []io.ReadCloser) error {
@@ -95,7 +129,7 @@ func (p *ParamValue) UnmarshalReaders(ctx context.Context, sf *jsonflags.StructF
 		}
 
 		if i < len(readers) {
-			if err := t.ReadAs(ctx, readers[i], ptrRv); err != nil {
+			if err := t.ReadAs(ctx, readers[i], jsonflags.ValueWithStructField(ptrRv, sf)); err != nil {
 				if p.CanMultiple(sf) {
 					return validatorerrors.PrefixJSONPointer(err, jsontext.Pointer(fmt.Sprintf("/%s/%d", sf.Name, i)))
 				}

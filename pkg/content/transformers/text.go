@@ -3,11 +3,11 @@ package transformers
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/internal/jsonflags"
 	"io"
 	"mime"
 	"reflect"
 
-	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/content/internal"
 	"github.com/octohelm/courier/pkg/validator"
@@ -39,8 +39,10 @@ func (p *textTransformer) MediaType() string {
 	return p.mediaType
 }
 
-func (p *textTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) error {
+func (p *textTransformer) ReadAs(ctx context.Context, r io.ReadCloser, vv any) error {
 	defer r.Close()
+
+	v := jsonflags.Unwrap(vv)
 
 	rv, ok := v.(reflect.Value)
 	if ok {
@@ -61,7 +63,7 @@ func (p *textTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 		if err != nil {
 			return err
 		}
-		return json.Unmarshal(raw, v)
+		return validator.Unmarshal(raw, vv)
 	}
 }
 

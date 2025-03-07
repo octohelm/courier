@@ -12,6 +12,8 @@ type (
 	Option  = internal.ValidatorOption
 )
 
+type WithDefaultValue = internal.WithDefaultValue
+
 type Validator = internal.Validator
 
 func Register(creator Creator) {

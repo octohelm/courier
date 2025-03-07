@@ -3,6 +3,7 @@ package transformers
 import (
 	"bytes"
 	"context"
+	"github.com/octohelm/courier/internal/jsonflags"
 	"io"
 	"mime"
 	"reflect"
@@ -38,7 +39,8 @@ func (p *jsonTransformer) MediaType() string {
 	return p.mediaType
 }
 
-func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) error {
+func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, i any) error {
+	v := jsonflags.Unwrap(i)
 	defer r.Close()
 
 	rv, ok := v.(reflect.Value)
@@ -55,7 +57,7 @@ func (p *jsonTransformer) ReadAs(ctx context.Context, r io.ReadCloser, v any) er
 		return direct.UnmarshalJSON(raw)
 	}
 
-	return validator.UnmarshalRead(r, v)
+	return validator.UnmarshalRead(r, i)
 }
 
 func (p *jsonTransformer) Prepare(ctx context.Context, v any) (internal.Content, error) {
