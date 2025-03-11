@@ -275,7 +275,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 						if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
 							return snippet.ID(goFieldName.(string))
 						}
-						return snippet.ID("")
+						return snippet.ID("RequestBody")
 					}(),
 				})) {
 					return

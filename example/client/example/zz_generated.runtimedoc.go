@@ -62,9 +62,8 @@ func (v *CreateOrg) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *CreateOrgParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		}
-		if doc, ok := runtimeDoc(&v.OrgInfo, "", names...); ok {
-			return doc, ok
+		case "RequestBody":
+			return []string{}, true
 		}
 
 		return nil, false
@@ -226,9 +225,8 @@ func (v *UploadBlob) RuntimeDoc(names ...string) ([]string, bool) {
 func (v *UploadBlobParameters) RuntimeDoc(names ...string) ([]string, bool) {
 	if len(names) > 0 {
 		switch names[0] {
-		}
-		if doc, ok := runtimeDoc(&v.IoReadCloser, "", names...); ok {
-			return doc, ok
+		case "RequestBody":
+			return []string{}, true
 		}
 
 		return nil, false
@@ -254,9 +252,9 @@ func (v *UploadStoreBlobParameters) RuntimeDoc(names ...string) ([]string, bool)
 		switch names[0] {
 		case "Scope":
 			return []string{}, true
-		}
-		if doc, ok := runtimeDoc(&v.IoReadCloser, "", names...); ok {
-			return doc, ok
+		case "RequestBody":
+			return []string{}, true
+
 		}
 
 		return nil, false

@@ -93,7 +93,7 @@ func TestAll(t *testing.T) {
 
 	t.Run("Upload", func(t *testing.T) {
 		v := &example.UploadBlob{}
-		v.IoReadCloser = io.NopCloser(bytes.NewBufferString("1234567"))
+		v.RequestBody = io.NopCloser(bytes.NewBufferString("1234567"))
 
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
@@ -102,7 +102,7 @@ func TestAll(t *testing.T) {
 	t.Run("UploadStoreBlob", func(t *testing.T) {
 		v := &example.UploadStoreBlob{}
 		v.Scope = "a/b/c"
-		v.IoReadCloser = io.NopCloser(bytes.NewBufferString("1234567"))
+		v.RequestBody = io.NopCloser(bytes.NewBufferString("1234567"))
 
 		_, err := example.Do(ctx, v)
 		testingx.Expect(t, err, testingx.BeNil[error]())
