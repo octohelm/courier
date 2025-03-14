@@ -69,11 +69,20 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		return false
 	}
 
+	trimBashPath := ""
+
 	if r, ok := tags["gengo:client:openapi"]; ok {
 		if len(r) > 0 {
 			openapiSpec = r[0]
 		}
 	}
+
+	if r, ok := tags["gengo:client:openapi:trim_bash_path"]; ok {
+		if len(r) > 0 {
+			trimBashPath = r[0]
+		}
+	}
+
 	if values, ok := tags["gengo:client:openapi:include"]; ok {
 		includes = values
 	}
@@ -102,6 +111,12 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	for p, oo := range g.oas.Paths {
 		for method, o := range oo.Operations {
 			if shouldGenerate(o) {
+				if trimBashPath != "" {
+					if strings.HasPrefix(p, trimBashPath) {
+						p = p[len(trimBashPath):]
+					}
+				}
+
 				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), o); err != nil {
 					return err
 				}
