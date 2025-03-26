@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/octohelm/courier/example/pkg/domain/org"
-
 	"github.com/octohelm/courier/example/apis/org/operator"
+	"github.com/octohelm/courier/example/pkg/domain/org"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 )

@@ -68,40 +68,43 @@ func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types
 	pkg := ctx.Package(typeFunc.Pkg().Path())
 
 	results, n := pkg.ResultsOf(typeFunc)
-	for i := 0; i < n; i++ {
-		for _, r := range results[i] {
-			tpe := r.Type
-			if p, ok := tpe.(*types.Pointer); ok {
-				tpe = p.Elem()
-			}
-			if named, ok := tpe.(*types.Named); ok {
+	if n > 0 {
+		for _, ret := range results[n-1] {
+			if named, ok := dePtr(ret.Type).(*types.Named); ok {
+				if !ast.IsExported(named.Obj().Name()) {
+					continue
+				}
+
 				if isErrWithStatusCodeInterface(named) {
-					return s.scanErrWithStatusCodeInterface(ctx, named)
+					s.appendStateErrs(typeFunc, s.scanErrWithStatusCodeInterface(ctx, named)...)
+					continue
 				}
 
 				if isTypeStatusErr(named) {
-					ast.Inspect(r.Expr, func(node ast.Node) bool {
-						switch x := node.(type) {
-						case *ast.CallExpr:
-							identList := identChainOfCallFunc(x.Fun)
+					if ret.Expr != nil {
+						ast.Inspect(ret.Expr, func(node ast.Node) bool {
+							switch x := node.(type) {
+							case *ast.CallExpr:
+								identList := identChainOfCallFunc(x.Fun)
 
-							if len(identList) > 0 {
-								callIdent := identList[len(identList)-1]
-								obj := pkg.ObjectOf(callIdent)
+								if len(identList) > 0 {
+									callIdent := identList[len(identList)-1]
+									obj := pkg.ObjectOf(callIdent)
 
-								if obj != nil {
-									if ok := s.scanStatusErrIsExist(typeFunc, pkg, obj, callIdent, x); ok {
-										return true
-									}
+									if obj != nil {
+										if ok := s.scanStatusErrIsExist(typeFunc, pkg, obj, callIdent, x); ok {
+											return true
+										}
 
-									if nextFuncType, ok := obj.(*types.Func); ok && nextFuncType != typeFunc && nextFuncType.Pkg() != nil {
-										s.appendStateErrs(typeFunc, s.StatusErrorsInFunc(ctx, nextFuncType)...)
+										if nextFuncType, ok := obj.(*types.Func); ok && nextFuncType != typeFunc && nextFuncType.Pkg() != nil {
+											s.appendStateErrs(typeFunc, s.StatusErrorsInFunc(ctx, nextFuncType)...)
+										}
 									}
 								}
 							}
-						}
-						return true
-					})
+							return true
+						})
+					}
 				}
 			}
 		}
@@ -208,8 +211,29 @@ func (s *statusErrScanner) resolveStateCode(ctx gengo.Context, named *types.Name
 			}
 		}
 	}
-
 	return 0, false
+}
+
+func (s *statusErrScanner) resolveCustomErrCode(ctx gengo.Context, named *types.Named) (string, bool) {
+	errorCode, ok := typex.FromTType(types.NewPointer(named)).MethodByName("ErrCode")
+	if ok {
+		m := errorCode.(*typex.TMethod)
+		if m.Func.Pkg() == nil {
+			return "", false
+		}
+		results, n := ctx.Package(m.Func.Pkg().Path()).ResultsOf(m.Func)
+		if n == 1 {
+			for _, r := range results[0] {
+				if r.Value != nil && r.Value.Kind() == constant.String {
+					v, err := strconv.Unquote(r.Value.String())
+					if err == nil {
+						return v, ok
+					}
+				}
+			}
+		}
+	}
+	return "", false
 }
 
 func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.Descriptor) {
@@ -225,6 +249,11 @@ func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, nam
 	code, ok := s.resolveStateCode(ctx, named)
 	if ok {
 		serr.Status = code
+	}
+
+	errCode, ok := s.resolveCustomErrCode(ctx, named)
+	if ok {
+		serr.Code = errCode
 	}
 
 	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("Error")

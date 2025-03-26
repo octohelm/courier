@@ -3,10 +3,11 @@ package transformers
 import (
 	"bytes"
 	"context"
-	"github.com/octohelm/courier/internal/jsonflags"
 	"io"
 	"mime"
 	"reflect"
+
+	"github.com/octohelm/courier/internal/jsonflags"
 
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"

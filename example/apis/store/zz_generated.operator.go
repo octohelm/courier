@@ -12,11 +12,11 @@ func init() {
 	R.Register(courier.NewRouter(&GetStoreBlob{}))
 }
 
-func (*GetStoreBlob) ResponseContent() any {
+func (GetStoreBlob) ResponseContent() any {
 	return new(string)
 }
 
-func (*GetStoreBlob) ResponseData() *string {
+func (GetStoreBlob) ResponseData() *string {
 	return new(string)
 }
 
@@ -24,10 +24,10 @@ func init() {
 	R.Register(courier.NewRouter(&UploadStoreBlob{}))
 }
 
-func (*UploadStoreBlob) ResponseContent() any {
+func (UploadStoreBlob) ResponseContent() any {
 	return nil
 }
 
-func (*UploadStoreBlob) ResponseData() *courier.NoContent {
+func (UploadStoreBlob) ResponseData() *courier.NoContent {
 	return new(courier.NoContent)
 }

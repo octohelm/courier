@@ -136,53 +136,55 @@ func (@Type) ResponseData() *@courierNoContent {
 				if n.Obj().Pkg().Path() == typeResponse.PkgPath() && n.Obj().Name() == "Response" {
 					tpe = dePtr(n.TypeArgs().At(0))
 
-					ast.Inspect(expr, func(node ast.Node) bool {
-						switch callExpr := node.(type) {
-						case *ast.CallExpr:
-							switch e := callExpr.Fun.(type) {
-							case *ast.SelectorExpr:
-								switch e.Sel.Name {
-								case "WithStatusCode", "Redirect":
-									if p := c.LocateInPackage(node.Pos()); p != nil {
-										v, err := p.Eval(callExpr.Args[0])
-										if err != nil {
-											return true
-										}
+					if expr != nil {
+						ast.Inspect(expr, func(node ast.Node) bool {
+							switch callExpr := node.(type) {
+							case *ast.CallExpr:
+								switch e := callExpr.Fun.(type) {
+								case *ast.SelectorExpr:
+									switch e.Sel.Name {
+									case "WithStatusCode", "Redirect":
+										if p := c.LocateInPackage(node.Pos()); p != nil {
+											v, err := p.Eval(callExpr.Args[0])
+											if err != nil {
+												return true
+											}
 
-										if statueCode, ok := valueOf(v.Value).(int64); ok {
-											c.RenderT(`
+											if statueCode, ok := valueOf(v.Value).(int64); ok {
+												c.RenderT(`
 func (@Type) ResponseStatusCode() int {
 	return @statueCode
 }
 
 `, snippet.Args{
-												"Type":       snippet.ID(named.Obj()),
-												"statueCode": snippet.Value(int(statueCode)),
-											})
+													"Type":       snippet.ID(named.Obj()),
+													"statueCode": snippet.Value(int(statueCode)),
+												})
+											}
 										}
-									}
-									return false
-								case "WithContentType":
-									if p := c.LocateInPackage(node.Pos()); p != nil {
-										v, _ := p.Eval(callExpr.Args[0])
-										if contentType, ok := valueOf(v.Value).(string); ok {
-											c.RenderT(`
+										return false
+									case "WithContentType":
+										if p := c.LocateInPackage(node.Pos()); p != nil {
+											v, _ := p.Eval(callExpr.Args[0])
+											if contentType, ok := valueOf(v.Value).(string); ok {
+												c.RenderT(`
 func (@Type) ResponseContentType() string {
 	return @contentType
 }
 
 `, snippet.Args{
-												"Type":        snippet.ID(named.Obj()),
-												"contentType": snippet.Value(contentType),
-											})
+													"Type":        snippet.ID(named.Obj()),
+													"contentType": snippet.Value(contentType),
+												})
+											}
 										}
+										return false
 									}
-									return false
 								}
 							}
-						}
-						return true
-					})
+							return true
+						})
+					}
 				}
 			}
 		}

@@ -95,7 +95,7 @@ func Wrap[T any](v T, opts ...ResponseSettingFunc) Response[T] {
 	return resp
 }
 
-func WrapError(err error, opts ...ResponseSettingFunc) ErrorResponse {
+func WrapError(err error, opts ...ResponseSettingFunc) error {
 	errResp := &errorResponse{}
 	errResp.response.v = err
 	for i := range opts {

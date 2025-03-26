@@ -2,9 +2,10 @@ package transport_test
 
 import (
 	"context"
-	"github.com/octohelm/x/testing/bdd"
 	"net/http"
 	"testing"
+
+	"github.com/octohelm/x/testing/bdd"
 
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/internal/testingutil"

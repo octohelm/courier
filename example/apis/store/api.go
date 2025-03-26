@@ -1,5 +1,7 @@
 // +gengo:operator:tag=store
 // +gengo:operator:register=R
+//
+//go:generate go tool gen .
 package store
 
 import (
