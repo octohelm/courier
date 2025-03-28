@@ -62,7 +62,7 @@ func TestSliceValidator(t *testing.T) {
 				}{},
 				Expect: []byte(`{"x":[1,2,3]}`),
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 			{
@@ -72,7 +72,7 @@ func TestSliceValidator(t *testing.T) {
 				}{},
 				Expect: []byte(`{"x":[1,0,0]}`),
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 		}

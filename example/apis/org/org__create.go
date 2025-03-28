@@ -27,7 +27,7 @@ func (c *CreateOrg) Output(ctx context.Context) (interface{}, error) {
 // 组织详情
 type Info struct {
 	// 组织名称
-	Name string `json:"name" validate:"@string[0,5]"`
+	Name Name `json:"name"`
 	// 组织类型
 	Type org.Type `json:"type,omitzero"`
 }

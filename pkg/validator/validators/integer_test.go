@@ -71,7 +71,7 @@ func TestIntegerValidator(t *testing.T) {
 				}{},
 				Expect: []byte(`{}`),
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 			{
@@ -81,7 +81,7 @@ func TestIntegerValidator(t *testing.T) {
 				}{},
 				Expect: []byte(`{}`),
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 		}

@@ -416,13 +416,14 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 
 		schema := b.SchemaFromType(ctx, reflect.New(field.Type).Interface(), false)
 		if schema != nil {
-			_, err := extractors.PatchSchemaValidation(schema, validator.Option{
+			patched, err := extractors.PatchSchemaValidation(schema, validator.Option{
 				Type: field.Type,
 				Rule: field.Tag.Get("validate"),
 			})
 			if err != nil {
 				panic(err)
 			}
+			schema = patched
 		}
 
 		if schema != nil && docer != nil {

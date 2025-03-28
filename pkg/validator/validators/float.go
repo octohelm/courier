@@ -128,8 +128,8 @@ func (floatValidatorProvider) Names() []string {
 func (validator *FloatValidator) Validate(value jsontext.Value) error {
 	if value.Kind() != '0' {
 		return &validatorerrors.ErrInvalidType{
-			Type:  "number",
-			Value: string(value),
+			Type:   "number",
+			Target: string(value),
 		}
 	}
 
@@ -150,9 +150,9 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 		}
 
 		if !in {
-			return &validatorerrors.NotInEnumError{
-				Topic:   "float value",
-				Current: val,
+			return &validatorerrors.ErrNotInEnum{
+				Subject: "float value",
+				Target:  val,
 				Enums:   enums,
 			}
 		}
@@ -163,9 +163,9 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 	if validator.Minimum != nil {
 		mininum := *validator.Minimum
 		if (validator.ExclusiveMinimum && val == mininum) || val < mininum {
-			return &validatorerrors.OutOfRangeError{
-				Topic:            "float value",
-				Current:          val,
+			return &validatorerrors.ErrOutOfRange{
+				Subject:          "float value",
+				Target:           val,
 				Minimum:          mininum,
 				ExclusiveMinimum: validator.ExclusiveMinimum,
 			}
@@ -176,9 +176,9 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 		maxinum := *validator.Maximum
 
 		if (validator.ExclusiveMaximum && val == maxinum) || val > maxinum {
-			return &validatorerrors.OutOfRangeError{
-				Topic:            "float value",
-				Current:          val,
+			return &validatorerrors.ErrOutOfRange{
+				Subject:          "float value",
+				Target:           val,
 				Maximum:          maxinum,
 				ExclusiveMaximum: validator.ExclusiveMaximum,
 			}
@@ -194,8 +194,8 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 
 		if !multipleOf(val, validator.MultipleOf, d) {
 			return &validatorerrors.ErrMultipleOf{
-				Topic:      "float value",
-				Current:    val,
+				Subject:    "float value",
+				Target:     val,
 				MultipleOf: validator.MultipleOf,
 			}
 		}
@@ -205,9 +205,9 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 		_, d := get()
 		m := *validator.DecimalDigits
 		if d > m {
-			return &validatorerrors.OutOfRangeError{
-				Topic:   "decimal digits of float value",
-				Current: d,
+			return &validatorerrors.ErrOutOfRange{
+				Subject: "decimal digits of float value",
+				Target:  d,
 				Maximum: m,
 			}
 		}
@@ -217,9 +217,9 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 		n, _ := get()
 		m := *validator.MaxDigits
 		if n > m {
-			return &validatorerrors.OutOfRangeError{
-				Topic:   "total digits of float value",
-				Current: n,
+			return &validatorerrors.ErrOutOfRange{
+				Subject: "total digits of float value",
+				Target:  n,
 				Maximum: m,
 			}
 		}

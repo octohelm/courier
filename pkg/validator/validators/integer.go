@@ -176,8 +176,8 @@ func (validator *IntegerValidator[T]) SetDefaults() {
 func (validator *IntegerValidator[T]) Validate(value jsontext.Value) error {
 	if value.Kind() != '0' {
 		return &validatorerrors.ErrInvalidType{
-			Type:  "integer",
-			Value: string(value),
+			Type:   "integer",
+			Target: string(value),
 		}
 	}
 
@@ -210,9 +210,9 @@ func (validator *IntegerValidator[T]) Validate(value jsontext.Value) error {
 		}
 
 		if !in {
-			return &validatorerrors.NotInEnumError{
-				Topic:   "integer value",
-				Current: val,
+			return &validatorerrors.ErrNotInEnum{
+				Subject: "integer value",
+				Target:  val,
 				Enums:   enums,
 			}
 		}
@@ -225,9 +225,9 @@ func (validator *IntegerValidator[T]) Validate(value jsontext.Value) error {
 
 	if ((validator.ExclusiveMinimum && val == mininum) || val < mininum) ||
 		((validator.ExclusiveMaximum && val == maxinum) || val > maxinum) {
-		return &validatorerrors.OutOfRangeError{
-			Topic:            "integer value",
-			Current:          val,
+		return &validatorerrors.ErrOutOfRange{
+			Subject:          "integer value",
+			Target:           val,
 			Minimum:          mininum,
 			ExclusiveMinimum: validator.ExclusiveMinimum,
 			Maximum:          maxinum,
@@ -238,8 +238,8 @@ func (validator *IntegerValidator[T]) Validate(value jsontext.Value) error {
 	if validator.MultipleOf != 0 {
 		if val%validator.MultipleOf != 0 {
 			return &validatorerrors.ErrMultipleOf{
-				Topic:      "integer value",
-				Current:    val,
+				Subject:    "integer value",
+				Target:     val,
 				MultipleOf: validator.MultipleOf,
 			}
 		}

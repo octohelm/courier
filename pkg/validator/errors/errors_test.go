@@ -10,10 +10,10 @@ func ExampleErrMissingRequired() {
 	// missing required field
 }
 
-func ExampleErrNotMatch() {
-	fmt.Println(&ErrNotMatch{
-		Topic:   "value",
-		Current: "1",
+func ExampleErrPatternNotMatch() {
+	fmt.Println(&ErrPatternNotMatch{
+		Subject: "value",
+		Target:  "1",
 		Pattern: `/\d+/`,
 	})
 	// Output:
@@ -22,18 +22,18 @@ func ExampleErrNotMatch() {
 
 func ExampleErrMultipleOf() {
 	fmt.Println(&ErrMultipleOf{
-		Topic:      "value",
-		Current:    "11",
+		Subject:    "value",
+		Target:     "11",
 		MultipleOf: 2,
 	})
 	// Output:
 	// value should be multiple of 2, but got 11
 }
 
-func ExampleNotInEnumError() {
-	fmt.Println(&NotInEnumError{
-		Topic:   "value",
-		Current: "11",
+func ExampleErrNotInEnum() {
+	fmt.Println(&ErrNotInEnum{
+		Subject: "value",
+		Target:  "11",
 		Enums: []any{
 			"1", "2", "3",
 		},
@@ -42,12 +42,12 @@ func ExampleNotInEnumError() {
 	// value should be one of 1, 2, 3, but got 11
 }
 
-func ExampleOutOfRangeError() {
-	fmt.Println(&OutOfRangeError{
-		Topic:            "value",
+func ExampleErrOutOfRange() {
+	fmt.Println(&ErrOutOfRange{
+		Subject:          "value",
 		Minimum:          "1",
 		Maximum:          "10",
-		Current:          "11",
+		Target:           "11",
 		ExclusiveMinimum: true,
 		ExclusiveMaximum: true,
 	})

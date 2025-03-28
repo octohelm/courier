@@ -47,11 +47,17 @@ func TestParseRule(t *testing.T) {
 		{`@string = 1.1`, `@string = '1.1'`},
 
 		// with regexp
+		{`@string[0,10]/\w+/`, `@string[0,10]/\w+/`},
 		{`@string/\w+/`, `@string/\w+/`},
 		{`@string/\w+     $/`, `@string/\w+     $/`},
 		{`@string/\w+\/abc/`, `@string/\w+\/abc/`},
 		{`@string/\w+\/\/abc/`, `@string/\w+\/\/abc/`},
 		{`@string/^\w+\/test/`, `@string/^\w+\/test/`},
+
+		// custom format
+		{"@email", "@email"},
+		{"@uuid7", "@uuid7"},
+		{"@uri-reference", "@uri-reference"},
 
 		// composes
 		{`@string = 's'/\w+/`, `@string/\w+/ = 's'`},
@@ -76,7 +82,6 @@ func TestParseRule(t *testing.T) {
 func TestParseRuleFailed(t *testing.T) {
 	cases := []string{
 		`@`,
-		`@unsupportted-name`,
 		`@name<`,
 		`@name[`,
 		`@name(`,

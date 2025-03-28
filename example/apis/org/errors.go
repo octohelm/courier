@@ -9,7 +9,7 @@ import (
 type ErrNotFound struct {
 	statuserr.NotFound
 
-	OrgName string
+	OrgName Name
 }
 
 func (e ErrNotFound) Error() string {

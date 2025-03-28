@@ -10,7 +10,7 @@ import (
 )
 
 func UnmarshalDecode(dec *jsontext.Decoder, out any, options ...jsontext.Options) error {
-	var validator Validator
+	var vv Validator
 
 	if w, ok := out.(jsonflags.Wrapper); ok {
 		out = w.Unwrap()
@@ -19,7 +19,7 @@ func UnmarshalDecode(dec *jsontext.Decoder, out any, options ...jsontext.Options
 		if err != nil {
 			return err
 		}
-		validator = v
+		vv = v
 	}
 
 	rv, ok := out.(reflect.Value)
@@ -27,7 +27,22 @@ func UnmarshalDecode(dec *jsontext.Decoder, out any, options ...jsontext.Options
 		rv = reflect.ValueOf(out)
 	}
 
-	ra := &Pointer{Value: rv, Validator: validator}
+	if vv == nil {
+		if w, ok := out.(WithStructTagValidate); ok {
+			if rule := w.StructTagValidate(); rule != "" {
+				v, err := New(ValidatorOption{
+					Type: rv.Type(),
+					Rule: rule,
+				})
+				if err != nil {
+					return err
+				}
+				vv = v
+			}
+		}
+	}
+
+	ra := &Pointer{Value: rv, Validator: vv}
 
 	if ra.Kind() != reflect.Ptr {
 		return errors.New("unmarshal target must be ptr value")

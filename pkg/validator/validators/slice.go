@@ -116,17 +116,17 @@ func (validator *SliceValidator) PostValidate(rv reflect.Value) error {
 	}
 
 	if lenOfValue < validator.MinItems {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "array items",
+		return &validatorerrors.ErrOutOfRange{
+			Subject: "array items",
 			Minimum: validator.MinItems,
-			Current: lenOfValue,
+			Target:  lenOfValue,
 		}
 	}
 
 	if validator.MaxItems != nil && lenOfValue > *validator.MaxItems {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "array items",
-			Current: lenOfValue,
+		return &validatorerrors.ErrOutOfRange{
+			Subject: "array items",
+			Target:  lenOfValue,
 			Maximum: validator.MaxItems,
 		}
 	}

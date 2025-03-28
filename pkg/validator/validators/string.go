@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"unicode/utf8"
@@ -49,8 +50,11 @@ func (c *stringValidatorProvider) Validator(rule *rules.Rule) (internal.Validato
 	}
 
 	if rule.Pattern != "" {
-		validator.Pattern = regexp.MustCompile(rule.Pattern).String()
-		return validator, nil
+		p, err := regexp.Compile(rule.Pattern)
+		if err != nil {
+			return nil, err
+		}
+		validator.Pattern = p
 	}
 
 	ruleValues := rule.ComputedValues()
@@ -118,11 +122,17 @@ aliases:
 	@char = @string<rune_count>
 */
 type StringValidator struct {
-	Pattern   string
+	Subject string
+	Format  string
+
 	LenMode   StrLenMode
 	MinLength uint64
 	MaxLength *uint64
-	Enums     []string
+
+	Enums []string
+
+	Pattern       *regexp.Regexp
+	PatternErrMsg string
 }
 
 type StrLenMode string
@@ -144,8 +154,8 @@ var strLenModes = map[StrLenMode]func(s string) uint64{
 func (validator *StringValidator) Validate(value jsontext.Value) error {
 	if value.Kind() != '"' {
 		return &validatorerrors.ErrInvalidType{
-			Type:  "string",
-			Value: string(value),
+			Type:   cmp.Or(validator.Subject, "string"),
+			Target: string(value),
 		}
 	}
 
@@ -170,9 +180,9 @@ func (validator *StringValidator) Validate(value jsontext.Value) error {
 		}
 
 		if !in {
-			return &validatorerrors.NotInEnumError{
-				Topic:   "string value",
-				Current: val,
+			return &validatorerrors.ErrNotInEnum{
+				Subject: cmp.Or(validator.Subject, "string value"),
+				Target:  val,
 				Enums:   enums,
 			}
 		}
@@ -180,32 +190,33 @@ func (validator *StringValidator) Validate(value jsontext.Value) error {
 		return nil
 	}
 
-	if validator.Pattern != "" {
-		matched, _ := regexp.MatchString(validator.Pattern, val)
-		if !matched {
-			return &validatorerrors.ErrNotMatch{
-				Topic:   "string value",
-				Pattern: validator.Pattern,
-				Current: val,
+	if validator.Pattern != nil {
+		if !validator.Pattern.MatchString(val) {
+			return &validatorerrors.ErrPatternNotMatch{
+				Subject: cmp.Or(validator.Subject, "string value"),
+				Pattern: validator.Pattern.String(),
+				ErrMsg:  validator.PatternErrMsg,
+				Target:  val,
 			}
 		}
-		return nil
 	}
 
-	strLen := strLenModes[validator.LenMode](val)
+	lenMode := cmp.Or(validator.LenMode, StrLenModeLength)
+
+	strLen := strLenModes[lenMode](val)
 
 	if strLen < validator.MinLength {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "string value length",
-			Current: strLen,
+		return &validatorerrors.ErrOutOfRange{
+			Subject: cmp.Or(validator.Subject, "string value length"),
+			Target:  strLen,
 			Minimum: validator.MinLength,
 		}
 	}
 
 	if validator.MaxLength != nil && strLen > *validator.MaxLength {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "string value length",
-			Current: strLen,
+		return &validatorerrors.ErrOutOfRange{
+			Subject: cmp.Or(validator.Subject, "string value length"),
+			Target:  strLen,
 			Maximum: *validator.MaxLength,
 		}
 	}
@@ -216,7 +227,7 @@ func (validator *StringValidator) String() string {
 	rule := rules.NewRule("string")
 
 	rule.Params = []rules.RuleNode{
-		rules.NewRuleLit([]byte(validator.LenMode)),
+		rules.NewRuleLit([]byte(cmp.Or(validator.LenMode, StrLenModeLength))),
 	}
 
 	if validator.Enums != nil {
@@ -229,8 +240,8 @@ func (validator *StringValidator) String() string {
 		return string(rule.Bytes())
 	}
 
-	if validator.Pattern != "" {
-		rule.Pattern = validator.Pattern
+	if validator.Pattern != nil {
+		rule.Pattern = validator.Pattern.String()
 
 		return string(rule.Bytes())
 	}

@@ -2,7 +2,6 @@ package org
 
 import (
 	"context"
-	"time"
 
 	"github.com/octohelm/courier/example/apis/org/operator"
 	"github.com/octohelm/courier/example/pkg/domain/org"
@@ -20,7 +19,7 @@ func (GetOrg) MiddleOperators() courier.MiddleOperators {
 type GetOrg struct {
 	courierhttp.MethodGet `path:"/:orgName"`
 
-	OrgName string `name:"orgName" in:"path" `
+	OrgName Name `name:"orgName" in:"path" `
 }
 
 func (c *GetOrg) Output(ctx context.Context) (any, error) {
@@ -34,9 +33,4 @@ func (c *GetOrg) Output(ctx context.Context) (any, error) {
 			Type: org.TYPE__GOV,
 		},
 	}, nil
-}
-
-type Detail struct {
-	Info
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
 }

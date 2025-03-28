@@ -33,57 +33,62 @@ func (*ErrMissingRequired) Error() string {
 
 type ErrInvalidType struct {
 	validationError
+	Target any
 
-	Type  string
-	Value any
+	Type string
 }
 
 func (e *ErrInvalidType) Error() string {
-	if e.Value == nil {
+	if e.Target == nil {
 		return fmt.Sprintf("invalid %s", e.Type)
 	}
-	return fmt.Sprintf("invalid %s: %s", e.Type, e.Value)
+	return fmt.Sprintf("invalid %s: %s", e.Type, e.Target)
 }
 
-type ErrNotMatch struct {
+type ErrPatternNotMatch struct {
 	validationError
+	Target any
 
-	Topic   string
-	Current any
+	Subject string
 	Pattern string
+	ErrMsg  string
 }
 
-func (err *ErrNotMatch) Error() string {
-	return fmt.Sprintf("%s should match %v, but got %v", err.Topic, err.Pattern, err.Current)
+func (err *ErrPatternNotMatch) Error() string {
+	if err.ErrMsg != "" {
+		return fmt.Sprintf("%s %s", err.Subject, err.ErrMsg)
+	}
+	return fmt.Sprintf("%s should match %v, but got %v", err.Subject, err.Pattern, err.Target)
 }
 
 type ErrMultipleOf struct {
 	validationError
+	Target any
 
-	Topic      string
-	Current    any
+	Subject string
+
 	MultipleOf any
 }
 
 func (e *ErrMultipleOf) Error() string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(e.Topic)
+	buf.WriteString(e.Subject)
 	buf.WriteString(fmt.Sprintf(" should be multiple of %v", e.MultipleOf))
-	buf.WriteString(fmt.Sprintf(", but got %v", e.Current))
+	buf.WriteString(fmt.Sprintf(", but got %v", e.Target))
 	return buf.String()
 }
 
-type NotInEnumError struct {
+type ErrNotInEnum struct {
 	validationError
+	Target any
 
-	Topic   string
-	Current any
+	Subject string
 	Enums   []any
 }
 
-func (e *NotInEnumError) Error() string {
+func (e *ErrNotInEnum) Error() string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(e.Topic)
+	buf.WriteString(e.Subject)
 	buf.WriteString(" should be one of ")
 
 	for i, v := range e.Enums {
@@ -93,26 +98,27 @@ func (e *NotInEnumError) Error() string {
 		buf.WriteString(fmt.Sprintf("%v", v))
 	}
 
-	buf.WriteString(fmt.Sprintf(", but got %v", e.Current))
+	buf.WriteString(fmt.Sprintf(", but got %v", e.Target))
 
 	return buf.String()
 }
 
-type OutOfRangeError struct {
+type ErrOutOfRange struct {
 	validationError
+	Target any
 
-	Topic            string
-	Current          any
+	Subject string
+
 	Minimum          any
 	Maximum          any
 	ExclusiveMaximum bool
 	ExclusiveMinimum bool
 }
 
-func (e *OutOfRangeError) Error() string {
+func (e *ErrOutOfRange) Error() string {
 	buf := &strings.Builder{}
 
-	buf.WriteString(e.Topic)
+	buf.WriteString(e.Subject)
 	buf.WriteString(" should be")
 
 	if e.Minimum != nil {
@@ -137,7 +143,7 @@ func (e *OutOfRangeError) Error() string {
 		buf.WriteString(fmt.Sprintf(" than %v", reflectx.Indirect(reflect.ValueOf(e.Maximum)).Interface()))
 	}
 
-	buf.WriteString(fmt.Sprintf(", but got %v", e.Current))
+	buf.WriteString(fmt.Sprintf(", but got %v", e.Target))
 
 	return buf.String()
 }

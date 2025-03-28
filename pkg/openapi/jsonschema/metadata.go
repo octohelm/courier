@@ -1,12 +1,13 @@
 package jsonschema
 
 const (
-	XEnumLabels   = `x-enum-labels`
-	XGoType       = `x-go-type`
-	XGoVendorType = `x-go-vendor-type`
-	XGoStarLevel  = `x-go-star-level`
-	XGoFieldName  = `x-go-field-name`
-	XTagValidate  = `x-tag-validate`
+	XEnumLabels    = `x-enum-labels`
+	XGoType        = `x-go-type`
+	XGoVendorType  = `x-go-vendor-type`
+	XGoStarLevel   = `x-go-star-level`
+	XGoFieldName   = `x-go-field-name`
+	XTagValidate   = `x-tag-validate`
+	XPatternErrMsg = `x-pattern-err-msg`
 )
 
 // +gengo:deepcopy

@@ -154,6 +154,10 @@ func (v *ListOrgOld) RuntimeDoc(names ...string) ([]string, bool) {
 	}, true
 }
 
+func (*Name) RuntimeDoc(names ...string) ([]string, bool) {
+	return []string{}, true
+}
+
 // nolint:deadcode,unused
 func runtimeDoc(v any, prefix string, names ...string) ([]string, bool) {
 	if c, ok := v.(interface {

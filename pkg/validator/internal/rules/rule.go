@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"text/scanner"
+	"unicode"
 )
 
 func MustParseRuleString(rule string) *Rule {
@@ -27,6 +28,9 @@ func ParseRule(b []byte) (*Rule, error) {
 func newRuleScanner(b []byte) *ruleScanner {
 	s := &scanner.Scanner{}
 	s.Init(bytes.NewReader(b))
+	s.IsIdentRune = func(ch rune, i int) bool {
+		return unicode.IsLetter(ch) || unicode.IsDigit(ch) && i > 0 || ch == '-' && i > 0
+	}
 
 	return &ruleScanner{
 		data:    b,

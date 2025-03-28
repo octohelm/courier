@@ -65,7 +65,7 @@ func TestMapValidator(t *testing.T) {
 				ExpectError: func(err error, v any) bool {
 					spew.Dump(err)
 
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 		}

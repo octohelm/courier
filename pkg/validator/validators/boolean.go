@@ -32,8 +32,8 @@ func (validator *booleanValidator) String() string {
 func (validator *booleanValidator) Validate(value jsontext.Value) error {
 	if !(value.Kind() == 'f' || value.Kind() == 't') {
 		return &validatorerrors.ErrInvalidType{
-			Type:  "boolean",
-			Value: string(value),
+			Type:   "boolean",
+			Target: string(value),
 		}
 	}
 	return nil

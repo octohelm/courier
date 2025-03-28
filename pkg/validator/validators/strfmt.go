@@ -1,35 +1,11 @@
 package validators
 
 import (
-	"regexp"
-
-	"github.com/octohelm/courier/pkg/validator/internal/rules"
-
 	"github.com/go-json-experiment/json/jsontext"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"
+	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
-
-func RegisterRegexpStrfmtValidator(regexpStr string, name string, aliases ...string) {
-	internal.Register(NewRegexpStrfmtValidatorProvider(regexpStr, name, aliases...))
-}
-
-func NewRegexpStrfmtValidatorProvider(regexpStr string, name string, aliases ...string) internal.ValidatorProvider {
-	re := regexp.MustCompile(regexpStr)
-
-	validate := func(s string) error {
-		if !re.MatchString(s) {
-			return &validatorerrors.ErrNotMatch{
-				Topic:   name,
-				Current: s,
-				Pattern: re.String(),
-			}
-		}
-		return nil
-	}
-
-	return NewStrfmtValidatorProvider(validate, name, aliases...)
-}
 
 func NewStrfmtValidatorProvider(validate func(unquoteStr string) error, name string, aliases ...string) internal.ValidatorProvider {
 	return &strfmtValidatorProvider{
@@ -70,8 +46,8 @@ func (validator *StrfmtValidator) String() string {
 func (validator *StrfmtValidator) Validate(value jsontext.Value) error {
 	if value.Kind() != '"' {
 		return &validatorerrors.ErrInvalidType{
-			Type:  "string",
-			Value: string(value),
+			Type:   "string",
+			Target: string(value),
 		}
 	}
 

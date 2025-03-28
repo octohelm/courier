@@ -60,7 +60,22 @@ func must[T any](ret T, err error) T {
 func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.Schema) {
 	sr := SchemaRegisterContext.From(ctx)
 
-	fillGoVendorType := func(typeRef string) {
+	fill := func(typeRef string) {
+		if _, ok := s.(*jsonschema.RefType); !ok {
+			if v, ok := reflect.New(t).Interface().(validator.WithStructTagValidate); ok {
+				if rule := v.StructTagValidate(); rule != "" {
+					patched, err := PatchSchemaValidation(s, validator.Option{
+						Type: t,
+						Rule: v.StructTagValidate(),
+					})
+					if err != nil {
+						panic(err)
+					}
+					s = patched
+				}
+			}
+		}
+
 		if s != nil {
 			if !(strings.Contains(typeRef, "/internal/") || strings.Contains(typeRef, "/internal.")) {
 				s.GetMetadata().AddExtension(jsonschema.XGoVendorType, typeRef)
@@ -74,7 +89,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 	if pkgPath := t.PkgPath(); pkgPath != "" {
 		typeRef := fmt.Sprintf("%s.%s", pkgPath, t.Name())
 
-		defer fillGoVendorType(typeRef)
+		defer fill(typeRef)
 
 		ref := sr.RefString(typeRef)
 
@@ -147,7 +162,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			}()
 		}
 
-		defer fillGoVendorType(typeRef)
+		defer fill(typeRef)
 
 		if g, ok := inst.(jsonschema.GoUnionType); ok {
 			if types := g.OneOf(); len(types) != 0 {

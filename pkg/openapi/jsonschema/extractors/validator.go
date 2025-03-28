@@ -48,6 +48,7 @@ func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator
 		}
 
 		s := jsonschema.String()
+		s.Format = vt.Format
 
 		s.MinLength = ptr.Ptr(vt.MinLength)
 
@@ -55,9 +56,14 @@ func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator
 			s.MaxLength = ptr.Ptr(*vt.MaxLength)
 		}
 
-		if vt.Pattern != "" {
-			s.Pattern = vt.Pattern
+		if vt.Pattern != nil {
+			s.Pattern = vt.Pattern.String()
 		}
+
+		if vt.PatternErrMsg != "" {
+			s.AddExtension(jsonschema.XPatternErrMsg, vt.PatternErrMsg)
+		}
+
 		return s
 	case *validators.SliceValidator:
 		switch x := s.(type) {
@@ -90,7 +96,7 @@ func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator
 			}
 			x.PropertyNames = key
 
-			elem, err := PatchSchemaValidation(x.AdditionalProperties, vt.Key())
+			elem, err := PatchSchemaValidation(x.AdditionalProperties, vt.Elem())
 			if err != nil {
 				panic(err)
 			}

@@ -20,7 +20,7 @@ type OpenAPISchemaFormatGetter interface {
 	OpenAPISchemaFormat() string
 }
 
-// interface of k8s pkgs
+// CanSwaggerDoc interface of k8s pkgs
 type CanSwaggerDoc interface {
 	SwaggerDoc() map[string]string
 }

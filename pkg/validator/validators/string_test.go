@@ -72,7 +72,7 @@ func TestStringValidator(t *testing.T) {
 				}{},
 				Expect: []byte(`{}`),
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.OutOfRangeError{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrOutOfRange{}))
 				},
 			},
 			{
@@ -81,7 +81,7 @@ func TestStringValidator(t *testing.T) {
 					Int *string `json:"x,omitzero" validate:"@string/^\\w+/"`
 				}{},
 				ExpectError: func(err error, v any) bool {
-					return errors.As(err, ptr.Ptr(&validatorerrors.ErrNotMatch{}))
+					return errors.As(err, ptr.Ptr(&validatorerrors.ErrPatternNotMatch{}))
 				},
 			},
 		}

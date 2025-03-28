@@ -12,9 +12,13 @@ import (
 	testingx "github.com/octohelm/x/testing"
 )
 
-func TestUnmarshal(t *testing.T) {
-	type Named string
+type Named string
 
+func (Named) StructTagValidate() string {
+	return "@string[2,]"
+}
+
+func TestUnmarshal(t *testing.T) {
 	type SubPtrStruct struct {
 		PtrInt   *int     `validate:"@int[1,]"`
 		PtrFloat *float32 `validate:"@float[1,]"`
@@ -29,9 +33,9 @@ func TestUnmarshal(t *testing.T) {
 
 	type SomeStruct struct {
 		JustRequired string
-		CanEmpty     *string              `validate:"@string[0,]?"`
-		String       string               `validate:"@string[1,]"`
-		Named        Named                `validate:"@string[2,]"`
+		CanEmpty     *string `validate:"@string[0,]?"`
+		String       string  `validate:"@string[1,]"`
+		Named        Named
 		PtrString    *string              `validate:"@string[3,]" default:"123"`
 		Slice        []string             `validate:"@slice<@string[1,]>"`
 		SliceStruct  []SubStruct          `validate:"@slice"`
@@ -48,6 +52,7 @@ func TestUnmarshal(t *testing.T) {
 {
 	"Slice": ["", ""],
 	"SliceStruct": [{ "Int": 0 }],
+	"Named": "1",
 	"Map": {
 		"1":  "",
 		"11": "",
@@ -71,6 +76,7 @@ string value length should be larger or equal than 1, but got 0 at /Slice/1
 integer value should be larger or equal than 1 and less or equal than 2147483647, but got 0 at /SliceStruct/0/Int
 missing required field at /SliceStruct/0/Float
 missing required field at /SliceStruct/0/Uint
+string value length should be larger or equal than 2, but got 1 at /Named
 string value length should be larger or equal than 2, but got 1 at /Map/1/
 string value length should be larger or equal than 1, but got 0 at /Map/1
 string value length should be larger or equal than 1, but got 0 at /Map/11
@@ -80,7 +86,6 @@ missing required field at /MapStruct/x.io~1x/Float
 missing required field at /MapStruct/x.io~1x/Uint
 missing required field at /JustRequired
 missing required field at /String
-missing required field at /Named
 missing required field at /PtrString
 missing required field at /Struct
 missing required field at /Int

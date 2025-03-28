@@ -128,17 +128,17 @@ func (validator *MapValidator) PostValidate(rv reflect.Value) error {
 	}
 
 	if lenOfValue < validator.MinProperties {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "props count",
+		return &validatorerrors.ErrOutOfRange{
+			Subject: "props count",
 			Minimum: validator.MinProperties,
-			Current: lenOfValue,
+			Target:  lenOfValue,
 		}
 	}
 
 	if validator.MaxProperties != nil && lenOfValue > *validator.MaxProperties {
-		return &validatorerrors.OutOfRangeError{
-			Topic:   "props count",
-			Current: lenOfValue,
+		return &validatorerrors.ErrOutOfRange{
+			Subject: "props count",
+			Target:  lenOfValue,
 			Maximum: validator.MaxProperties,
 		}
 	}

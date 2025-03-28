@@ -6,10 +6,9 @@ import (
 	"reflect"
 	"sync"
 
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
-
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/internal/jsonflags"
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
 
@@ -33,6 +32,10 @@ type WithOptional interface {
 
 type WithDefaultValue interface {
 	DefaultValue() jsontext.Value
+}
+
+type WithStructTagValidate interface {
+	StructTagValidate() string
 }
 
 type WithKey interface {
@@ -106,6 +109,12 @@ type validators struct {
 
 func (v *validators) New(option ValidatorOption) (Validator, error) {
 	get, _ := v.rules.LoadOrStore(option, sync.OnceValues(func() (Validator, error) {
+		if option.Type != nil {
+			if value, ok := reflect.New(option.Type).Interface().(WithStructTagValidate); ok {
+				option.Rule = value.StructTagValidate()
+			}
+		}
+
 		if option.Rule == "" {
 			option.Rule = v.defaultRule(option.Type)
 		}
@@ -288,4 +297,44 @@ func (o *wrapValidator) Validate(value jsontext.Value) error {
 		return nil
 	}
 	return o.underlying.Validate(value)
+}
+
+func CreateValidatorProvider(names []string, createValidator func(rule *rules.Rule) (Validator, error)) ValidatorProvider {
+	return &validatorProviderCreator{
+		names:           names,
+		createValidator: createValidator,
+	}
+}
+
+type validatorProviderCreator struct {
+	names           []string
+	createValidator func(rule *rules.Rule) (Validator, error)
+}
+
+func (s *validatorProviderCreator) Names() []string {
+	return s.names
+}
+
+func (s *validatorProviderCreator) Validator(rule *rules.Rule) (Validator, error) {
+	return s.createValidator(rule)
+}
+
+func CreateValidator(name string, validate func(value jsontext.Value) error) Validator {
+	return &validator{
+		name:     name,
+		validate: validate,
+	}
+}
+
+type validator struct {
+	name     string
+	validate func(value jsontext.Value) error
+}
+
+func (s *validator) String() string {
+	return s.name
+}
+
+func (s *validator) Validate(value jsontext.Value) error {
+	return s.validate(value)
 }
