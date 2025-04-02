@@ -3,6 +3,7 @@ package courier
 import (
 	"context"
 	"fmt"
+	"iter"
 	"net/url"
 	"reflect"
 )
@@ -13,6 +14,10 @@ type CanInit interface {
 
 type Operator interface {
 	Output(ctx context.Context) (any, error)
+}
+
+type WithMiddleOperatorSeq interface {
+	MiddleOperators() iter.Seq[Operator]
 }
 
 type MiddleOperators []Operator

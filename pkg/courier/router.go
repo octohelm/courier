@@ -3,6 +3,8 @@ package courier
 import (
 	"bytes"
 	"fmt"
+	"iter"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -14,26 +16,37 @@ type Router interface {
 }
 
 func NewRouter(operators ...Operator) Router {
-	ops := make([]Operator, 0)
-	for i := range operators {
-		op := operators[i]
-
-		if withMiddleOperators, ok := op.(WithMiddleOperators); ok {
-			ops = append(ops, withMiddleOperators.MiddleOperators()...)
-		}
-
-		ops = append(ops, op)
-	}
-
 	return &router{
-		operators: ops,
+		operators: func(yield func(Operator) bool) {
+			for i := range operators {
+				op := operators[i]
+
+				if withMiddleOperatorSeq, ok := op.(WithMiddleOperatorSeq); ok {
+					for o := range withMiddleOperatorSeq.MiddleOperators() {
+						if !yield(o) {
+							return
+						}
+					}
+				} else if withMiddleOperators, ok := op.(WithMiddleOperators); ok {
+					for _, o := range withMiddleOperators.MiddleOperators() {
+						if !yield(o) {
+							return
+						}
+					}
+				}
+
+				if !yield(op) {
+					return
+				}
+			}
+		},
 	}
 }
 
 type router struct {
 	parent    *router
-	operators []Operator
 	children  map[*router]bool
+	operators iter.Seq[Operator]
 }
 
 func (rt router) With(routers ...Router) Router {
@@ -57,10 +70,10 @@ func (rt *router) Register(r Router) {
 
 func (rt *router) route() *route {
 	parent := rt.parent
-	operators := rt.operators
+	operators := slices.Collect(rt.operators)
 
 	for parent != nil {
-		operators = append(parent.operators, operators...)
+		operators = append(slices.Collect(parent.operators), operators...)
 		parent = parent.parent
 	}
 
