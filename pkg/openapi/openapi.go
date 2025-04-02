@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"github.com/octohelm/courier/pkg/openapi/internal"
 	"strings"
 
 	"github.com/go-json-experiment/json"
@@ -38,23 +39,17 @@ type OpenAPI struct {
 	InfoObject       `json:"info"`
 	ComponentsObject `json:"components"`
 
-	Paths map[string]*PathItemObject `json:"paths"`
+	Paths internal.Record[string, *PathItemObject] `json:"paths"`
 
 	jsonschema.Ext
 }
 
 func (p *OpenAPI) AddOperation(method string, path string, op *OperationObject) {
-	if p.Paths == nil {
-		p.Paths = map[string]*PathItemObject{}
+	operations, ok := p.Paths.Get(path)
+	if !ok {
+		operations = &PathItemObject{}
+		p.Paths.Set(path, operations)
 	}
-
-	if p.Paths[path] == nil {
-		p.Paths[path] = &PathItemObject{}
-	}
-
-	if p.Paths[path].Operations == nil {
-		p.Paths[path].Operations = map[string]*OperationObject{}
-	}
-
-	p.Paths[path].Operations[strings.ToLower(method)] = op
+	
+	operations.Set(strings.ToLower(method), op)
 }

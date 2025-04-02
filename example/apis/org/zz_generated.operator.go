@@ -14,11 +14,11 @@ func init() {
 }
 
 func (Cookie) ResponseContent() any {
-	return new(any)
+	return nil
 }
 
-func (Cookie) ResponseData() *any {
-	return new(any)
+func (Cookie) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }
 
 func init() {
@@ -59,11 +59,11 @@ func (GetOrg) ResponseData() *Detail {
 
 func (GetOrg) ResponseErrors() []error {
 	return []error{
-		&(statuserror.Descriptor{
-			Code:    "org.ErrNotFound",
+		&statuserror.Descriptor{
+			Code:    statuserror.ErrCodeFor[ErrNotFound](),
 			Message: "{OrgName}: 组织不存在",
 			Status:  404,
-		}),
+		},
 	}
 }
 
@@ -87,14 +87,10 @@ func init() {
 	R.Register(courier.NewRouter(&ListOrgOld{}))
 }
 
-func (ListOrgOld) ResponseStatusCode() int {
-	return 302
-}
-
 func (ListOrgOld) ResponseContent() any {
-	return new(any)
+	return nil
 }
 
-func (ListOrgOld) ResponseData() *any {
-	return new(any)
+func (ListOrgOld) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }

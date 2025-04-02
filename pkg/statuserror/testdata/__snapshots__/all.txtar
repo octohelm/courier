@@ -3,7 +3,7 @@
   "code": 500,
   "errors": [
     {
-      "code": "InternalServerError",
+      "code": "INTERNAL_SERVER_ERROR",
       "message": "test error",
       "source": "x@v1"
     }

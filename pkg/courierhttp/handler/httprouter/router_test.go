@@ -103,7 +103,7 @@ HTTP/0.0 400 Bad Request
 Content-Type: application/json; charset=utf-8
 Server: test (CreateOrg)
 
-{"code":400,"msg":"Bad Request","errors":[{"code":"InvalidParameter","message":"string value length should be less or equal than 5, but got 7","location":"body","pointer":"/name","source":"test"}]}
+{"code":400,"msg":"Bad Request","errors":[{"code":"INVALID_PARAMETER","message":"string value length should be less or equal than 5, but got 7","location":"body","pointer":"/name","source":"test"}]}
 `))
 		})
 	})

@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"go/types"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -214,46 +213,19 @@ func (s *statusErrScanner) resolveStateCode(ctx gengo.Context, named *types.Name
 	return 0, false
 }
 
-func (s *statusErrScanner) resolveCustomErrCode(ctx gengo.Context, named *types.Named) (string, bool) {
-	errorCode, ok := typex.FromTType(types.NewPointer(named)).MethodByName("ErrCode")
-	if ok {
-		m := errorCode.(*typex.TMethod)
-		if m.Func.Pkg() == nil {
-			return "", false
-		}
-		results, n := ctx.Package(m.Func.Pkg().Path()).ResultsOf(m.Func)
-		if n == 1 {
-			for _, r := range results[0] {
-				if r.Value != nil && r.Value.Kind() == constant.String {
-					v, err := strconv.Unquote(r.Value.String())
-					if err == nil {
-						return v, ok
-					}
-				}
-			}
-		}
-	}
-	return "", false
-}
-
 func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, named *types.Named) (list []*statuserror.Descriptor) {
 	if named.Obj() == nil {
 		return nil
 	}
 
 	serr := &statuserror.Descriptor{
-		Code:   filepath.Base(named.Obj().Pkg().Path()) + "." + named.Obj().Name(),
+		Code:   named.Obj().Pkg().Path() + "." + named.Obj().Name(),
 		Status: http.StatusInternalServerError,
 	}
 
 	code, ok := s.resolveStateCode(ctx, named)
 	if ok {
 		serr.Status = code
-	}
-
-	errCode, ok := s.resolveCustomErrCode(ctx, named)
-	if ok {
-		serr.Code = errCode
 	}
 
 	method, ok := typex.FromTType(types.NewPointer(named)).MethodByName("Error")

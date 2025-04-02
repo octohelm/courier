@@ -108,16 +108,16 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		}
 	}
 
-	for p, oo := range g.oas.Paths {
-		for method, o := range oo.Operations {
-			if shouldGenerate(o) {
+	for p, operations := range g.oas.Paths.KeyValues() {
+		for method, op := range operations.KeyValues() {
+			if shouldGenerate(op) {
 				if trimBashPath != "" {
 					if strings.HasPrefix(p, trimBashPath) {
 						p = p[len(trimBashPath):]
 					}
 				}
 
-				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), o); err != nil {
+				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), op); err != nil {
 					return err
 				}
 			}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
@@ -75,8 +76,26 @@ func (@Type) ResponseErrors() []error {
 						continue
 					}
 
-					if !yield(snippet.Sprintf("%v,\n", statusError)) {
-						return
+					if !strings.Contains(statusError.Code, "/") {
+						if !yield(snippet.Sprintf("%v,\n", statusError)) {
+							return
+						}
+					} else {
+						if !yield(snippet.T(`
+&@statuserrorDescriptor{
+	Code:    @statuserrorErrCodeFor[@Error](),
+	Message: @message,
+	Status:  @status,
+},
+`, snippet.Args{
+							"Error":                 snippet.ID(statusError.Code),
+							"statuserrorDescriptor": snippet.PkgExposeFor[statuserror.Descriptor](),
+							"statuserrorErrCodeFor": snippet.PkgExposeFor[statuserror.Descriptor]("ErrCodeFor"),
+							"message":               snippet.Value(statusError.Message),
+							"status":                snippet.Value(statusError.Status),
+						})) {
+							return
+						}
 					}
 
 					added[x] = true
@@ -87,32 +106,37 @@ func (@Type) ResponseErrors() []error {
 }
 
 func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named, typeAndValues gengotypes.TypeAndValues) {
-	var tpe types.Type
-	var expr ast.Expr
+	var successType types.Type
+	var fromExpr ast.Expr
 
 	for _, resp := range typeAndValues {
 		if resp.Type != nil {
-			tpe2 := dePtr(resp.Type)
+			tpe := dePtr(resp.Type)
 
-			if isNil(tpe2) {
+			if isNil(tpe) {
 				continue
 			}
 
-			if !isNil(tpe) {
-				if tpe.String() != tpe2.String() {
-					c.Logger().Warn(fmt.Errorf("%s return multi types, `%s` `%s`", named, tpe, tpe2))
+			typeStr := tpe.String()
+
+			if strings.HasSuffix(typeStr, "/courierhttp.Response[any]") {
+				continue
+			}
+
+			if !isNil(successType) {
+				if successType.String() != typeStr {
+					c.Logger().Warn(fmt.Errorf("%s return multi types, `%s` `%s`", named, successType, tpe))
 				}
 			}
 
-			tpe = tpe2
-			expr = resp.Expr
-
+			successType = tpe
+			fromExpr = resp.Expr
 			// use first got type
 			break
 		}
 	}
 
-	if isNil(tpe) {
+	if isNil(successType) {
 		c.RenderT(`
 func (@Type) ResponseContent() any {
 	return nil
@@ -126,18 +150,18 @@ func (@Type) ResponseData() *@courierNoContent {
 			"Type":             snippet.ID(named.Obj()),
 			"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 		})
-	} else if types.IsInterface(tpe) && !strings.Contains(tpe.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
-		c.Logger().Warn(fmt.Errorf("%s return interface %s will be untyped jsonschema", named, tpe))
+	} else if types.IsInterface(successType) && !strings.Contains(successType.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
+		c.Logger().Warn(fmt.Errorf("%s return interface %s will be untyped jsonschema", named, successType))
 	} else {
-		if n, ok := tpe.(*types.Named); ok {
+		if n, ok := successType.(*types.Named); ok {
 			typeArgs := n.TypeArgs()
 
 			if typeArgs.Len() > 0 {
 				if n.Obj().Pkg().Path() == typeResponse.PkgPath() && n.Obj().Name() == "Response" {
-					tpe = dePtr(n.TypeArgs().At(0))
+					successType = dePtr(n.TypeArgs().At(0))
 
-					if expr != nil {
-						ast.Inspect(expr, func(node ast.Node) bool {
+					if fromExpr != nil {
+						ast.Inspect(fromExpr, func(node ast.Node) bool {
 							switch callExpr := node.(type) {
 							case *ast.CallExpr:
 								switch e := callExpr.Fun.(type) {
@@ -189,7 +213,7 @@ func (@Type) ResponseContentType() string {
 			}
 		}
 
-		if _, ok := tpe.(*types.Interface); ok {
+		if _, ok := successType.(*types.Interface); ok {
 			return
 		}
 
@@ -204,7 +228,7 @@ func (@Type) ResponseData() *@ReturnType {
 
 `, snippet.Args{
 			"Type":       snippet.ID(named.Obj()),
-			"ReturnType": snippet.ID(tpe),
+			"ReturnType": snippet.ID(successType),
 		})
 	}
 }

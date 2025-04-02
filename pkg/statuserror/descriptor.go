@@ -2,14 +2,10 @@ package statuserror
 
 import (
 	"fmt"
-	"go/ast"
-	"net/http"
-	"path/filepath"
-	"reflect"
-	"strconv"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
+	"net/http"
+	"strconv"
 )
 
 type WithStatusCode interface {
@@ -117,8 +113,8 @@ func asDescriptor(err error, source string, loc string) *Descriptor {
 	}
 
 	if v, ok := err.(WithJSONPointer); ok {
+		er.Code = ERR_CODD_INVALID_PARAMETER
 		er.Status = http.StatusBadRequest
-		er.Code = "InvalidParameter"
 		er.Pointer = v.JSONPointer()
 	}
 
@@ -127,22 +123,11 @@ func asDescriptor(err error, source string, loc string) *Descriptor {
 	}
 
 	if er.Code == "" {
-		rv := reflect.TypeOf(err)
-		for rv.Kind() == reflect.Ptr {
-			rv = rv.Elem()
-		}
 
-		if ast.IsExported(rv.Name()) {
-			if p := rv.PkgPath(); p != "" {
-				er.Code = filepath.Base(p) + "." + rv.Name()
-			} else {
-				er.Code = rv.Name()
-			}
-		}
 	}
 
 	if er.Code == "" {
-		er.Code = "InternalServerError"
+		er.Code = ERR_CODD_INTERNAL_SERVER_ERROR
 	}
 
 	if er.Status == 0 {
