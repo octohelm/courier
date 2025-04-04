@@ -2,10 +2,12 @@ package statuserror
 
 import (
 	"fmt"
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+
 	"net/http"
 	"strconv"
+
+	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
 )
 
 type WithStatusCode interface {
@@ -123,7 +125,7 @@ func asDescriptor(err error, source string, loc string) *Descriptor {
 	}
 
 	if er.Code == "" {
-
+		er.Code = ErrCodeOf(err)
 	}
 
 	if er.Code == "" {
