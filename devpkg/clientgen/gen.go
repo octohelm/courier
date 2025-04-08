@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go/ast"
 	"go/types"
 	"iter"
 	"log/slog"
@@ -144,13 +145,20 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 		return nil
 	}
 
+	operationID := operation.OperationId
+	if len(operationID) > 0 {
+		if !ast.IsExported(operationID) {
+			operationID = "Api" + strings.ToUpper(operationID[0:1]) + operationID[1:]
+		}
+	}
+
 	hasResponse := false
 	for statusOrStr := range operation.ResponsesObject.Responses {
 		status, _ := strconv.ParseInt(statusOrStr, 10, 64)
 
 		if status >= http.StatusOK && status < http.StatusMultipleChoices {
 			for _, mt := range operation.ResponsesObject.Responses[statusOrStr].Content {
-				typeName := fmt.Sprintf("%sResponse", operation.OperationId)
+				typeName := fmt.Sprintf("%sResponse", operationID)
 
 				g.types.Store(typeName, &typ{
 					Alias:  true,
@@ -161,8 +169,6 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 			}
 		}
 	}
-
-	operationID := operation.OperationId
 
 	c.RenderT(`
 @doc
