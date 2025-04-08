@@ -68,6 +68,8 @@ func (u *schemaDecoder) schemaOfType(typ string) (Schema, error) {
 		return &NumberType{Type: typ}, nil
 	case "integer":
 		return &NumberType{Type: typ}, nil
+	case "int":
+		return &NumberType{Type: "integer"}, nil
 	case "string":
 		return &StringType{Type: typ}, nil
 	case "null":

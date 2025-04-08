@@ -104,6 +104,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		req, _ := http.NewRequest("GET", u.String(), nil)
 		_, err := cc.Do(context.Background(), req).Into(&g.oas)
 		if err != nil {
+			c.Logger().Error(err)
 			return errors.Join(gengo.ErrIgnore, err)
 		}
 	}
@@ -149,15 +150,19 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 
 		if status >= http.StatusOK && status < http.StatusMultipleChoices {
 			for _, mt := range operation.ResponsesObject.Responses[statusOrStr].Content {
-				g.types.Store(fmt.Sprintf("%sResponse", operation.OperationId), &typ{
+				typeName := fmt.Sprintf("%sResponse", operation.OperationId)
+
+				g.types.Store(typeName, &typ{
 					Alias:  true,
 					Schema: mt.Schema,
-					Decl:   g.typeOfSchema(c, mt.Schema),
+					Decl:   g.typeOfSchema(c, mt.Schema, typeName),
 				})
 				hasResponse = true
 			}
 		}
 	}
+
+	operationID := operation.OperationId
 
 	c.RenderT(`
 @doc
@@ -179,7 +184,7 @@ type @Operation'Parameters struct {
 		"courierMetadata":          snippet.ID("github.com/octohelm/courier/pkg/courier.Metadata"),
 		"courierResult":            snippet.ID("github.com/octohelm/courier/pkg/courier.Result"),
 		"courierClientFromContext": snippet.ID("github.com/octohelm/courier/pkg/courier.ClientFromContext"),
-		"Operation":                snippet.ID(operation.OperationId),
+		"Operation":                snippet.ID(operationID),
 		"method":                   snippet.ID(method),
 		"path":                     snippet.Value(path),
 		"doc":                      snippet.Comment(operation.Description),
@@ -190,7 +195,7 @@ func (@Operation) ResponseData() (*@Operation'Response) {
 	return new(@Operation'Response)
 }
 `, snippet.Args{
-					"Operation": snippet.ID(operation.OperationId),
+					"Operation": snippet.ID(operationID),
 				})) {
 					return
 				}
@@ -204,7 +209,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 }
 
 `, snippet.Args{
-				"Operation":        snippet.ID(operation.OperationId),
+				"Operation":        snippet.ID(operationID),
 				"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
 			})) {
 				return
@@ -239,7 +244,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 						return
 					}),
 					"TypeDef": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
-						s := g.typeOfSchema(c, p.Schema)
+						s := g.typeOfSchema(c, p.Schema, "")
 
 						if _, ok := getSchemaExt(p.Schema, jsonschema.XGoStarLevel); ok {
 							if !yield(snippet.Sprintf(`*%T`, s)) {
@@ -285,7 +290,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 @FieldName @Type `+"`"+`in:"body" mime:@mime`+"`"+`
 `, snippet.Args{
 					"mime": snippet.Value(contentType),
-					"Type": g.typeOfSchema(c, mt.Schema),
+					"Type": g.typeOfSchema(c, mt.Schema, ""),
 					"FieldName": func() snippet.Snippet {
 						if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
 							return snippet.ID(goFieldName.(string))
@@ -417,7 +422,7 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 @Key: &@Type{},
 `, snippet.Args{
 							"Key":  snippet.Value(kind),
-							"Type": g.typeOfSchema(c, s),
+							"Type": g.typeOfSchema(c, s, name),
 						})) {
 							return
 						}
@@ -431,7 +436,6 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 
 	if enumType, ok := t.Schema.(*jsonschema.EnumType); ok {
 		c.RenderT(`
-// +gengo:enum
 type @Type @TypeDef
 
 `, snippet.Args{
@@ -459,16 +463,29 @@ const (
 `, snippet.Args{
 			"enums": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
 				for _, enum := range enumType.Enum {
-					if !yield(snippet.T(`
-@NamePrefix'__@OrgName @Type = @value
+					switch enumValue := enum.(type) {
+					case string:
+						if !yield(snippet.T(`
+@Type'__@Name @Type = @value // @value
 `, snippet.Args{
-						"Type":       snippet.ID(gengo.UpperCamelCase(name)),
-						"NamePrefix": snippet.ID(gengo.UpperSnakeCase(name)),
-						"OrgName":    snippet.ID(gengo.UpperCamelCase(enum.(string))),
-						"value":      snippet.Value(enum),
-					})) {
-						return
+							"Type":  snippet.ID(name),
+							"Name":  snippet.ID(gengo.UpperSnakeCase(enumValue)),
+							"value": snippet.Value(enum),
+						})) {
+							return
+						}
+					default:
+						if !yield(snippet.T(`
+@Type'__@Name @Type = @value // @value
+`, snippet.Args{
+							"Type":  snippet.ID(name),
+							"Name":  snippet.ID(fmt.Sprintf("%v", enum)),
+							"value": snippet.Value(enum),
+						})) {
+							return
+						}
 					}
+
 				}
 			}),
 		})
@@ -481,29 +498,35 @@ type @Type @TypeDef
 
 `, snippet.Args{
 		"Type":    snippet.ID(name),
-		"TypeDef": t.Decl,
+		"TypeDef": g.typeOfSchema(c, t.Schema, name),
 	})
 
 	return nil
 }
 
-func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) snippet.Snippet {
+func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, declTypeName string) snippet.Snippet {
 	switch x := schema.(type) {
 	case *jsonschema.EnumType:
-		return snippet.Block("string")
+		for _, v := range x.Enum {
+			switch v.(type) {
+			case string:
+				return snippet.Block("string")
+			}
+		}
+		return snippet.Block("int")
 	case *jsonschema.UnionType:
 		// just look for walk sub schemas
 		for _, s := range x.OneOf {
-			g.typeOfSchema(c, s)
+			g.typeOfSchema(c, s, declTypeName)
 		}
 		return snippet.Block("struct { }")
 	case *jsonschema.IntersectionType:
 		if len(x.AllOf) > 0 {
 			// when one is the object
 			if o, ok := x.AllOf[len(x.AllOf)-1].(*jsonschema.ObjectType); ok {
-				return g.structFromSchema(c, o, x.AllOf[0:len(x.AllOf)-1]...)
+				return g.structFromSchema(c, o, declTypeName, x.AllOf[0:len(x.AllOf)-1]...)
 			}
-			return g.typeOfSchema(c, x)
+			return g.typeOfSchema(c, x, declTypeName)
 		}
 	case *jsonschema.RefType:
 		name := x.Ref.RefName()
@@ -514,10 +537,12 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) snip
 
 			g.types.Store(name, &typ{
 				Schema: s,
-				Decl:   g.typeOfSchema(c, s),
+				Decl:   g.typeOfSchema(c, s, declTypeName),
 			})
 		}
-
+		if name == declTypeName {
+			return snippet.ID("*" + name)
+		}
 		return snippet.ID(name)
 	case *jsonschema.NumberType:
 		if format, ok := x.GetExtension("x-format"); ok {
@@ -540,10 +565,10 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) snip
 	case *jsonschema.ArrayType:
 		if x.Items != nil {
 			if x.MaxItems != nil && x.MinItems != nil && *x.MaxItems == *x.MinItems {
-				return snippet.Sprintf("[%v]%T", *x.MaxItems, g.typeOfSchema(c, x.Items))
+				return snippet.Sprintf("[%v]%T", *x.MaxItems, g.typeOfSchema(c, x.Items, declTypeName))
 			}
 		}
-		return snippet.Sprintf("[]%T", g.typeOfSchema(c, x.Items))
+		return snippet.Sprintf("[]%T", g.typeOfSchema(c, x.Items, declTypeName))
 	case *jsonschema.ObjectType:
 		if elemSchema := x.AdditionalProperties; elemSchema != nil {
 			var keySchema jsonschema.Schema = jsonschema.String()
@@ -552,16 +577,16 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema) snip
 				keySchema = x.PropertyNames
 			}
 
-			return snippet.Sprintf("map[%T]%T", g.typeOfSchema(c, keySchema), g.typeOfSchema(c, elemSchema))
+			return snippet.Sprintf("map[%T]%T", g.typeOfSchema(c, keySchema, declTypeName), g.typeOfSchema(c, elemSchema, declTypeName))
 		}
 
-		return g.structFromSchema(c, x)
+		return g.structFromSchema(c, x, declTypeName)
 	}
 
 	return snippet.Block("any")
 }
 
-func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, extends ...jsonschema.Schema) snippet.Snippet {
+func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, declTypeName string, extends ...jsonschema.Schema) snippet.Snippet {
 	extendedDecls := make([]snippet.Snippet, len(extends))
 	propDecls := map[string]snippet.Snippet{}
 
@@ -569,7 +594,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 		extendedDecls[i] = snippet.T(`
 @TypeDefEmbedded
 `, snippet.Args{
-			"TypeDefEmbedded": g.typeOfSchema(c, extends[i]),
+			"TypeDefEmbedded": g.typeOfSchema(c, extends[i], ""),
 		})
 	}
 
@@ -596,7 +621,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 				return snippet.ID(gengo.UpperCamelCase(name))
 			}(),
 			"TypeDef": func() snippet.Snippet {
-				s := g.typeOfSchema(c, propSchema)
+				s := g.typeOfSchema(c, propSchema, declTypeName)
 
 				if _, ok := getSchemaExt(propSchema, jsonschema.XGoStarLevel); ok {
 					return snippet.Sprintf("*%T", s)
