@@ -554,7 +554,6 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 		if format, ok := x.GetExtension("x-format"); ok {
 			return snippet.Block(format.(string))
 		}
-
 		switch x.Type {
 		case "integer":
 			return snippet.Block("int64")
@@ -618,7 +617,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 				if requiredFieldSet[name] {
 					return name
 				}
-				return fmt.Sprintf("%s,omitempty", name)
+				return fmt.Sprintf("%s,omitzero", name)
 			}()),
 			"FieldName": func() snippet.Snippet {
 				if goFieldName, ok := getSchemaExt(propSchema, jsonschema.XGoFieldName); ok {

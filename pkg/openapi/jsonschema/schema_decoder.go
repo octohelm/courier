@@ -58,18 +58,30 @@ func (u *schemaDecoder) decode(decoder *jsontext.Decoder, target any) error {
 	return nil
 }
 
-func (u *schemaDecoder) schemaOfType(typ string) (Schema, error) {
+func (u *schemaDecoder) schemaOfType(typ string, format string) (Schema, error) {
 	switch typ {
 	case "array":
 		return &ArrayType{Type: typ}, nil
 	case "object":
 		return &ObjectType{Type: typ}, nil
 	case "number":
-		return &NumberType{Type: typ}, nil
-	case "integer":
-		return &NumberType{Type: typ}, nil
-	case "int":
-		return &NumberType{Type: "integer"}, nil
+		t := &NumberType{Type: "number"}
+		switch format {
+		case "int64", "int32", "int16", "int8", "uint64", "uint32", "uint16", "uint8":
+			t.AddExtension("x-format", format)
+		case "float":
+			t.AddExtension("x-format", "float32")
+		case "double":
+			t.AddExtension("x-format", "float64")
+		}
+		return t, nil
+	case "integer", "int":
+		t := &NumberType{Type: "integer"}
+		switch format {
+		case "int64", "int32", "int16", "int8", "uint64", "uint32", "uint16", "uint8":
+			t.AddExtension("x-format", format)
+		}
+		return t, nil
 	case "string":
 		return &StringType{Type: typ}, nil
 	case "null":
@@ -87,6 +99,8 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 	_ = unprocessedEnc.WriteToken(jsontext.BeginObject)
 
 	var schema any
+	var typ string
+	var format string
 	var additionalSchemas []Schema
 
 	for kind := decoder.PeekKind(); kind != '}'; kind = decoder.PeekKind() {
@@ -118,9 +132,11 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 			}
 			// skip unmarshal decode const
 			continue
-
 		case "format":
-			schema = &StringType{}
+			if err := u.decode(decoder, &format); err != nil {
+				return fmt.Errorf("decode prop %s failed: %w", prop, err)
+			}
+			continue
 		case "enum":
 			schema = &EnumType{}
 		case "items", "prefixItems":
@@ -142,7 +158,6 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 			if err != nil {
 				return err
 			}
-			var typ string
 			switch v.Kind() {
 			case '[':
 				var unionType []string
@@ -161,7 +176,7 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 						continue
 					}
 
-					s, err := u.schemaOfType(t)
+					s, err := u.schemaOfType(t, "")
 					if err != nil {
 						return err
 					}
@@ -170,21 +185,11 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 				}
 
 				continue
-
 			default:
 				if err := json.Unmarshal(v, &typ); err != nil {
 					return err
 				}
 			}
-
-			s, err := u.schemaOfType(typ)
-			if err != nil {
-				return err
-			}
-
-			schema = s
-
-			// skip process decode type
 			continue
 		}
 
@@ -203,6 +208,16 @@ func (u *schemaDecoder) unmarshalFromObject(decoder *jsontext.Decoder) error {
 		return err
 	}
 	_ = unprocessedEnc.WriteToken(t)
+
+	if schema == nil || len(additionalSchemas) == 0 {
+		if typ != "" {
+			s, err := u.schemaOfType(typ, format)
+			if err != nil {
+				return err
+			}
+			schema = s
+		}
+	}
 
 	if schema == nil {
 		schema = &AnyType{}
