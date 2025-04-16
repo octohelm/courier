@@ -11,6 +11,9 @@ fmt:
     go tool gofumpt -l -w .
 
 dep:
+    go mod tidy
+
+update:
     go get -u ./...
 
 gen:

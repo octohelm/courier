@@ -46,6 +46,38 @@ func (g *clientGen) GenerateType(c gengo.Context, named *types.Named) error {
 	return g.generateClient(c, named)
 }
 
+type option struct {
+	TypeGenPolicy TypeGenPolicy
+	TrimBashPath  string
+	Include       []string
+}
+
+func (o *option) Build(tags map[string][]string) {
+	if r, ok := tags["gengo:client:typegen-policy"]; ok {
+		if len(r) > 0 {
+			o.TypeGenPolicy = TypeGenPolicy(r[0])
+		}
+	}
+
+	if r, ok := tags["gengo:client:openapi:trim-bash-path"]; ok {
+		if len(r) > 0 {
+			o.TrimBashPath = r[0]
+		}
+	}
+
+	if values, ok := tags["gengo:client:openapi:include"]; ok {
+		o.Include = values
+	}
+}
+
+type TypeGenPolicy string
+
+const (
+	TypeGenPolicyAll              TypeGenPolicy = "All"
+	TypeGenPolicyGoVendorAll      TypeGenPolicy = "GoVendorAll"
+	TypeGenPolicyGoVendorImported TypeGenPolicy = "GoVendorImported"
+)
+
 func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	openapiSpec := ""
 	tags, _ := c.Doc(named.Obj())
@@ -78,14 +110,8 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		}
 	}
 
-	if r, ok := tags["gengo:client:openapi:trim_bash_path"]; ok {
-		if len(r) > 0 {
-			trimBashPath = r[0]
-		}
-	}
-
-	if values, ok := tags["gengo:client:openapi:include"]; ok {
-		includes = values
+	o := option{
+		TypeGenPolicy: TypeGenPolicyGoVendorImported,
 	}
 
 	if openapiSpec == "" {
@@ -113,13 +139,13 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	for p, operations := range g.oas.Paths.KeyValues() {
 		for method, op := range operations.KeyValues() {
 			if shouldGenerate(op) {
-				if trimBashPath != "" {
+				if o.TrimBashPath != "" {
 					if strings.HasPrefix(p, trimBashPath) {
 						p = p[len(trimBashPath):]
 					}
 				}
 
-				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), op); err != nil {
+				if err := g.genOperation(c, p, gengo.UpperCamelCase(strings.ToLower(method)), op, o); err != nil {
 					return err
 				}
 			}
@@ -130,7 +156,7 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 
 	g.types.Range(func(k, value any) bool {
 		t := value.(*typ)
-		if err := g.genDef(c, k.(string), t); err != nil {
+		if err := g.genDef(c, k.(string), t, o); err != nil {
 			e = err
 			return false
 		}
@@ -140,8 +166,8 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 	return e
 }
 
-func (g *clientGen) genOperation(c gengo.Context, path string, method string, operation *openapi.OperationObject) error {
-	if operation.OperationId == "OpenAPI" {
+func (g *clientGen) genOperation(c gengo.Context, path string, method string, operation *openapi.OperationObject, o option) error {
+	if operation.OperationId == "OpenAPI" || operation.OperationId == "OpenAPIView" {
 		return nil
 	}
 
@@ -163,7 +189,7 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 				g.types.Store(typeName, &typ{
 					Alias:  true,
 					Schema: mt.Schema,
-					Decl:   g.typeOfSchema(c, mt.Schema, typeName),
+					Decl:   g.typeOfSchema(c, mt.Schema, typeName, o),
 				})
 				hasResponse = true
 			}
@@ -250,7 +276,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 						return
 					}),
 					"TypeDef": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
-						s := g.typeOfSchema(c, p.Schema, "")
+						s := g.typeOfSchema(c, p.Schema, "", o)
 
 						if _, ok := getSchemaExt(p.Schema, jsonschema.XGoStarLevel); ok {
 							if !yield(snippet.Sprintf(`*%T`, s)) {
@@ -296,7 +322,7 @@ func (@Operation) ResponseData() (*@courierNoContent) {
 @FieldName @Type `+"`"+`in:"body" mime:@mime`+"`"+`
 `, snippet.Args{
 					"mime": snippet.Value(contentType),
-					"Type": g.typeOfSchema(c, mt.Schema, ""),
+					"Type": g.typeOfSchema(c, mt.Schema, "", o),
 					"FieldName": func() snippet.Snippet {
 						if goFieldName, ok := getSchemaExt(mt.Schema, jsonschema.XGoFieldName); ok {
 							return snippet.ID(goFieldName.(string))
@@ -331,7 +357,7 @@ func fieldPropExtraTag(s jsonschema.Schema) snippet.Snippet {
 	})
 }
 
-func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
+func (g *clientGen) genDef(c gengo.Context, name string, t *typ, o option) error {
 	if name == "" {
 		return fmt.Errorf("missing name of %s", t.Schema)
 	}
@@ -339,11 +365,9 @@ func (g *clientGen) genDef(c gengo.Context, name string, t *typ) error {
 	if t.Schema != nil {
 		// when vendor imported in client, will be use the imported type
 		if x, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XGoVendorType); ok {
-			imports := c.Package("").Imports()
-
-			pkgPath, _ := gengo.PkgImportPathAndExpose(x.(string))
-
-			if _, ok := imports[pkgPath]; ok {
+			switch o.TypeGenPolicy {
+			case TypeGenPolicyAll:
+			case TypeGenPolicyGoVendorAll:
 				c.RenderT(`
 type @Type = @TypeRef
 `, snippet.Args{
@@ -352,11 +376,24 @@ type @Type = @TypeRef
 				})
 
 				return nil
-			} else {
-				if pkgPath != "" {
-					c.Logger().WithValues(
-						slog.String("import", pkgPath),
-					).Info(fmt.Sprintf("not imported, will gen full type"))
+			case TypeGenPolicyGoVendorImported:
+				imports := c.Package("").Imports()
+				pkgPath, _ := gengo.PkgImportPathAndExpose(x.(string))
+				if _, imported := imports[pkgPath]; imported {
+					c.RenderT(`
+type @Type = @TypeRef
+`, snippet.Args{
+						"Type":    snippet.ID(name),
+						"TypeRef": snippet.ID(x),
+					})
+
+					return nil
+				} else {
+					if pkgPath != "" {
+						c.Logger().WithValues(
+							slog.String("import", pkgPath),
+						).Info(fmt.Sprintf("not imported, will gen full type"))
+					}
 				}
 			}
 		}
@@ -428,7 +465,7 @@ func (m @Type) MarshalJSON() ([]byte, error) {
 @Key: &@Type{},
 `, snippet.Args{
 							"Key":  snippet.Value(kind),
-							"Type": g.typeOfSchema(c, s, name),
+							"Type": g.typeOfSchema(c, s, name, o),
 						})) {
 							return
 						}
@@ -504,13 +541,13 @@ type @Type @TypeDef
 
 `, snippet.Args{
 		"Type":    snippet.ID(name),
-		"TypeDef": g.typeOfSchema(c, t.Schema, name),
+		"TypeDef": g.typeOfSchema(c, t.Schema, name, o),
 	})
 
 	return nil
 }
 
-func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, declTypeName string) snippet.Snippet {
+func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, declTypeName string, o option) snippet.Snippet {
 	switch x := schema.(type) {
 	case *jsonschema.EnumType:
 		for _, v := range x.Enum {
@@ -523,16 +560,16 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 	case *jsonschema.UnionType:
 		// just look for walk sub schemas
 		for _, s := range x.OneOf {
-			g.typeOfSchema(c, s, declTypeName)
+			g.typeOfSchema(c, s, declTypeName, o)
 		}
 		return snippet.Block("struct { }")
 	case *jsonschema.IntersectionType:
 		if len(x.AllOf) > 0 {
 			// when one is the object
-			if o, ok := x.AllOf[len(x.AllOf)-1].(*jsonschema.ObjectType); ok {
-				return g.structFromSchema(c, o, declTypeName, x.AllOf[0:len(x.AllOf)-1]...)
+			if os, ok := x.AllOf[len(x.AllOf)-1].(*jsonschema.ObjectType); ok {
+				return g.structFromSchema(c, os, declTypeName, o, x.AllOf[0:len(x.AllOf)-1]...)
 			}
-			return g.typeOfSchema(c, x, declTypeName)
+			return g.typeOfSchema(c, x, declTypeName, o)
 		}
 	case *jsonschema.RefType:
 		name := x.Ref.RefName()
@@ -543,7 +580,7 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 
 			g.types.Store(name, &typ{
 				Schema: s,
-				Decl:   g.typeOfSchema(c, s, declTypeName),
+				Decl:   g.typeOfSchema(c, s, declTypeName, o),
 			})
 		}
 		if name == declTypeName {
@@ -570,10 +607,10 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 	case *jsonschema.ArrayType:
 		if x.Items != nil {
 			if x.MaxItems != nil && x.MinItems != nil && *x.MaxItems == *x.MinItems {
-				return snippet.Sprintf("[%v]%T", *x.MaxItems, g.typeOfSchema(c, x.Items, declTypeName))
+				return snippet.Sprintf("[%v]%T", *x.MaxItems, g.typeOfSchema(c, x.Items, declTypeName, o))
 			}
 		}
-		return snippet.Sprintf("[]%T", g.typeOfSchema(c, x.Items, declTypeName))
+		return snippet.Sprintf("[]%T", g.typeOfSchema(c, x.Items, declTypeName, o))
 	case *jsonschema.ObjectType:
 		if elemSchema := x.AdditionalProperties; elemSchema != nil {
 			var keySchema jsonschema.Schema = jsonschema.String()
@@ -582,16 +619,16 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 				keySchema = x.PropertyNames
 			}
 
-			return snippet.Sprintf("map[%T]%T", g.typeOfSchema(c, keySchema, declTypeName), g.typeOfSchema(c, elemSchema, declTypeName))
+			return snippet.Sprintf("map[%T]%T", g.typeOfSchema(c, keySchema, declTypeName, o), g.typeOfSchema(c, elemSchema, declTypeName, o))
 		}
 
-		return g.structFromSchema(c, x, declTypeName)
+		return g.structFromSchema(c, x, declTypeName, o)
 	}
 
 	return snippet.Block("any")
 }
 
-func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, declTypeName string, extends ...jsonschema.Schema) snippet.Snippet {
+func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectType, declTypeName string, o option, extends ...jsonschema.Schema) snippet.Snippet {
 	extendedDecls := make([]snippet.Snippet, len(extends))
 	propDecls := map[string]snippet.Snippet{}
 
@@ -599,7 +636,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 		extendedDecls[i] = snippet.T(`
 @TypeDefEmbedded
 `, snippet.Args{
-			"TypeDefEmbedded": g.typeOfSchema(c, extends[i], ""),
+			"TypeDefEmbedded": g.typeOfSchema(c, extends[i], "", o),
 		})
 	}
 
@@ -626,7 +663,7 @@ func (g *clientGen) structFromSchema(c gengo.Context, schema *jsonschema.ObjectT
 				return snippet.ID(gengo.UpperCamelCase(name))
 			}(),
 			"TypeDef": func() snippet.Snippet {
-				s := g.typeOfSchema(c, propSchema, declTypeName)
+				s := g.typeOfSchema(c, propSchema, declTypeName, o)
 
 				if _, ok := getSchemaExt(propSchema, jsonschema.XGoStarLevel); ok {
 					return snippet.Sprintf("*%T", s)

@@ -11,17 +11,17 @@ tool (
 
 require (
 	github.com/go-courier/logr v0.3.2
-	github.com/octohelm/gengo v0.0.0-20250326091949-b027fe02828d
-	github.com/octohelm/x v0.0.0-20250307053041-306f2dec9027
+	github.com/octohelm/gengo v0.0.0-20250415085555-ac23c78ea087
+	github.com/octohelm/x v0.0.0-20250409031213-9c254440c2b8
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874
 	github.com/juju/ansiterm v1.0.0
-	github.com/onsi/gomega v1.36.3
-	golang.org/x/net v0.37.0
-	golang.org/x/sync v0.12.0
+	github.com/onsi/gomega v1.37.0
+	golang.org/x/net v0.39.0
+	golang.org/x/sync v0.13.0
 	k8s.io/apimachinery v0.32.3
 )
 
@@ -32,9 +32,9 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
-	golang.org/x/tools v0.31.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/tools v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	mvdan.cc/gofumpt v0.7.0 // indirect
+	mvdan.cc/gofumpt v0.8.0 // indirect
 )
