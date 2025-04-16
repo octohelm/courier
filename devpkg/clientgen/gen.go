@@ -47,21 +47,46 @@ func (g *clientGen) GenerateType(c gengo.Context, named *types.Named) error {
 }
 
 type option struct {
-	TypeGenPolicy TypeGenPolicy
-	TrimBashPath  string
-	Include       []string
+	OpenAPISpecURI string
+	TypeGenPolicy  TypeGenPolicy
+	TrimBasePath   string
+	Include        []string
+}
+
+func (o *option) ShouldGenerate(op *openapi.OperationObject) bool {
+	if op == nil {
+		return false
+	}
+
+	if len(o.Include) == 0 {
+		return true
+	}
+
+	for _, opID := range o.Include {
+		if opID == op.OperationId {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (o *option) Build(tags map[string][]string) {
+	if r, ok := tags["gengo:client:openapi"]; ok {
+		if len(r) > 0 {
+			o.OpenAPISpecURI = r[0]
+		}
+	}
+
 	if r, ok := tags["gengo:client:typegen-policy"]; ok {
 		if len(r) > 0 {
 			o.TypeGenPolicy = TypeGenPolicy(r[0])
 		}
 	}
 
-	if r, ok := tags["gengo:client:openapi:trim-bash-path"]; ok {
+	if r, ok := tags["gengo:client:openapi:trim-base-path"]; ok {
 		if len(r) > 0 {
-			o.TrimBashPath = r[0]
+			o.TrimBasePath = r[0]
 		}
 	}
 
@@ -79,46 +104,19 @@ const (
 )
 
 func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
-	openapiSpec := ""
-	tags, _ := c.Doc(named.Obj())
-
-	includes := make([]string, 0)
-
-	shouldGenerate := func(o *openapi.OperationObject) bool {
-		if o == nil {
-			return false
-		}
-
-		if len(includes) == 0 {
-			return true
-		}
-
-		for i := range includes {
-			if includes[i] == o.OperationId {
-				return true
-			}
-		}
-
-		return false
-	}
-
-	trimBashPath := ""
-
-	if r, ok := tags["gengo:client:openapi"]; ok {
-		if len(r) > 0 {
-			openapiSpec = r[0]
-		}
-	}
-
 	o := option{
 		TypeGenPolicy: TypeGenPolicyGoVendorImported,
 	}
 
-	if openapiSpec == "" {
+	tags, _ := c.Doc(named.Obj())
+
+	o.Build(tags)
+
+	if o.OpenAPISpecURI == "" {
 		return fmt.Errorf("openapi spec is not defined, please use `gengo:client:openapi=http://path/to/openapi/spec`")
 	}
 
-	u, err := url.Parse(openapiSpec)
+	u, err := url.Parse(o.OpenAPISpecURI)
 	if err != nil {
 		return err
 	}
@@ -138,10 +136,10 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 
 	for p, operations := range g.oas.Paths.KeyValues() {
 		for method, op := range operations.KeyValues() {
-			if shouldGenerate(op) {
-				if o.TrimBashPath != "" {
-					if strings.HasPrefix(p, trimBashPath) {
-						p = p[len(trimBashPath):]
+			if o.ShouldGenerate(op) {
+				if o.TrimBasePath != "" {
+					if strings.HasPrefix(p, o.TrimBasePath) {
+						p = p[len(o.TrimBasePath):]
 					}
 				}
 
