@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v3
       - uses: actions/setup-go@v4
         with:
           go-version: '^1.24'
