@@ -61,7 +61,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 
 	httpClient := HttpClientFromContext(ctx)
 	if httpClient == nil {
-		httpClient = GetShortConnClientContext(ctx, c.HttpTransports...)
+		httpClient = GetReasonableClientContext(ctx, c.HttpTransports...)
 	}
 
 	resp, err := httpClient.Do(httpReq)

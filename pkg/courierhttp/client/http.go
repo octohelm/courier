@@ -2,12 +2,8 @@ package client
 
 import (
 	"context"
-	"net"
-	"net/http"
-	"time"
-
 	contextx "github.com/octohelm/x/context"
-	"golang.org/x/net/http2"
+	"net/http"
 )
 
 type contextKeyClient struct{}
@@ -23,19 +19,6 @@ func HttpClientFromContext(ctx context.Context) *http.Client {
 	return nil
 }
 
-func newDefaultRoundTripper() http.RoundTripper {
-	return &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 0,
-		}).DialContext,
-		DisableKeepAlives:     true,
-		TLSHandshakeTimeout:   5 * time.Second,
-		ResponseHeaderTimeout: 5 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-}
-
 type RoundTripperCreateFunc = func() http.RoundTripper
 
 type contextRoundTripperCreator struct{}
@@ -44,23 +27,9 @@ func ContextWithRoundTripperCreator(ctx context.Context, newRoundTripper RoundTr
 	return contextx.WithValue(ctx, contextRoundTripperCreator{}, newRoundTripper)
 }
 
-func RoundTripperCreatorFromContext(ctx context.Context) func() http.RoundTripper {
+func RoundTripperCreatorFromContext(ctx context.Context) (func() http.RoundTripper, bool) {
 	if t, ok := ctx.Value(contextRoundTripperCreator{}).(func() http.RoundTripper); ok {
-		return t
+		return t, true
 	}
-	return newDefaultRoundTripper
-}
-
-func GetShortConnClientContext(ctx context.Context, httpTransports ...HttpTransport) *http.Client {
-	t := RoundTripperCreatorFromContext(ctx)()
-
-	if ht, ok := t.(*http.Transport); ok {
-		_ = http2.ConfigureTransport(ht)
-	}
-
-	for i := range httpTransports {
-		t = httpTransports[i](t)
-	}
-
-	return &http.Client{Transport: t}
+	return nil, false
 }
