@@ -323,6 +323,8 @@ func (b *scanner) scanResponse(ctx context.Context, op *openapi.OperationObject,
 			mt := &openapi.MediaTypeObject{}
 			mt.Schema = b.SchemaFromType(ctx, rt, false)
 			resp.AddContent(contentType, mt)
+		} else {
+			statusCode = http.StatusNoContent
 		}
 	} else {
 		resp.AddContent(contentType, &openapi.MediaTypeObject{})
