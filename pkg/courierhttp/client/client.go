@@ -18,6 +18,17 @@ import (
 	"github.com/octohelm/courier/pkg/statuserror"
 )
 
+type HttpTransport = func(rt http.RoundTripper) http.RoundTripper
+
+func WithHttpTransports(rts ...HttpTransport) func(rt http.RoundTripper) http.RoundTripper {
+	return func(r http.RoundTripper) http.RoundTripper {
+		for _, rt := range rts {
+			r = rt(r)
+		}
+		return r
+	}
+}
+
 type RoundTrip = func(request *http.Request) (*http.Response, error)
 
 func HttpTransportFunc(round func(request *http.Request, next RoundTrip) (*http.Response, error)) HttpTransport {
@@ -37,8 +48,6 @@ type httpTransportFunc struct {
 func (h *httpTransportFunc) RoundTrip(request *http.Request) (*http.Response, error) {
 	return h.round(request, h.rt.RoundTrip)
 }
-
-type HttpTransport = func(rt http.RoundTripper) http.RoundTripper
 
 type Client struct {
 	Endpoint       string `flag:""`
@@ -62,6 +71,11 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 	httpClient := HttpClientFromContext(ctx)
 	if httpClient == nil {
 		httpClient = GetReasonableClientContext(ctx, c.HttpTransports...)
+	} else {
+		if httpClient.Transport == nil {
+			httpClient.Transport = http.DefaultTransport
+		}
+		httpClient.Transport = WithHttpTransports(c.HttpTransports...)(httpClient.Transport)
 	}
 
 	resp, err := httpClient.Do(httpReq)

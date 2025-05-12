@@ -35,11 +35,7 @@ func GetReasonableClientContext(ctx context.Context, httpTransports ...HttpTrans
 		t = tc()
 	}
 
-	for i := range httpTransports {
-		t = httpTransports[i](t)
-	}
-
-	return &http.Client{Transport: t}
+	return &http.Client{Transport: WithHttpTransports(httpTransports...)(t)}
 }
 
 func newRoundTripperWithoutKeepAlive() http.RoundTripper {
@@ -67,9 +63,5 @@ func GetShortConnClientContext(ctx context.Context, httpTransports ...HttpTransp
 		t = tc()
 	}
 
-	for i := range httpTransports {
-		t = httpTransports[i](t)
-	}
-
-	return &http.Client{Transport: t}
+	return &http.Client{Transport: WithHttpTransports(httpTransports...)(t)}
 }
