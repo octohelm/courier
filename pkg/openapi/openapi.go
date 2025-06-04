@@ -1,10 +1,10 @@
 package openapi
 
 import (
-	"github.com/octohelm/courier/pkg/openapi/internal"
 	"strings"
 
 	"github.com/go-json-experiment/json"
+	"github.com/octohelm/courier/pkg/openapi/internal"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
@@ -50,6 +50,6 @@ func (p *OpenAPI) AddOperation(method string, path string, op *OperationObject) 
 		operations = &PathItemObject{}
 		p.Paths.Set(path, operations)
 	}
-	
+
 	operations.Set(strings.ToLower(method), op)
 }

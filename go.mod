@@ -1,6 +1,6 @@
 module github.com/octohelm/courier
 
-go 1.24.2
+go 1.24.3
 
 tool github.com/octohelm/courier/example/cmd/example
 
@@ -17,12 +17,12 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/go-json-experiment/json v0.0.0-20250417205406-170dfdcf87d1
+	github.com/go-json-experiment/json v0.0.0-20250517221953-25912455fbc8
 	github.com/juju/ansiterm v1.0.0
 	github.com/onsi/gomega v1.37.0
 	golang.org/x/net v0.40.0
 	golang.org/x/sync v0.14.0
-	k8s.io/apimachinery v0.33.0
+	k8s.io/apimachinery v0.33.1
 )
 
 require (
