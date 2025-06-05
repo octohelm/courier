@@ -14,7 +14,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/openapi"
@@ -28,7 +27,7 @@ func init() {
 }
 
 type clientGen struct {
-	types sync.Map
+	types map[string]*typ
 	oas   openapi.Payload
 }
 
@@ -43,6 +42,8 @@ func (g *clientGen) Name() string {
 }
 
 func (g *clientGen) GenerateType(c gengo.Context, named *types.Named) error {
+	g.types = map[string]*typ{}
+
 	return g.generateClient(c, named)
 }
 
@@ -150,18 +151,15 @@ func (g *clientGen) generateClient(c gengo.Context, named *types.Named) error {
 		}
 	}
 
-	var e error
+	for _, k := range slices.Sorted(maps.Keys(g.types)) {
+		t := g.types[k]
 
-	g.types.Range(func(k, value any) bool {
-		t := value.(*typ)
-		if err := g.genDef(c, k.(string), t, o); err != nil {
-			e = err
-			return false
+		if err := g.genDef(c, k, t, o); err != nil {
+			return err
 		}
-		return true
-	})
+	}
 
-	return e
+	return nil
 }
 
 func (g *clientGen) genOperation(c gengo.Context, path string, method string, operation *openapi.OperationObject, o option) error {
@@ -184,11 +182,12 @@ func (g *clientGen) genOperation(c gengo.Context, path string, method string, op
 			for _, mt := range operation.ResponsesObject.Responses[statusOrStr].Content {
 				typeName := fmt.Sprintf("%sResponse", operationID)
 
-				g.types.Store(typeName, &typ{
+				g.types[typeName] = &typ{
 					Alias:  true,
 					Schema: mt.Schema,
 					Decl:   g.typeOfSchema(c, mt.Schema, typeName, o),
-				})
+				}
+
 				hasResponse = true
 			}
 		}
@@ -572,14 +571,16 @@ func (g *clientGen) typeOfSchema(c gengo.Context, schema jsonschema.Schema, decl
 	case *jsonschema.RefType:
 		name := x.Ref.RefName()
 
-		if _, ok := g.types.Load(name); !ok {
+		if _, ok := g.types[name]; !ok {
 			s := g.oas.Schemas[name]
-			g.types.Store(name, nil)
 
-			g.types.Store(name, &typ{
+			// holder for self ref
+			g.types[name] = nil
+
+			g.types[name] = &typ{
 				Schema: s,
 				Decl:   g.typeOfSchema(c, s, declTypeName, o),
-			})
+			}
 		}
 		if name == declTypeName {
 			return snippet.ID("*" + name)
