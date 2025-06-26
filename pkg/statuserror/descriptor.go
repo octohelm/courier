@@ -2,7 +2,6 @@ package statuserror
 
 import (
 	"fmt"
-
 	"net/http"
 	"strconv"
 

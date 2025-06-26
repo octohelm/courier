@@ -2,8 +2,9 @@ package client
 
 import (
 	"context"
-	contextx "github.com/octohelm/x/context"
 	"net/http"
+
+	contextx "github.com/octohelm/x/context"
 )
 
 type contextKeyClient struct{}

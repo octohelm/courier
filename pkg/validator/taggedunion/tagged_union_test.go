@@ -4,40 +4,52 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/courier/pkg/validator"
-
-	"github.com/davecgh/go-spew/spew"
-	"github.com/go-json-experiment/json"
-	testingx "github.com/octohelm/x/testing"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 func TestUnmarshalTaggedUnionFromJSON(t *testing.T) {
-	t.Run("UnmarshalJSON ok", func(t *testing.T) {
-		p := &Payload{}
-		err := validator.Unmarshal([]byte(`{ "kind": "String", "value": "s" }`), p)
-		testingx.Expect(t, err, testingx.Be[error](nil))
+	b := bdd.FromT(t)
 
-		err = validator.Unmarshal([]byte(`{ "kind": "Bool", "value": true }`), p)
-		testingx.Expect(t, err, testingx.Be[error](nil))
-	})
+	b.Given("object", func(b bdd.T) {
+		b.When("unmarshal for kind String", func(b bdd.T) {
+			p := &Payload{}
 
-	t.Run("UnmarshalJSON failed", func(t *testing.T) {
-		p := &Payload{}
-		err := validator.Unmarshal([]byte(`{ "kind": "String", "value": true }`), p)
-		spew.Dump(err)
-	})
+			b.Then("success",
+				bdd.NoError(validator.Unmarshal([]byte(`{ "kind": "String", "value": "s" }`), p)),
+			)
 
-	t.Run("UnmarshalJSON failed in depth", func(t *testing.T) {
-		p := &struct {
-			Path struct {
-				To Payload `json:"to"`
-			} `json:"path"`
-		}{}
+			b.Then("value",
+				bdd.Equal(StringKinded{Kind: "String", Value: "s"}, *p.Underlying.(*StringKinded)),
+			)
+		})
 
-		err := validator.Unmarshal([]byte(`{ "path": { "to": { "kind": "String", "value": true } }}`), p)
+		b.When("unmarshal for kind Bool", func(b bdd.T) {
+			p := &Payload{}
 
-		testingx.Expect(t, err.Error(), testingx.Be("invalid string: true at /path/to/value"))
+			b.Then("success",
+				bdd.NoError(validator.Unmarshal([]byte(`{ "kind": "Bool", "value": true }`), p)),
+			)
+
+			b.Then("value",
+				bdd.Equal(BoolKinded{Kind: "Bool", Value: true}, *p.Underlying.(*BoolKinded)),
+			)
+
+			b.When("with invalid value", func(b bdd.T) {
+				p := &struct {
+					Path struct {
+						To Payload `json:"to"`
+					} `json:"path"`
+				}{}
+
+				err := validator.Unmarshal([]byte(`{ "path": { "to": { "kind": "String", "value": true } } } }`), p)
+				b.Then("failed",
+					bdd.Equal("invalid string: true at /path/to/value", err.Error()),
+				)
+			})
+		})
 	})
 }
 
@@ -64,8 +76,8 @@ func (p Payload) Discriminator() string {
 
 func (p Payload) Mapping() map[string]any {
 	return map[string]any{
-		"String": &TypeA{},
-		"Bool":   &TypeB{},
+		"String": &StringKinded{},
+		"Bool":   &BoolKinded{},
 	}
 }
 
@@ -75,12 +87,12 @@ func (p *Payload) SetUnderlying(u any) {
 
 var _ Type = &Payload{}
 
-type TypeA struct {
+type StringKinded struct {
 	Kind  string `json:"kind"`
 	Value string `json:"value"`
 }
 
-type TypeB struct {
+type BoolKinded struct {
 	Kind  string `json:"kind"`
 	Value bool   `json:"value"`
 }

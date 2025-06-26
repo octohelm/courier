@@ -1,9 +1,10 @@
 package openapi
 
 import (
-	"github.com/octohelm/courier/internal/testingutil"
 	"net/http"
 	"testing"
+
+	"github.com/octohelm/courier/internal/testingutil"
 
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
