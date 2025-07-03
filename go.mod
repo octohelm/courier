@@ -17,7 +17,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/go-json-experiment/json v0.0.0-20250625182306-a9cfae7f3654
+	github.com/go-json-experiment/json v0.0.0-20250626171732-1a886bd29d1b
 	github.com/juju/ansiterm v1.0.0
 	github.com/onsi/gomega v1.37.0
 	golang.org/x/net v0.41.0

@@ -579,6 +579,12 @@ type Array struct {
 	Validator Validator
 }
 
+func (va *Array) SetLen(n int) {
+	if va.Kind() == reflect.Slice {
+		va.Value.SetLen(n)
+	}
+}
+
 func (va *Array) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) error {
 	tok, err := dec.ReadToken()
 	if err != nil {

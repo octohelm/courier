@@ -211,6 +211,7 @@ func (v *validators) defaultRule(t reflect.Type) string {
 			return "@double"
 		case reflect.String:
 			return "@string"
+		default:
 		}
 	}
 

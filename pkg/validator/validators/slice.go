@@ -111,7 +111,7 @@ func (validator *SliceValidator) String() string {
 
 func (validator *SliceValidator) PostValidate(rv reflect.Value) error {
 	lenOfValue := uint64(0)
-	if !rv.IsNil() {
+	if rv.Kind() == reflect.Array || !rv.IsNil() {
 		lenOfValue = uint64(rv.Len())
 	}
 
