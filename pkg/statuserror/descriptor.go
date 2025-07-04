@@ -2,11 +2,9 @@ package statuserror
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
+	"net/http"
 )
 
 type WithStatusCode interface {
@@ -43,40 +41,38 @@ type Descriptor struct {
 	// 错误链
 	Errors []*Descriptor `json:"errors,omitzero"`
 
-	Extra map[string]any `json:",inline"`
-
 	Status int `json:"-"`
 }
 
 func (e *Descriptor) UnmarshalErrorResponse(statusCode int, raw []byte) error {
-	if err := json.Unmarshal(raw, e); err != nil {
-		e.Status = statusCode
-		e.Message = string(raw)
+	d := Descriptor{}
+	d.Status = statusCode
+
+	errResp := &ErrorResponse{}
+	if err := json.Unmarshal(raw, errResp); err != nil {
+		d.Message = string(raw)
+		*e = d
 		return nil
 	}
 
-	if code, _ := strconv.ParseInt(e.Code, 10, 64); code > 0 {
-		e.Status = int(code)
+	switch len(errResp.Errors) {
+	case 0:
+		d.Message = errResp.Msg
+	case 1:
+		d = *errResp.Errors[0]
+		d.Status = statusCode
 	}
 
-	if e.Message == "" && len(e.Errors) == 1 {
-		*e = *e.Errors[0]
+	if errResp.Extra != nil {
+		if v, ok := errResp.Extra["title"].(string); ok {
+			d.Message = v
+		}
+		if v, ok := errResp.Extra["detail"].(string); ok {
+			d.Message = v
+		}
 	}
 
-	if e.Extra != nil {
-		if v, ok := e.Extra["msg"].(string); ok {
-			e.Message = v
-			delete(e.Extra, "msg")
-		}
-		if v, ok := e.Extra["title"].(string); ok {
-			e.Message = v
-			delete(e.Extra, "title")
-		}
-		if v, ok := e.Extra["detail"].(string); ok {
-			e.Description = v
-			delete(e.Extra, "detail")
-		}
-	}
+	*e = d
 
 	return nil
 }

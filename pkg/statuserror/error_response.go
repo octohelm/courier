@@ -58,6 +58,8 @@ type ErrorResponse struct {
 	Msg string `json:"msg,omitzero"`
 	// 错误详情
 	Errors []*Descriptor `json:"errors,omitzero"`
+
+	Extra map[string]any `json:",inline"`
 }
 
 func (e *ErrorResponse) StatusCode() int {
