@@ -2,18 +2,19 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
 )
 
-var reasonableRoundTripper http.RoundTripper = &http.Transport{
+var reasonableRoundTripper = &http.Transport{
 	Proxy: http.ProxyFromEnvironment,
 
-	DialContext: (&net.Dialer{
+	DialContext: defaultHosts.WrapDialContext((&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-	}).DialContext,
+	}).DialContext),
 
 	MaxIdleConns:        100,
 	MaxIdleConnsPerHost: 10,
@@ -27,8 +28,25 @@ var reasonableRoundTripper http.RoundTripper = &http.Transport{
 	ForceAttemptHTTP2: true,
 }
 
+var defaultTlsConfig = &tls.Config{}
+
+var defaultHosts = Hosts{}
+
+func AddHostAlias(hostAliases ...HostAlias) {
+	for _, hostAlias := range hostAliases {
+		defaultHosts.AddHostAlias(hostAlias)
+	}
+}
+
+func SetDefaultTLSClientConfig(tlsConfig *tls.Config) {
+	if tlsConfig != nil {
+		defaultTlsConfig = tlsConfig.Clone()
+		reasonableRoundTripper.TLSClientConfig = tlsConfig.Clone()
+	}
+}
+
 func GetReasonableClientContext(ctx context.Context, httpTransports ...HttpTransport) *http.Client {
-	t := reasonableRoundTripper
+	t := http.RoundTripper(reasonableRoundTripper)
 
 	tc, ok := RoundTripperCreatorFromContext(ctx)
 	if ok {
@@ -39,13 +57,13 @@ func GetReasonableClientContext(ctx context.Context, httpTransports ...HttpTrans
 }
 
 func newRoundTripperWithoutKeepAlive() http.RoundTripper {
-	return &http.Transport{
+	t := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 
-		DialContext: (&net.Dialer{
+		DialContext: defaultHosts.WrapDialContext((&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 0,
-		}).DialContext,
+		}).DialContext),
 
 		DisableKeepAlives: true,
 
@@ -53,6 +71,12 @@ func newRoundTripperWithoutKeepAlive() http.RoundTripper {
 		ExpectContinueTimeout: 1 * time.Second,
 		ResponseHeaderTimeout: 60 * time.Second,
 	}
+
+	if defaultTlsConfig != nil {
+		t.TLSClientConfig = defaultTlsConfig.Clone()
+	}
+
+	return t
 }
 
 func GetShortConnClientContext(ctx context.Context, httpTransports ...HttpTransport) *http.Client {
