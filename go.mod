@@ -20,8 +20,8 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20250626171732-1a886bd29d1b
 	github.com/juju/ansiterm v1.0.0
 	github.com/onsi/gomega v1.37.0
-	golang.org/x/net v0.41.0
-	golang.org/x/sync v0.15.0
+	golang.org/x/net v0.42.0
+	golang.org/x/sync v0.16.0
 	k8s.io/apimachinery v0.33.2
 )
 
@@ -32,8 +32,8 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mvdan.cc/gofumpt v0.8.0 // indirect
