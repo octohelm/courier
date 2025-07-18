@@ -23,13 +23,13 @@ func Unmarshal(in []byte, out any, options ...jsontext.Options) error {
 }
 
 func MarshalWrite(w io.Writer, out any, options ...jsontext.Options) error {
-	return json.MarshalWrite(w, out, append(options, jsonv1.OmitEmptyWithLegacyDefinition(true))...)
+	return json.MarshalWrite(w, out, append(options, jsonv1.OmitEmptyWithLegacySemantics(true))...)
 }
 
 func MarshalEncode(enc *jsontext.Encoder, out any, options ...jsontext.Options) error {
-	return json.MarshalEncode(enc, out, append(options, jsonv1.OmitEmptyWithLegacyDefinition(true))...)
+	return json.MarshalEncode(enc, out, append(options, jsonv1.OmitEmptyWithLegacySemantics(true))...)
 }
 
 func Marshal(out any, options ...jsontext.Options) ([]byte, error) {
-	return json.Marshal(out, append(options, jsonv1.OmitEmptyWithLegacyDefinition(true))...)
+	return json.Marshal(out, append(options, jsonv1.OmitEmptyWithLegacySemantics(true))...)
 }

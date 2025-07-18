@@ -2,7 +2,7 @@ package statuserror
 
 import (
 	"go/ast"
-	"path/filepath"
+	"path"
 	"reflect"
 	"unicode"
 )
@@ -23,10 +23,10 @@ func ErrCodeOf(err any) string {
 	}
 
 	if ast.IsExported(rv.Name()) {
-		if path := rv.PkgPath(); path != "" {
-			dir, p := filepath.Split(path)
+		if pkgPath := rv.PkgPath(); pkgPath != "" {
+			dir, p := path.Split(pkgPath)
 			if isVersionSegment(p) {
-				p = filepath.Base(dir) + p
+				p = path.Base(dir) + p
 			}
 			return p + "." + rv.Name()
 		}
