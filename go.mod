@@ -19,7 +19,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d
 	github.com/juju/ansiterm v1.0.0
-	github.com/onsi/gomega v1.37.0
+	github.com/onsi/gomega v1.38.0
 	golang.org/x/net v0.42.0
 	golang.org/x/sync v0.16.0
 	k8s.io/apimachinery v0.33.3
