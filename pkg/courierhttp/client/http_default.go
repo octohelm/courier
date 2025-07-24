@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"golang.org/x/net/http2"
 )
 
 var reasonableRoundTripper = &http.Transport{
@@ -29,7 +31,6 @@ var reasonableRoundTripper = &http.Transport{
 }
 
 var defaultTlsConfig = &tls.Config{}
-
 var defaultHosts = Hosts{}
 
 func AddHostAlias(hostAliases ...HostAlias) {
@@ -88,4 +89,22 @@ func GetShortConnClientContext(ctx context.Context, httpTransports ...HttpTransp
 	}
 
 	return &http.Client{Transport: WithHttpTransports(httpTransports...)(t)}
+}
+
+func UpgradeToSupportH2c(t http.RoundTripper) http.RoundTripper {
+	if t1, ok := t.(*http.Transport); ok {
+		if !t1.DisableKeepAlives {
+			if t2, err := http2.ConfigureTransports(t1); err == nil {
+				t2.AllowHTTP = true
+				t2.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
+					return t1.DialContext(ctx, network, addr)
+				}
+				t2.ConnPool = nil
+
+				return t2
+			}
+		}
+	}
+
+	return t
 }

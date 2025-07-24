@@ -10,9 +10,15 @@ import (
 )
 
 func Serve(t testing.TB, handler http.Handler) *httptest.Server {
-	srv := httptest.NewServer(h2c.NewHandler(handler, &http2.Server{}))
-	t.Cleanup(func() {
-		srv.Close()
-	})
+	srv := httptest.NewUnstartedServer(handler)
+	srv.Start()
+	t.Cleanup(srv.Close)
+	return srv
+}
+
+func ServeWithH2C(t testing.TB, handler http.Handler) *httptest.Server {
+	srv := httptest.NewUnstartedServer(h2c.NewHandler(handler, &http2.Server{}))
+	srv.Start()
+	t.Cleanup(srv.Close)
 	return srv
 }
