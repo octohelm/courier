@@ -50,8 +50,8 @@ func (h *httpTransportFunc) RoundTrip(request *http.Request) (*http.Response, er
 }
 
 type Client struct {
-	Endpoint   string `flag:""`
-	SupportH2C bool   `flag:",omitzero"`
+	Endpoint string `flag:""`
+	UseH2c   bool   `flag:",omitzero"`
 
 	NewError       func() error
 	HttpTransports []HttpTransport
@@ -79,8 +79,8 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		httpClient.Transport = reasonableRoundTripper
 	}
 
-	if c.SupportH2C {
-		httpClient.Transport = UpgradeToSupportH2c(httpClient.Transport)
+	if c.UseH2c {
+		httpClient.Transport = convertTransportForH2c(httpClient.Transport)
 	}
 
 	httpClient.Transport = WithHttpTransports(c.HttpTransports...)(httpClient.Transport)

@@ -37,8 +37,8 @@ func TestAll(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("serve http/%d", 2-i), func(t *testing.T) {
 			c := &example.Client{
-				Endpoint:   srv.URL,
-				SupportH2C: i == 0,
+				Endpoint: srv.URL,
+				UseH2c:   i == 0,
 			}
 
 			ctx := c.InjectContext(context.Background())
