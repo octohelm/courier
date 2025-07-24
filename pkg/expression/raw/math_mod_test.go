@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 var modCases = [][]any{
@@ -17,10 +17,12 @@ var modCases = [][]any{
 
 func TestMod(t *testing.T) {
 	for _, c := range modCases {
-		t.Run(fmt.Sprintf("%T(%v) mod %T(%v) = %T(%v)", c[1], c[1], c[0], c[0], c[2], c[2]), func(t *testing.T) {
+		bdd.FromT(t).When(fmt.Sprintf("%T(%v) mod %T(%v) = %T(%v)", c[1], c[1], c[0], c[0], c[2], c[2]), func(b bdd.T) {
 			v, err := Mod(ValueOf(c[0]), ValueOf(c[1]))
-			gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
-			gomega.NewWithT(t).Expect(v).To(gomega.Equal(c[2]))
+			b.Then("success",
+				bdd.NoError(err),
+				bdd.Equal(c[2], v),
+			)
 		})
 	}
 }

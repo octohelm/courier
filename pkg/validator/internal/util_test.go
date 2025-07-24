@@ -2,8 +2,6 @@ package internal
 
 import (
 	"testing"
-
-	. "github.com/onsi/gomega"
 )
 
 func TestMaxIntAndMinInt(t *testing.T) {
@@ -18,6 +16,8 @@ func TestMaxIntAndMinInt(t *testing.T) {
 		{MaxInt(64), 9223372036854775807},
 	}
 	for _, values := range cases {
-		NewWithT(t).Expect(values[0]).To(Equal(values[1]))
+		if values[0] != values[1] {
+			t.Errorf("got %d, want %d", values[0], values[1])
+		}
 	}
 }

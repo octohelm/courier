@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 var compareCases = map[int][][]any{
@@ -38,26 +38,32 @@ func TestCompare(t *testing.T) {
 		switch i {
 		case -1:
 			for _, c := range cs {
-				t.Run(fmt.Sprintf("%T(%v) should less than %T(%v)", c[0], c[0], c[1], c[1]), func(t *testing.T) {
+				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should less than %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
 					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
-					gomega.NewWithT(t).Expect(v).To(gomega.Equal(i))
+					b.Then("success",
+						bdd.NoError(err),
+						bdd.Equal[any](i, v),
+					)
 				})
 			}
 		case 1:
 			for _, c := range cs {
-				t.Run(fmt.Sprintf("%T(%v) should great than %T(%v)", c[0], c[0], c[1], c[1]), func(t *testing.T) {
+				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should great than %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
 					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
-					gomega.NewWithT(t).Expect(v).To(gomega.Equal(i))
+					b.Then("success",
+						bdd.NoError(err),
+						bdd.Equal[any](i, v),
+					)
 				})
 			}
 		case 0:
 			for _, c := range cs {
-				t.Run(fmt.Sprintf("%T(%v) should equal %T(%v)", c[0], c[0], c[1], c[1]), func(t *testing.T) {
+				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should equal %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
 					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
-					gomega.NewWithT(t).Expect(v).To(gomega.Equal(i))
+					b.Then("success",
+						bdd.NoError(err),
+						bdd.Equal[any](i, v),
+					)
 				})
 			}
 		}

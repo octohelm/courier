@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 func ExampleNewRouter() {
@@ -84,9 +84,11 @@ func TestRegister(t *testing.T) {
 	RouterA := NewRouter(&OperatorA{})
 	RouterRoot.Register(RouterA)
 
-	err := Try(func() {
-		RouterRoot.Register(RouterA)
+	bdd.FromT(t).When("register", func(b bdd.T) {
+		b.Then("panic with conflict",
+			bdd.HasError(Try(func() {
+				RouterRoot.Register(RouterA)
+			})),
+		)
 	})
-
-	NewWithT(t).Expect(err).NotTo(BeNil())
 }

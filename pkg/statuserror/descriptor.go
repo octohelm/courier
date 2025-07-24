@@ -2,9 +2,10 @@ package statuserror
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
-	"net/http"
 )
 
 type WithStatusCode interface {

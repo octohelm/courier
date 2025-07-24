@@ -4,38 +4,42 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 func TestClientIP(t *testing.T) {
-	{
+	bdd.FromT(t).When("request with remote addr", func(b bdd.T) {
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
 		req.RemoteAddr = "127.0.0.1:80"
-		NewWithT(t).Expect(ClientIP(req)).To(Equal("127.0.0.1"))
-	}
 
-	{
+		b.Then("get client ip",
+			bdd.Equal("127.0.0.1", ClientIP(req)),
+		)
+	})
+
+	bdd.FromT(t).When("request with header X-Forwarded-For", func(b bdd.T) {
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("X-Forwarded-For", "203.0.113.195, 70.41.3.18, 150.172.238.178")
-		NewWithT(t).Expect(ClientIP(req)).To(Equal("203.0.113.195"))
-	}
 
-	{
+		b.Then("get got client ip",
+			bdd.Equal("203.0.113.195", ClientIP(req)),
+		)
+	})
+
+	bdd.FromT(t).When("request with header X-Real-IP", func(b bdd.T) {
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("X-Real-IP", "203.0.113.195")
-		NewWithT(t).Expect(ClientIP(req)).To(Equal("203.0.113.195"))
-	}
 
-	{
+		b.Then("get client ip",
+			bdd.Equal("203.0.113.195", ClientIP(req)),
+		)
+	})
+
+	bdd.FromT(t).When("request with nothing", func(b bdd.T) {
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
-		NewWithT(t).Expect(ClientIP(req)).To(Equal(""))
-	}
-}
 
-func TestClientIPByHeaderRealIP(t *testing.T) {
-	NewWithT(t).Expect(ClientIPByHeaderRealIP("203.0.113.195")).To(Equal("203.0.113.195"))
-}
-
-func TestGetClientIPByHeaderRealIP(t *testing.T) {
-	NewWithT(t).Expect(ClientIPByHeaderForwardedFor("203.0.113.195, 70.41.3.18, 150.172.238.178")).To(Equal("203.0.113.195"))
+		b.Then("could not get client ip",
+			bdd.Equal("", ClientIP(req)),
+		)
+	})
 }

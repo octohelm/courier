@@ -3,7 +3,7 @@ package rules
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 func TestParseRule(t *testing.T) {
@@ -67,14 +67,18 @@ func TestParseRule(t *testing.T) {
 		{`@slice<@float64<10,4>[-1.000,100.000]?>`, `@slice<@float64<10,4>[-1.000,100.000]?>`},
 	}
 
+	b := bdd.FromT(t)
+
 	for i := range cases {
 		c := cases[i]
 
-		t.Run("rule:"+c[0], func(t *testing.T) {
+		b.When("parse rule:"+c[0], func(b bdd.T) {
 			r, err := ParseRuleString(c[0])
 
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(string(r.Bytes())).To(Equal(c[1]))
+			b.Then("success",
+				bdd.NoError(err),
+				bdd.Equal(c[1], string(r.Bytes())),
+			)
 		})
 	}
 }
@@ -101,6 +105,11 @@ func TestParseRuleFailed(t *testing.T) {
 }
 
 func TestRule(t *testing.T) {
-	_, err := ParseRuleString("@string{A,B,C}{a,b}{1,2}")
-	NewWithT(t).Expect(err).To(BeNil())
+	bdd.FromT(t).When("parse", func(b bdd.T) {
+		_, err := ParseRuleString("@string{A,B,C}{a,b}{1,2}")
+
+		b.Then("success",
+			bdd.NoError(err),
+		)
+	})
 }

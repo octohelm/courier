@@ -3,7 +3,7 @@ package rules
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/octohelm/x/testing/bdd"
 )
 
 func TestSlashUnslash(t *testing.T) {
@@ -21,17 +21,26 @@ func TestSlashUnslash(t *testing.T) {
 		{`/\//`, `/`},
 	}
 
+	b := bdd.FromT(t)
+
 	for i := range cases {
 		c := cases[i]
 
-		t.Run("unslash:"+c[0], func(t *testing.T) {
+		b.When("unslash:"+c[0], func(b bdd.T) {
 			r, err := Unslash([]byte(c[0]))
-			NewWithT(t).Expect(err).To(BeNil())
-			NewWithT(t).Expect(string(r)).To(Equal(c[1]))
+
+			b.Then("success",
+				bdd.NoError(err),
+				bdd.Equal(c[1], string(r)),
+			)
 		})
 
-		t.Run("slash:"+c[1], func(t *testing.T) {
-			NewWithT(t).Expect(string(Slash([]byte(c[1])))).To(Equal(c[0]))
+		b.When("slash:"+c[1], func(b bdd.T) {
+			v := Slash([]byte(c[1]))
+
+			b.Then("success",
+				bdd.Equal(c[0], string(v)),
+			)
 		})
 	}
 
@@ -43,9 +52,11 @@ func TestSlashUnslash(t *testing.T) {
 	for i := range casesForFailed {
 		c := casesForFailed[i]
 
-		t.Run("unslash:"+c[0], func(t *testing.T) {
+		b.When("unslash:"+c[0], func(b bdd.T) {
 			_, err := Unslash([]byte(c[0]))
-			NewWithT(t).Expect(err).NotTo(BeNil())
+			b.Then("success",
+				bdd.HasError(err),
+			)
 		})
 	}
 }
