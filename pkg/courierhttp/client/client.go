@@ -10,6 +10,7 @@ import (
 	"path"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/pkg/content"
@@ -55,6 +56,38 @@ type Client struct {
 
 	NewError       func() error
 	HttpTransports []HttpTransport
+
+	endpoint *url.URL
+	parseErr error
+	once     sync.Once
+}
+
+func (c *Client) completeEndpoint(u *url.URL) error {
+	if u.Host == "" || u.Scheme == "" {
+		c.once.Do(func() {
+			endpoint, err := url.Parse(c.Endpoint)
+
+			if endpoint != nil {
+				if endpoint.Scheme == "h2c" {
+					endpoint.Scheme = "http"
+					c.UseH2c = true
+				}
+			}
+
+			c.endpoint = endpoint
+			c.parseErr = err
+		})
+
+		if c.parseErr != nil {
+			return c.parseErr
+		}
+
+		u.Scheme = c.endpoint.Scheme
+		u.Host = c.endpoint.Host
+		u.Path = path.Clean(c.endpoint.Path + u.Path)
+	}
+
+	return nil
 }
 
 func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) courier.Result {
@@ -116,11 +149,8 @@ func (c *Client) newRequest(ctx context.Context, r any, metas ...courier.Metadat
 		return nil, statuserror.Wrap(err, http.StatusBadRequest, "NewRequestFailed")
 	}
 
-	if u := req.URL.String(); !strings.HasPrefix(u, c.Endpoint) {
-		uu, _ := url.Parse(c.Endpoint)
-		req.URL.Scheme = uu.Scheme
-		req.URL.Host = uu.Host
-		req.URL.Path = path.Clean(uu.Path + req.URL.Path)
+	if err := c.completeEndpoint(req.URL); err != nil {
+		return nil, statuserror.Wrap(err, http.StatusBadRequest, "InvalidEndpoint")
 	}
 
 	for k, vs := range courier.FromMetas(metas...) {
