@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding"
 	"fmt"
+	"maps"
 	"reflect"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -180,16 +181,10 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		if g, ok := inst.(jsonschema.GoTaggedUnionType); ok {
 			types := g.Mapping()
 
-			tags := make([]string, 0, len(types))
-			for tag := range types {
-				tags = append(tags, tag)
-			}
-			sort.Strings(tags)
-
 			schemas := make([]jsonschema.Schema, 0, len(types))
 			mapping := map[string]jsonschema.Schema{}
 
-			for _, tag := range tags {
+			for _, tag := range slices.Sorted(maps.Keys(types)) {
 				s := SchemaFromType(
 					ctx,
 					reflectx.Deref(reflect.TypeOf(types[tag])),
