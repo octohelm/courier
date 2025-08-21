@@ -80,6 +80,11 @@ func UnmarshalDecode(dec *jsontext.Decoder, ut Type) error {
 			return nil
 		}
 
+		if discriminatorValue == "" {
+			// when empty discriminatorValue should drop other fields
+			return nil
+		}
+
 		return validatorerrors.PrefixJSONPointer(
 			fmt.Errorf("unsupported %s=%s", ut.Discriminator(), discriminatorValue),
 			jsontext.Pointer(fmt.Sprintf("/%s", ut.Discriminator())),
