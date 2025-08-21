@@ -234,15 +234,11 @@ func (t *Primitive) unmarshal(v jsontext.Value, stackPointer jsontext.Pointer, o
 
 	if err := json.Unmarshal(value, t.Value.Addr().Interface(), options); err != nil {
 		serr := &json.SemanticError{}
-
 		if errors.As(err, &serr) {
 			serr.JSONPointer = stackPointer
-			return serr
+			return validatorerrors.PrefixJSONPointer(serr.Err, stackPointer)
 		}
-
-		serr.JSONPointer = stackPointer
-		serr.Err = err
-		return serr
+		return validatorerrors.PrefixJSONPointer(err, stackPointer)
 	}
 	return nil
 }

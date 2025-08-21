@@ -18,6 +18,12 @@ func (Named) StructTagValidate() string {
 	return "@string[2,]"
 }
 
+type CustomType int
+
+func (*CustomType) UnmarshalText(b []byte) error {
+	return fmt.Errorf("invalid CustomType: %v", string(b))
+}
+
 func TestUnmarshal(t *testing.T) {
 	type SubPtrStruct struct {
 		PtrInt   *int     `validate:"@int[1,]"`
@@ -35,6 +41,7 @@ func TestUnmarshal(t *testing.T) {
 		JustRequired string
 		CanEmpty     *string `validate:"@string[0,]?"`
 		String       string  `validate:"@string[1,]"`
+		CustomType   CustomType
 		Named        Named
 		PtrString    *string              `validate:"@string[3,]" default:"123"`
 		Slice        []string             `validate:"@slice<@string[1,]>"`
@@ -52,6 +59,7 @@ func TestUnmarshal(t *testing.T) {
 {
 	"Slice": ["", ""],
 	"SliceStruct": [{ "Int": 0 }],
+    "CustomType": "custom",
 	"Named": "1",
 	"Map": {
 		"1":  "",
@@ -76,6 +84,7 @@ string value length should be larger or equal than 1, but got 0 at /Slice/1
 integer value should be larger or equal than 1 and less or equal than 2147483647, but got 0 at /SliceStruct/0/Int
 missing required field at /SliceStruct/0/Float
 missing required field at /SliceStruct/0/Uint
+invalid CustomType: custom at /CustomType
 string value length should be larger or equal than 2, but got 1 at /Named
 string value length should be larger or equal than 2, but got 1 at /Map/1/
 string value length should be larger or equal than 1, but got 0 at /Map/1
