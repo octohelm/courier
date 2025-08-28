@@ -21,7 +21,7 @@ require (
 	github.com/juju/ansiterm v1.0.0
 	golang.org/x/net v0.43.0
 	golang.org/x/sync v0.16.0
-	k8s.io/apimachinery v0.33.4
+	k8s.io/apimachinery v0.34.0
 )
 
 require (
