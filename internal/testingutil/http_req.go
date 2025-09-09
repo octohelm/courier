@@ -2,7 +2,6 @@ package testingutil
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"regexp"
@@ -24,26 +23,25 @@ type requestMatcher struct {
 func (m *requestMatcher) Match(req *http.Request) bool {
 	raw, _ := httputil.DumpRequest(req, true)
 	m.actual = unifyRequestData(raw)
-
 	return bytes.Equal(m.actual, m.expect)
+}
+
+func (m *requestMatcher) Action() string {
+	return "Be Request"
 }
 
 func (m *requestMatcher) Negative() bool {
 	return false
 }
 
-func (m *requestMatcher) FormatActual(req *http.Request) string {
-	fmt.Println(string(m.actual))
-
+func (m *requestMatcher) NormalizeActual(req *http.Request) any {
 	return string(m.actual)
 }
 
-func (m *requestMatcher) FormatExpected() string {
-	return string(m.expect)
-}
+var _ testingx.MatcherWithNormalizedExpected = &requestMatcher{}
 
-func (m *requestMatcher) Name() string {
-	return "Be Request"
+func (m *requestMatcher) NormalizedExpected() any {
+	return string(m.expect)
 }
 
 var reContentTypeWithBoundary = regexp.MustCompile(`Content-Type: multipart/form-data; boundary=([A-Za-z0-9]+)`)

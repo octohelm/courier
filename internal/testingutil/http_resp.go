@@ -3,7 +3,6 @@ package testingutil
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -31,7 +30,7 @@ type responseMatcher struct {
 	respData []byte
 }
 
-func (r *responseMatcher) Name() string {
+func (r *responseMatcher) Action() string {
 	return "Return When Request"
 }
 
@@ -47,13 +46,13 @@ func (r *responseMatcher) Match(h http.Handler) bool {
 	return bytes.Equal(r.respData, r.expect)
 }
 
-func (r *responseMatcher) FormatActual(actual http.Handler) string {
-	fmt.Println(string(r.respData))
-
+func (r *responseMatcher) NormalizeActual(actual http.Handler) any {
 	return string(r.respData)
 }
 
-func (m *responseMatcher) FormatExpected() string {
+var _ testingx.MatcherWithNormalizedExpected = &responseMatcher{}
+
+func (m *responseMatcher) NormalizedExpected() any {
 	return string(m.expect)
 }
 

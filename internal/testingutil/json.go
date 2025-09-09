@@ -2,7 +2,7 @@ package testingutil
 
 import (
 	"bytes"
-	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/go-json-experiment/json"
@@ -26,6 +26,10 @@ type jsonMatcher[X any] struct {
 	actual []byte
 }
 
+func (m *jsonMatcher[X]) Action() string {
+	return "Be JSON"
+}
+
 func (m *jsonMatcher[X]) Match(v X) bool {
 	m.actual, _ = json.Marshal(v)
 
@@ -36,16 +40,10 @@ func (m *jsonMatcher[X]) Negative() bool {
 	return false
 }
 
-func (m *jsonMatcher[X]) FormatActual(x X) string {
-	fmt.Println(string(m.actual))
-
+func (m *jsonMatcher[X]) NormalizeActual(actual http.Handler) any {
 	return string(m.actual)
 }
 
-func (m *jsonMatcher[X]) FormatExpected() string {
+func (m *jsonMatcher[X]) NormalizedExpected() any {
 	return string(m.expect)
-}
-
-func (m *jsonMatcher[X]) Name() string {
-	return "Be JSON"
 }
