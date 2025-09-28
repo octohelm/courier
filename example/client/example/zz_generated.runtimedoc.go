@@ -9,6 +9,8 @@ func (v *Client) RuntimeDoc(names ...string) ([]string, bool) {
 		switch names[0] {
 		case "Endpoint":
 			return []string{}, true
+		case "UseH2c":
+			return []string{}, true
 		case "NewError":
 			return []string{}, true
 		case "HttpTransports":

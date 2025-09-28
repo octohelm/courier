@@ -10,9 +10,8 @@ tool (
 )
 
 require (
-	github.com/go-courier/logr v0.3.2
-	github.com/octohelm/gengo v0.0.0-20250909020815-1e94629296bc
-	github.com/octohelm/x v0.0.0-20250905103750-d1a271ae07dd
+	github.com/octohelm/gengo v0.0.0-20250928050614-7aa009184957
+	github.com/octohelm/x v0.0.0-20250928045151-6a49847969fd
 )
 
 require (

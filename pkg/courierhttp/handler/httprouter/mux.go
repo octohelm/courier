@@ -8,20 +8,18 @@ import (
 	"os"
 	"slices"
 
-	"github.com/octohelm/courier/pkg/courierhttp/handler"
-
 	"github.com/juju/ansiterm"
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	openapispec "github.com/octohelm/courier/pkg/openapi"
+	"github.com/octohelm/courier/pkg/courierhttp/handler"
 )
 
 type mux struct {
-	server courierhttp.Server
-	oas    *openapispec.OpenAPI
-	tree   *pathpattern.Tree[RouteHandler]
-	w      *ansiterm.TabWriter
+	server     courierhttp.Server
+	operations *operations
+	tree       *pathpattern.Tree[RouteHandler]
+	w          *ansiterm.TabWriter
 }
 
 func (m *mux) register(h request.RouteHandler) {
@@ -66,17 +64,17 @@ func (m *mux) addHandler(r *http.ServeMux, hh RouteHandler, contextInjects ...co
 		ID:     hh.OperationID(),
 	}
 
+	m.operations.add(info)
+
 	ctxInjects := contextInjects[:]
 
 	ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
 		return courierhttp.OperationInfoInjectContext(ctx, info)
 	})
 
-	if info.Method == "GET" && info.ID == "OpenAPI" {
-		ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
-			return openapispec.InjectContext(ctx, m.oas)
-		})
-	}
+	ctxInjects = append(ctxInjects, func(ctx context.Context) context.Context {
+		return courierhttp.OperationInfoProviderInjectContext(ctx, m.operations)
+	})
 
 	pathSegments := hh.PathSegments()
 

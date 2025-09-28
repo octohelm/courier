@@ -138,7 +138,7 @@ func (hosts Hosts) selectIP(ips iter.Seq[string], n int) (ip string) {
 		i++
 	}
 
-	return
+	return ip
 }
 
 func (hosts Hosts) AddHostAlias(alias HostAlias) {

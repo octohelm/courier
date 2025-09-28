@@ -98,14 +98,14 @@ func (rt *router) Routes() (routes Routes) {
 
 	if len(rt.children) == 0 {
 		maybeAppendRoute(rt)
-		return
+		return routes
 	}
 
 	for childRouter := range rt.children {
 		maybeAppendRoute(childRouter)
 	}
 
-	return
+	return routes
 }
 
 type Routes []Route

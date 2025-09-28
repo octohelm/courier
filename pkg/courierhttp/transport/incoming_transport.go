@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-courier/logr"
 	"github.com/octohelm/courier/pkg/content"
 	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/x/logr"
 )
 
 type IncomingTransport interface {

@@ -16,6 +16,11 @@ type OperationInfo struct {
 	Route  string
 }
 
+// +gengo:injectable:provider
+type OperationInfoProvider interface {
+	GetOperation(id string) (OperationInfo, bool)
+}
+
 func (s OperationInfo) UserAgent() string {
 	id := s.ID
 	if id == "" {

@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-courier/logr"
+	"github.com/octohelm/x/logr"
 )
 
 func ListenAndServe(ctx context.Context, addr string, handler http.Handler) error {

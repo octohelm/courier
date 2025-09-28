@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 
-	"github.com/go-courier/logr"
-	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/httputil"
+	"github.com/octohelm/x/logr"
+	"github.com/octohelm/x/logr/slog"
 )
 
 func main() {

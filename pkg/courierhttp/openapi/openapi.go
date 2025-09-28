@@ -11,8 +11,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/courier/pkg/validator"
-
 	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/content"
@@ -23,6 +21,7 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
 	"github.com/octohelm/courier/pkg/statuserror"
+	"github.com/octohelm/courier/pkg/validator"
 	"github.com/octohelm/gengo/pkg/gengo"
 	"github.com/octohelm/x/ptr"
 )

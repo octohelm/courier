@@ -29,6 +29,19 @@ func (v *OperationInfo) Init(ctx context.Context) error {
 	return nil
 }
 
+type contextOperationInfoProvider struct{}
+
+func OperationInfoProviderFromContext(ctx context.Context) (OperationInfoProvider, bool) {
+	if v, ok := ctx.Value(contextOperationInfoProvider{}).(OperationInfoProvider); ok {
+		return v, true
+	}
+	return nil, false
+}
+
+func OperationInfoProviderInjectContext(ctx context.Context, tpe OperationInfoProvider) context.Context {
+	return context.WithValue(ctx, contextOperationInfoProvider{}, tpe)
+}
+
 type contextRequest struct{}
 
 func RequestFromContext(ctx context.Context) (*Request, bool) {

@@ -32,9 +32,16 @@ func (o *OpenAPI) Output(ctx context.Context) (any, error) {
 		return nil, &ErrOpenAPIForbidden{}
 	}
 
-	return &openapi.Payload{
-		OpenAPI: *openapi.FromContext(ctx),
-	}, nil
+	if x, ok := courierhttp.OperationInfoProviderFromContext(ctx); ok {
+		if o, ok := x.(interface{ OpenAPI() *openapi.OpenAPI }); ok {
+			return &openapi.Payload{
+				OpenAPI: *o.OpenAPI(),
+			}, nil
+
+		}
+	}
+
+	return nil, &ErrOpenAPIForbidden{}
 }
 
 func (o *OpenAPI) ResponseContentType() string {

@@ -50,7 +50,7 @@ func identChainOfCallFunc(expr ast.Expr) (list []*ast.Ident) {
 	case *ast.Ident:
 		list = append(list, e)
 	}
-	return
+	return list
 }
 
 func (s *statusErrScanner) StatusErrorsInFunc(ctx gengo.Context, typeFunc *types.Func) []*statuserror.Descriptor {
@@ -232,7 +232,7 @@ func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, nam
 	if ok {
 		m := method.(*typex.TMethod)
 		if m.Func.Pkg() == nil {
-			return
+			return list
 		}
 
 		results, n := ctx.Package(m.Func.Pkg().Path()).ResultsOf(m.Func)
@@ -259,7 +259,7 @@ func (s *statusErrScanner) scanErrWithStatusCodeInterface(ctx gengo.Context, nam
 		}
 	}
 
-	return
+	return list
 }
 
 func fmtSprintfArgsAsTemplate(args []ast.Expr) string {

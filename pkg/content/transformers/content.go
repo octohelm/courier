@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/go-courier/logr"
+	"github.com/octohelm/x/logr"
 )
 
 func NewContent(contentType string) *Content {

@@ -79,7 +79,7 @@ func convertRangeValues[T any](rule *rules.Rule) (min *T, max *T, err error) {
 			max = v
 		}
 	}
-	return
+	return min, max, err
 }
 
 func (n *Number[T]) marshalRule(rule *rules.Rule) {

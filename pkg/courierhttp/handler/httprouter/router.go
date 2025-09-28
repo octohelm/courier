@@ -7,8 +7,10 @@ import (
 
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courier"
+	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/openapi"
+	openapispec "github.com/octohelm/courier/pkg/openapi"
 )
 
 type RouteHandler = request.RouteHandler
@@ -61,7 +63,9 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.Middlewa
 	})
 
 	m := &mux{
-		oas: oas,
+		operations: &operations{
+			oas: oas,
+		},
 	}
 
 	nameVersion := strings.Split(service, "@")
@@ -90,4 +94,29 @@ var methodOverride = func(n http.Handler) http.Handler {
 		}
 		n.ServeHTTP(rw, req)
 	})
+}
+
+type operations struct {
+	oas *openapispec.OpenAPI
+
+	infos map[string]courierhttp.OperationInfo
+}
+
+func (o *operations) GetOperation(id string) (courierhttp.OperationInfo, bool) {
+	if o.infos == nil {
+		return courierhttp.OperationInfo{}, false
+	}
+	info, ok := o.infos[id]
+	return info, ok
+}
+
+func (o *operations) OpenAPI() *openapispec.OpenAPI {
+	return o.oas
+}
+
+func (o *operations) add(info *courierhttp.OperationInfo) {
+	if o.infos == nil {
+		o.infos = make(map[string]courierhttp.OperationInfo)
+	}
+	o.infos[info.ID] = *info
 }

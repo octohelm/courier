@@ -10,13 +10,13 @@ import (
 	"net/http/httputil"
 	"testing"
 
-	"github.com/go-courier/logr"
-	"github.com/go-courier/logr/slog"
 	"github.com/octohelm/courier/example/apis"
 	"github.com/octohelm/courier/example/client/example"
 	domainorg "github.com/octohelm/courier/example/pkg/domain/org"
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
+	"github.com/octohelm/x/logr"
+	"github.com/octohelm/x/logr/slog"
 	testingx "github.com/octohelm/x/testing"
 	"github.com/octohelm/x/testing/bdd"
 )

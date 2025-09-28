@@ -39,5 +39,5 @@ func Try(f func()) (err error) {
 		}
 	}()
 	f()
-	return
+	return err
 }

@@ -30,8 +30,10 @@ var reasonableRoundTripper = &http.Transport{
 	ForceAttemptHTTP2: true,
 }
 
-var defaultTlsConfig = &tls.Config{}
-var defaultHosts = Hosts{}
+var (
+	defaultTlsConfig = &tls.Config{}
+	defaultHosts     = Hosts{}
+)
 
 func AddHostAlias(hostAliases ...HostAlias) {
 	for _, hostAlias := range hostAliases {

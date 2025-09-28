@@ -182,5 +182,5 @@ func (p *ParamValue) MarshalValues(ctx context.Context, sf *jsonflags.StructFiel
 		values = append(values, b.String())
 	}
 
-	return
+	return values, err
 }

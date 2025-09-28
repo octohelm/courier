@@ -10,11 +10,11 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/go-courier/logr"
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/pkg/content"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/statuserror"
+	"github.com/octohelm/x/logr"
 )
 
 type NoContent struct{}
