@@ -3,11 +3,12 @@ package pathpattern
 import (
 	"fmt"
 	"iter"
+	"path"
 	"strings"
 )
 
 func NormalizePath(p string) string {
-	parts := splitPath(p)
+	parts := splitPath(path.Clean(p))
 
 	processed := make([]string, len(parts))
 

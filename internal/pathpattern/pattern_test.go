@@ -6,6 +6,48 @@ import (
 	testingx "github.com/octohelm/x/testing"
 )
 
+func TestNormalizePath(t *testing.T) {
+	cases := []struct {
+		Path       string
+		Normalized string
+	}{
+		{
+			Path:       "/",
+			Normalized: "/",
+		},
+		{
+			Path:       "/path/to/x",
+			Normalized: "/path/to/x",
+		},
+		{
+			Path:       "/path/with/{param}",
+			Normalized: "/path/with/{param}",
+		},
+		{
+			Path:       "/path/with/{wildParam...}",
+			Normalized: "/path/with/{wildParam...}",
+		},
+		{
+			Path:       "/path/with/:httprouter-style-param",
+			Normalized: "/path/with/{httprouter-style-param}",
+		},
+		{
+			Path:       "/path/with/*httprouter-style-param",
+			Normalized: "/path/with/{httprouter-style-param...}",
+		},
+		{
+			Path:       "/path/with/{param}",
+			Normalized: "/path/with/{param}",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Path, func(t *testing.T) {
+			testingx.Expect(t, NormalizePath(c.Path), testingx.Be(c.Normalized))
+		})
+	}
+}
+
 func TestPathnamePatternWithoutMulti(t *testing.T) {
 	p := Parse("/users/{userID}/repos/{repoID}")
 

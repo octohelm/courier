@@ -2,6 +2,7 @@ package courierhttp
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/octohelm/courier/pkg/courier"
 )
@@ -24,8 +25,8 @@ type BasePathDescriber interface {
 	BasePath() string
 }
 
-func GroupRouter(path string) courier.Router {
-	return courier.NewRouter(Group(path))
+func GroupRouter(p string) courier.Router {
+	return courier.NewRouter(Group(p))
 }
 
 func BasePathRouter(basePath string) courier.Router {
@@ -33,11 +34,11 @@ func BasePathRouter(basePath string) courier.Router {
 }
 
 func BasePath(basePath string) courier.Operator {
-	return &metaOperator{basePath: basePath}
+	return &metaOperator{basePath: path.Clean(basePath)}
 }
 
-func Group(path string) courier.Operator {
-	return &metaOperator{path: path}
+func Group(p string) courier.Operator {
+	return &metaOperator{path: path.Clean(p)}
 }
 
 type metaOperator struct {

@@ -10,9 +10,9 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 )
 
-var R = courierhttp.GroupRouter("/api/example").With(
+var R = courierhttp.GroupRouter("/api/example/").With(
 	courier.NewRouter(&httprouter.OpenAPI{}),
-	courierhttp.GroupRouter("/v0").With(
+	courierhttp.GroupRouter("v0").With(
 		org.R,
 		store.R,
 		blob.R,
