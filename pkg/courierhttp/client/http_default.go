@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"runtime"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -18,8 +19,8 @@ var reasonableRoundTripper = &http.Transport{
 		KeepAlive: 30 * time.Second,
 	}).DialContext),
 
-	MaxIdleConns:        100,
-	MaxIdleConnsPerHost: 10,
+	MaxIdleConns:        100 * runtime.NumCPU(),
+	MaxIdleConnsPerHost: 10 * runtime.NumCPU(),
 	IdleConnTimeout:     90 * time.Second,
 
 	TLSHandshakeTimeout:   10 * time.Second,
