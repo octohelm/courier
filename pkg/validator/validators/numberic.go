@@ -86,7 +86,7 @@ func (n *Number[T]) marshalRule(rule *rules.Rule) {
 	if n.Enums != nil {
 		ruleValues := make([]*rules.RuleLit, 0)
 		for _, v := range n.Enums {
-			ruleValues = append(ruleValues, rules.NewRuleLit([]byte(fmt.Sprintf("%v", v))))
+			ruleValues = append(ruleValues, rules.NewRuleLit(fmt.Appendf(nil, "%v", v)))
 		}
 		rule.ValueMatrix = [][]*rules.RuleLit{ruleValues}
 
@@ -98,13 +98,13 @@ func (n *Number[T]) marshalRule(rule *rules.Rule) {
 
 		if n.Minimum != nil {
 			rule.Range[0] = rules.NewRuleLit(
-				[]byte(fmt.Sprintf("%v", *n.Minimum)),
+				fmt.Appendf(nil, "%v", *n.Minimum),
 			)
 		}
 
 		if n.Maximum != nil {
 			rule.Range[1] = rules.NewRuleLit(
-				[]byte(fmt.Sprintf("%v", *n.Maximum)),
+				fmt.Appendf(nil, "%v", *n.Maximum),
 			)
 		}
 

@@ -109,12 +109,12 @@ func (validator *MapValidator) String() string {
 	rule.Range = make([]*rules.RuleLit, 2)
 
 	rule.Range[0] = rules.NewRuleLit(
-		[]byte(fmt.Sprintf("%d", validator.MinProperties)),
+		fmt.Appendf(nil, "%d", validator.MinProperties),
 	)
 
 	if validator.MaxProperties != nil {
 		rule.Range[1] = rules.NewRuleLit(
-			[]byte(fmt.Sprintf("%d", *validator.MaxProperties)),
+			fmt.Appendf(nil, "%d", *validator.MaxProperties),
 		)
 	}
 

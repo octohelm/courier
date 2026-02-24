@@ -82,23 +82,21 @@ func (g *group) handler(m *mux) http.Handler {
 					parts := strings.Split(remain, "/")
 
 					for i, p := range parts {
-						for _, seg := range childSegments {
-							if p == seg {
-								multi := strings.Join(parts[0:i], "/")
-								value := url.PathEscape(multi)
+						if slices.Contains(childSegments, p) {
+							multi := strings.Join(parts[0:i], "/")
+							value := url.PathEscape(multi)
 
-								r := req.Clone(req.Context())
+							r := req.Clone(req.Context())
 
-								u := *r.URL
-								u.Path = strings.Replace(req.URL.Path, multi, value, 1)
+							u := *r.URL
+							u.Path = strings.Replace(req.URL.Path, multi, value, 1)
 
-								r.RequestURI = u.RequestURI()
-								r.URL = &u
+							r.RequestURI = u.RequestURI()
+							r.URL = &u
 
-								hh.ServeHTTP(rw, r)
+							hh.ServeHTTP(rw, r)
 
-								return
-							}
+							return
 						}
 					}
 				}

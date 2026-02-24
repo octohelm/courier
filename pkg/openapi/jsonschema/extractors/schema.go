@@ -222,7 +222,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			if len(typ) > 0 && typ[0] != "" {
 				p := jsonschema.Payload{}
 
-				_ = p.UnmarshalJSON([]byte(fmt.Sprintf(`{"type":%q}`, typ[0])))
+				_ = p.UnmarshalJSON(fmt.Appendf(nil, `{"type":%q}`, typ[0]))
 
 				if p.Schema != nil {
 					return p.Schema
@@ -248,12 +248,12 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 	}
 
 	switch t.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		count := 1
 		elem := t.Elem()
 
 		for {
-			if elem.Kind() == reflect.Ptr {
+			if elem.Kind() == reflect.Pointer {
 				elem = elem.Elem()
 				count++
 			} else {
@@ -446,8 +446,8 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 }
 
 func pickStringEnumFromDesc(d string) []string {
-	parts := strings.Split(d, ".")
-	for _, p := range parts {
+	parts := strings.SplitSeq(d, ".")
+	for p := range parts {
 		line := strings.TrimSpace(p)
 		if strings.HasPrefix(line, "One of") {
 			enumValues := strings.Split(line[len("One of")+1:], ",")

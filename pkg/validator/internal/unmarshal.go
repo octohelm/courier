@@ -44,7 +44,7 @@ func UnmarshalDecode(dec *jsontext.Decoder, out any, options ...jsontext.Options
 
 	ra := &Pointer{Value: rv, Validator: vv}
 
-	if ra.Kind() != reflect.Ptr {
+	if ra.Kind() != reflect.Pointer {
 		return errors.New("unmarshal target must be ptr value")
 	}
 

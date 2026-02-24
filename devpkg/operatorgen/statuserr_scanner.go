@@ -29,7 +29,7 @@ type statusErrScanner struct {
 	errorsUsed       map[*types.Func][]*statuserror.Descriptor
 }
 
-var statusErr = reflect.TypeOf(statuserror.Descriptor{})
+var statusErr = reflect.TypeFor[statuserror.Descriptor]()
 
 func isTypeStatusErr(named *types.Named) bool {
 	if o := named.Obj(); o != nil {
@@ -181,7 +181,7 @@ func (s *statusErrScanner) scanStatusErrIsExist(typeFunc *types.Func, pkg gengot
 	return false
 }
 
-var rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeOf((*statuserror.WithStatusCode)(nil)).Elem())
+var rtypeErrorWithStatusCode = typex.FromRType(reflect.TypeFor[statuserror.WithStatusCode]())
 
 func isErrWithStatusCodeInterface(named *types.Named) bool {
 	if named != nil {

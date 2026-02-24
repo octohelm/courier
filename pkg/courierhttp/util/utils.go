@@ -27,8 +27,8 @@ func ClientIP(r *http.Request) string {
 // X-Forwarded-For: client, proxy1, proxy2
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
 func ClientIPByHeaderForwardedFor(headerForwardedFor string) string {
-	if index := strings.IndexByte(headerForwardedFor, ','); index >= 0 {
-		return headerForwardedFor[0:index]
+	if before, _, ok := strings.Cut(headerForwardedFor, ","); ok {
+		return before
 	}
 	return strings.TrimSpace(headerForwardedFor)
 }

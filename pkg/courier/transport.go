@@ -14,15 +14,13 @@ func Run(router Router, transports ...Transport) {
 
 	for i := range transports {
 		s := transports[i]
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			if err := s.Serve(router); err != nil {
 				log.Println(err)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

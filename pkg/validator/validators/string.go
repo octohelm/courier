@@ -249,12 +249,12 @@ func (validator *StringValidator) String() string {
 	rule.Range = make([]*rules.RuleLit, 2)
 
 	rule.Range[0] = rules.NewRuleLit(
-		[]byte(fmt.Sprintf("%d", validator.MinLength)),
+		fmt.Appendf(nil, "%d", validator.MinLength),
 	)
 
 	if validator.MaxLength != nil {
 		rule.Range[1] = rules.NewRuleLit(
-			[]byte(fmt.Sprintf("%d", *validator.MaxLength)),
+			fmt.Appendf(nil, "%d", *validator.MaxLength),
 		)
 	}
 

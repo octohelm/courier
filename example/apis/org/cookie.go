@@ -13,7 +13,7 @@ type Cookie struct {
 	Token                  string `name:"token,omitempty" in:"cookie"`
 }
 
-func (req *Cookie) Output(ctx context.Context) (interface{}, error) {
+func (req *Cookie) Output(ctx context.Context) (any, error) {
 	return courierhttp.Wrap[any](
 		nil,
 		courierhttp.WithCookies(&http.Cookie{

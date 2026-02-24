@@ -283,7 +283,7 @@ func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name
 	return nil, false
 }
 
-var typOperator = reflect.TypeOf((*courier.Operator)(nil)).Elem()
+var typOperator = reflect.TypeFor[courier.Operator]()
 
 func isCourierOperator(c gengo.Context, tpe typex.Type, lookup func(c gengo.Context, importPath string) *types.Package) bool {
 	switch tpe.(type) {

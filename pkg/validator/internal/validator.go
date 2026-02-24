@@ -175,7 +175,7 @@ func (v *validators) defaultRule(t reflect.Type) string {
 		return "@string"
 	default:
 		switch t.Kind() {
-		case reflect.Ptr:
+		case reflect.Pointer:
 			return v.defaultRule(t.Elem())
 		case reflect.Array:
 			return fmt.Sprintf("@slice[%d]", t.Len())

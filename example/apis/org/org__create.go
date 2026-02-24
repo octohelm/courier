@@ -16,7 +16,7 @@ type CreateOrg struct {
 	Info `in:"body"`
 }
 
-func (c *CreateOrg) Output(ctx context.Context) (interface{}, error) {
+func (c *CreateOrg) Output(ctx context.Context) (any, error) {
 	req, _ := courierhttp.RequestFromContext(ctx)
 	fmt.Println(req.ContentLength)
 	fmt.Println(c.Info)

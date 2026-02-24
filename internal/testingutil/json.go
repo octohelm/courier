@@ -9,7 +9,7 @@ import (
 	testingx "github.com/octohelm/x/testing"
 )
 
-func PrintJSON(v interface{}) {
+func PrintJSON(v any) {
 	if err := json.MarshalWrite(os.Stdout, v); err != nil {
 		panic(err)
 	}

@@ -1,5 +1,7 @@
 package jsonschema
 
+import "maps"
+
 const (
 	XEnumLabels    = `x-enum-labels`
 	XGoType        = `x-go-type`
@@ -49,12 +51,8 @@ func (in *Ext) DeepCopy() *Ext {
 func (in *Ext) DeepCopyInto(out *Ext) {
 	if i := in.Extensions; i != nil {
 		o := make(map[string]any, len(i))
-		for key, val := range out.Extensions {
-			o[key] = val
-		}
-		for key, val := range i {
-			o[key] = val
-		}
+		maps.Copy(o, out.Extensions)
+		maps.Copy(o, i)
 		out.Extensions = o
 	}
 }

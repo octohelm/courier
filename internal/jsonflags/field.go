@@ -50,7 +50,7 @@ func UnmarshalFromString(typ reflect.Type) bool {
 	switch typ.Kind() {
 	case reflect.String:
 		return true
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return UnmarshalFromString(typ.Elem())
 	default:
 		return false

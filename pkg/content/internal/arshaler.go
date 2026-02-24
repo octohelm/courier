@@ -13,7 +13,7 @@ import (
 
 func NewRequest(ctx context.Context, method string, path string, v any) (*http.Request, error) {
 	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr {
+	for rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
 
@@ -25,7 +25,7 @@ func NewRequest(ctx context.Context, method string, path string, v any) (*http.R
 
 func UnmarshalRequest(req *http.Request, out any) error {
 	rv := reflect.ValueOf(out)
-	if rv.Kind() != reflect.Ptr {
+	if rv.Kind() != reflect.Pointer {
 		return errors.New("unmarshal request target must be ptr value")
 	}
 
@@ -37,7 +37,7 @@ func UnmarshalRequest(req *http.Request, out any) error {
 
 func UnmarshalRequestInfo(ireq httprequest.Request, out any) error {
 	rv := reflect.ValueOf(out)
-	if rv.Kind() != reflect.Ptr {
+	if rv.Kind() != reflect.Pointer {
 		return errors.New("unmarshal request target must be ptr value")
 	}
 

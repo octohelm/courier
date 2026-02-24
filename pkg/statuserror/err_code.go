@@ -18,7 +18,7 @@ func ErrCodeFor[E any]() string {
 
 func ErrCodeOf(err any) string {
 	rv := reflect.TypeOf(err)
-	for rv.Kind() == reflect.Ptr {
+	for rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
 

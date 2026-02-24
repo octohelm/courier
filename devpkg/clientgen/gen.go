@@ -63,13 +63,7 @@ func (o *option) ShouldGenerate(op *openapi.OperationObject) bool {
 		return true
 	}
 
-	for _, opID := range o.Include {
-		if opID == op.OperationId {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.Include, op.OperationId)
 }
 
 func (o *option) Build(tags map[string][]string) {
@@ -486,7 +480,7 @@ type @Type @TypeDef
 		enumLabels := make([]string, len(enumType.Enum))
 
 		if xEnumLabels, ok := t.Schema.GetMetadata().GetExtension(jsonschema.XEnumLabels); ok {
-			if labels, ok := xEnumLabels.([]interface{}); ok {
+			if labels, ok := xEnumLabels.([]any); ok {
 				for i, l := range labels {
 					if v, ok := l.(string); ok {
 						enumLabels[i] = v

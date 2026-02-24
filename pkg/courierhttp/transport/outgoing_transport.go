@@ -26,7 +26,7 @@ func NewRequest(ctx context.Context, v any) (*http.Request, error) {
 
 func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error) {
 	tpe := reflect.TypeOf(r)
-	for tpe.Kind() == reflect.Ptr {
+	for tpe.Kind() == reflect.Pointer {
 		tpe = tpe.Elem()
 	}
 
@@ -54,8 +54,8 @@ func NewOutgoingTransport(ctx context.Context, r any) (OutgoingTransport, error)
 var courierHttpPkgPath = reflect.TypeFor[courierhttp.Method]().PkgPath()
 
 func resolvePathInTag(tpe reflect.Type) string {
-	for i := 0; i < tpe.NumField(); i++ {
-		f := tpe.Field(i)
+	for f := range tpe.Fields() {
+		f := f
 
 		if f.Anonymous {
 			if f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {

@@ -128,8 +128,8 @@ func stringifyExpression(name string, args []any) string {
 }
 
 var (
-	tpeTextUnmarshalInterface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-	tpeRawValue               = reflect.TypeOf((*raw.Value)(nil)).Elem()
+	tpeTextUnmarshalInterface = reflect.TypeFor[encoding.TextUnmarshaler]()
+	tpeRawValue               = reflect.TypeFor[raw.Value]()
 )
 
 func newEx(expr Expr) *exprCreator {

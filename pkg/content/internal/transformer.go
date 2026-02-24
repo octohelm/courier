@@ -51,7 +51,7 @@ func Register(creator TransformerProvider) {
 }
 
 func New(typ reflect.Type, mediaTypeOrAlias string, action string) (Transformer, error) {
-	for typ.Kind() == reflect.Ptr {
+	for typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	return defaultTransformers.New(transformOption{action: action, tpe: typ, mediaType: mediaTypeOrAlias})

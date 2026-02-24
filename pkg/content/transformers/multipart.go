@@ -78,7 +78,7 @@ func (p *multipartTransformer) ReadAs(ctx context.Context, r io.ReadCloser, vv a
 		rv = reflect.ValueOf(v)
 	}
 
-	if rv.Kind() != reflect.Ptr {
+	if rv.Kind() != reflect.Pointer {
 		return errors.New("target must be ptr value")
 	}
 

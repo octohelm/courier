@@ -97,12 +97,12 @@ func (validator *SliceValidator) String() string {
 	rule.Range = make([]*rules.RuleLit, 2)
 
 	rule.Range[0] = rules.NewRuleLit(
-		[]byte(fmt.Sprintf("%d", validator.MinItems)),
+		fmt.Appendf(nil, "%d", validator.MinItems),
 	)
 
 	if validator.MaxItems != nil {
 		rule.Range[1] = rules.NewRuleLit(
-			[]byte(fmt.Sprintf("%d", *validator.MaxItems)),
+			fmt.Appendf(nil, "%d", *validator.MaxItems),
 		)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -140,14 +141,7 @@ func (validator *FloatValidator) Validate(value jsontext.Value) error {
 
 	if validator.Enums != nil {
 		enums := make([]any, len(validator.Enums))
-		in := false
-
-		for _, enum := range validator.Enums {
-			if enum == val {
-				in = true
-				break
-			}
-		}
+		in := slices.Contains(validator.Enums, val)
 
 		if !in {
 			return &validatorerrors.ErrNotInEnum{

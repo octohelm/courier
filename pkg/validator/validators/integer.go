@@ -3,6 +3,7 @@ package validators
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strconv"
 	"unicode"
 
@@ -200,14 +201,7 @@ func (validator *IntegerValidator[T]) Validate(value jsontext.Value) error {
 
 	if validator.Enums != nil {
 		enums := make([]any, len(validator.Enums))
-		in := false
-
-		for _, enum := range validator.Enums {
-			if enum == val {
-				in = true
-				break
-			}
-		}
+		in := slices.Contains(validator.Enums, val)
 
 		if !in {
 			return &validatorerrors.ErrNotInEnum{

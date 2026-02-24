@@ -18,7 +18,7 @@ type meta struct {
 	Deprecated  bool
 }
 
-var courierhttpPkgPath = reflect.TypeOf(courierhttp.MethodGet{}).PkgPath()
+var courierhttpPkgPath = reflect.TypeFor[courierhttp.MethodGet]().PkgPath()
 
 func metaFrom(o *courier.OperatorFactory) *meta {
 	m := &meta{}
@@ -41,8 +41,8 @@ func metaFrom(o *courier.OperatorFactory) *meta {
 	if o.Type.Kind() == reflect.Struct {
 		structType := o.Type
 
-		for i := 0; i < structType.NumField(); i++ {
-			f := structType.Field(i)
+		for f := range structType.Fields() {
+			f := f
 			if f.Anonymous && f.Type.PkgPath() == courierhttpPkgPath && strings.HasPrefix(f.Name, "Method") {
 				if path, ok := f.Tag.Lookup("path"); ok {
 					vs := strings.Split(path, ",")

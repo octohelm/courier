@@ -96,7 +96,7 @@ type oldContextProvider interface {
 }
 
 func typeOfOperator(tpe reflect.Type) reflect.Type {
-	for tpe.Kind() == reflect.Ptr {
+	for tpe.Kind() == reflect.Pointer {
 		return typeOfOperator(tpe.Elem())
 	}
 	return tpe

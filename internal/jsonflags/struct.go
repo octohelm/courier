@@ -101,7 +101,7 @@ type cache struct {
 }
 
 func (v *cache) StructFields(typ reflect.Type) (*StructFields, error) {
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Pointer {
 		panic(fmt.Errorf("invalid type %s", typ))
 		return nil, nil
 	}

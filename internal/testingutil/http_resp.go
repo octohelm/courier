@@ -3,7 +3,9 @@ package testingutil
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
+	"maps"
+
 	"net/http"
 	"net/http/httputil"
 
@@ -77,9 +79,7 @@ func (w *MockResponseWriter) Header() http.Header {
 
 	header := http.Header{}
 
-	for k, v := range w.header {
-		header[k] = v
-	}
+	maps.Copy(header, w.header)
 
 	return header
 }
@@ -92,7 +92,7 @@ func (w *MockResponseWriter) Response() *http.Response {
 	resp := &http.Response{}
 	resp.Header = w.header
 	resp.StatusCode = w.StatusCode
-	resp.Body = ioutil.NopCloser(&w.Buffer)
+	resp.Body = io.NopCloser(&w.Buffer)
 	return resp
 }
 

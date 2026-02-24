@@ -250,13 +250,7 @@ func (t ObjectType) PrintTo(w io.Writer, optionFns ...SchemaPrintOption) {
 
 			p.Printf("%q", propName)
 
-			required := false
-			for _, r := range t.Required {
-				if r == propName {
-					required = true
-					break
-				}
-			}
+			required := slices.Contains(t.Required, propName)
 
 			if !required {
 				p.Print("?")
