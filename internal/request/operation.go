@@ -20,6 +20,44 @@ type meta struct {
 
 var courierhttpPkgPath = reflect.TypeFor[courierhttp.MethodGet]().PkgPath()
 
+func resolvePathInto(m *meta, structType reflect.Type) {
+	for f := range structType.Fields() {
+		f := f
+		if f.Anonymous && f.Type.PkgPath() == courierhttpPkgPath && strings.HasPrefix(f.Name, "Method") {
+			if path, ok := f.Tag.Lookup("path"); ok {
+				vs := strings.Split(path, ",")
+				m.Path = vs[0]
+
+				if len(vs) > 0 {
+					for i := range vs {
+						switch vs[i] {
+						case "deprecated":
+							m.Deprecated = true
+						}
+					}
+				}
+			}
+
+			if basePath, ok := f.Tag.Lookup("basePath"); ok {
+				m.BasePath = basePath
+			}
+
+			if summary, ok := f.Tag.Lookup("summary"); ok {
+				m.Summary = summary
+			}
+
+			break
+		}
+
+		if m.Path == "" {
+			if f.Type.Kind() == reflect.Struct {
+				resolvePathInto(m, f.Type)
+				return
+			}
+		}
+	}
+}
+
 func metaFrom(o *courier.OperatorFactory) *meta {
 	m := &meta{}
 
@@ -39,36 +77,7 @@ func metaFrom(o *courier.OperatorFactory) *meta {
 	}
 
 	if o.Type.Kind() == reflect.Struct {
-		structType := o.Type
-
-		for f := range structType.Fields() {
-			f := f
-			if f.Anonymous && f.Type.PkgPath() == courierhttpPkgPath && strings.HasPrefix(f.Name, "Method") {
-				if path, ok := f.Tag.Lookup("path"); ok {
-					vs := strings.Split(path, ",")
-					m.Path = vs[0]
-
-					if len(vs) > 0 {
-						for i := range vs {
-							switch vs[i] {
-							case "deprecated":
-								m.Deprecated = true
-							}
-						}
-					}
-				}
-
-				if basePath, ok := f.Tag.Lookup("basePath"); ok {
-					m.BasePath = basePath
-				}
-
-				if summary, ok := f.Tag.Lookup("summary"); ok {
-					m.Summary = summary
-				}
-
-				break
-			}
-		}
+		resolvePathInto(m, o.Type)
 	}
 
 	if basePathDescriber, ok := op.(courierhttp.BasePathDescriber); ok {
