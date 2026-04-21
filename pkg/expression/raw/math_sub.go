@@ -6,6 +6,7 @@ import (
 
 // Sub
 // v - x
+// Sub 执行两个值的减法运算。
 func Sub(x Value, v Value) (any, error) {
 	switch x.Kind() {
 	case Float:

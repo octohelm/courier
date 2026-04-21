@@ -13,6 +13,7 @@ import (
 	"github.com/octohelm/courier/pkg/expression/raw"
 )
 
+// Expr 表示表达式执行接口。
 type Expr interface {
 	// Exec final exec
 	Exec(ctx context.Context, input any) (any, error)
@@ -20,11 +21,13 @@ type Expr interface {
 	String() string
 }
 
+// ExprCreator 表示表达式创建器接口。
 type ExprCreator interface {
 	// New expr
 	New(ctx context.Context, args ...any) (Expr, error)
 }
 
+// Expression 表示表达式定义的切片类型。
 type Expression = []any
 
 func resolveExpression(in any) (string, []any, bool) {
@@ -44,12 +47,14 @@ type ExprBuilder interface {
 	BuildExpression(args ...any) Expression
 }
 
+// Register 注册表达式构建器。
 func Register[T any](build func(b ExprBuilder) T, expr Expr) T {
 	x := newEx(expr)
 	defaultFactory.register(x)
 	return build(x)
 }
 
+// From 从表达式定义创建表达式实例。
 func From(expression Expression) (Expr, error) {
 	return defaultFactory.From(expression)
 }

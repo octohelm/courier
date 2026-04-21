@@ -2,6 +2,7 @@ package courierhttp
 
 import "fmt"
 
+// ErrContextCanceled 表示上下文取消错误。
 type ErrContextCanceled struct {
 	Reason string
 }

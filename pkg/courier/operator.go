@@ -8,14 +8,17 @@ import (
 	"reflect"
 )
 
+// CanInit 表示可初始化的接口。
 type CanInit interface {
 	Init(ctx context.Context) error
 }
 
+// Operator 表示操作符接口，是courier框架的核心抽象。
 type Operator interface {
 	Output(ctx context.Context) (any, error)
 }
 
+// WithMiddleOperatorSeq 表示包含中间操作符序列的接口。
 type WithMiddleOperatorSeq interface {
 	MiddleOperators() iter.Seq[Operator]
 }
@@ -102,6 +105,7 @@ func typeOfOperator(tpe reflect.Type) reflect.Type {
 	return tpe
 }
 
+// OperatorFactory 操作符工厂，用于创建和配置操作符。
 type OperatorFactory struct {
 	Type       reflect.Type
 	ContextKey any
@@ -146,6 +150,7 @@ func (o *OperatorFactory) New() Operator {
 	return op
 }
 
+// EmptyOperator 空操作符实现，用于基础操作符组合。
 type EmptyOperator struct {
 	OperatorWithoutOutput
 }

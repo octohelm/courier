@@ -2,16 +2,14 @@ module github.com/octohelm/courier
 
 go 1.26.2
 
-tool github.com/octohelm/courier/example/cmd/example
-
 tool (
 	github.com/octohelm/courier/tool/internal/cmd/gen
 	mvdan.cc/gofumpt
 )
 
 require (
-	github.com/octohelm/gengo v0.0.0-20260224022252-ec6c2fc2f701
-	github.com/octohelm/x v0.0.0-20260224043023-b48075b44477
+	github.com/octohelm/gengo v0.0.0-20260422081545-3cd68178cc48
+	github.com/octohelm/x v0.0.0-20260421082716-a77c6918d9d0
 )
 
 require (
@@ -24,7 +22,6 @@ require (
 )
 
 require (
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect

@@ -17,30 +17,37 @@ import (
 	"github.com/octohelm/x/logr"
 )
 
+// NoContent 表示无内容响应体类型，用于 HTTP 204 响应。
 type NoContent struct{}
 
+// ContentTypeDescriber 用于描述响应内容类型。
 type ContentTypeDescriber interface {
 	ContentType() string
 }
 
+// StatusCodeDescriber 用于描述HTTP状态码。
 type StatusCodeDescriber interface {
 	StatusCode() int
 }
 
+// CookiesDescriber 用于描述HTTP cookies。
 type CookiesDescriber interface {
 	Cookies() []*http.Cookie
 }
 
+// RedirectDescriber 用于描述HTTP重定向响应。
 type RedirectDescriber interface {
 	StatusCodeDescriber
 
 	Location() *url.URL
 }
 
+// WithHeader 用于提供HTTP响应头。
 type WithHeader interface {
 	Header() http.Header
 }
 
+// FileHeader 表示上传文件的头部信息。
 type FileHeader interface {
 	io.ReadCloser
 	Filename() string
@@ -59,30 +66,35 @@ type ResponseSetting interface {
 
 type ResponseSettingFunc = func(s ResponseSetting)
 
+// WithStatusCode 创建设置状态码的响应配置函数。
 func WithStatusCode(statusCode int) ResponseSettingFunc {
 	return func(s ResponseSetting) {
 		s.SetStatusCode(statusCode)
 	}
 }
 
+// WithCookies 创建设置cookies的响应配置函数。
 func WithCookies(cookies ...*http.Cookie) ResponseSettingFunc {
 	return func(s ResponseSetting) {
 		s.SetCookies(cookies)
 	}
 }
 
+// WithContentType 创建设置内容类型的响应配置函数。
 func WithContentType(contentType string) ResponseSettingFunc {
 	return func(s ResponseSetting) {
 		s.SetContentType(contentType)
 	}
 }
 
+// WithMetadata 创建设置元数据的响应配置函数。
 func WithMetadata(key string, values ...string) ResponseSettingFunc {
 	return func(s ResponseSetting) {
 		s.SetMetadata(key, values...)
 	}
 }
 
+// Wrap 包装响应数据并应用配置选项。
 func Wrap[T any](v T, opts ...ResponseSettingFunc) Response[T] {
 	resp := &response[T]{
 		v: v,
@@ -95,6 +107,7 @@ func Wrap[T any](v T, opts ...ResponseSettingFunc) Response[T] {
 	return resp
 }
 
+// WrapError 包装错误为响应并应用配置选项。
 func WrapError(err error, opts ...ResponseSettingFunc) error {
 	errResp := &errorResponse{}
 	errResp.response.v = err
@@ -104,6 +117,7 @@ func WrapError(err error, opts ...ResponseSettingFunc) error {
 	return errResp
 }
 
+// ErrorResponse 表示错误响应的接口。
 type ErrorResponse interface {
 	Error() string
 	Unwrap() error
@@ -114,6 +128,7 @@ type ErrorResponse interface {
 	courier.MetadataCarrier
 }
 
+// Response 表示通用响应的接口。
 type Response[T any] interface {
 	Underlying() T
 	StatusCodeDescriber

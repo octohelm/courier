@@ -4,6 +4,7 @@ import "fmt"
 
 // Compare returns an integer comparing two Values .
 // The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+// Compare 比较两个值的相对大小。
 func Compare(a Value, b Value) (int, error) {
 	switch a.Kind() {
 	case Float:

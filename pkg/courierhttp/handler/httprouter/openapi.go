@@ -37,7 +37,6 @@ func (o *OpenAPI) Output(ctx context.Context) (any, error) {
 			return &openapi.Payload{
 				OpenAPI: *o.OpenAPI(),
 			}, nil
-
 		}
 	}
 

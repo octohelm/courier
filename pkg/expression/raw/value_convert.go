@@ -2,6 +2,7 @@ package raw
 
 import "fmt"
 
+// Len 获取值的长度。
 func Len(value Value) int {
 	switch x := value.(type) {
 	case StringValue:
@@ -14,6 +15,7 @@ func Len(value Value) int {
 	return 0
 }
 
+// ToString 将值转换为字符串。
 func ToString(value Value) string {
 	switch x := value.(type) {
 	case StringValue:
@@ -84,6 +86,7 @@ func ToUint(value Value) uint64 {
 	return 0
 }
 
+// ToBool 将值转换为布尔值。
 func ToBool(value Value) bool {
 	switch x := value.(type) {
 	case FloatValue:

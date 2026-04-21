@@ -7,6 +7,7 @@ import (
 
 // Mod
 // v % x
+// Mod 执行两个值的取模运算。
 func Mod(x Value, v Value) (any, error) {
 	switch x.Kind() {
 	case Float:

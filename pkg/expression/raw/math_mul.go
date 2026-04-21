@@ -4,6 +4,7 @@ import "fmt"
 
 // Mul
 // v * x
+// Mul 执行两个值的乘法运算。
 func Mul(x Value, v Value) (any, error) {
 	switch x.Kind() {
 	case Float:

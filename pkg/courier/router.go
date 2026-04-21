@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Router 表示路由器接口，用于组织和注册操作符。
 type Router interface {
 	Register(r Router)
 	With(routers ...Router) Router
 	Routes() Routes
 }
 
+// NewRouter 创建新的路由器实例。
 func NewRouter(operators ...Operator) Router {
 	return &router{
 		operators: func(yield func(Operator) bool) {
@@ -108,6 +110,7 @@ func (rt *router) Routes() (routes Routes) {
 	return routes
 }
 
+// Routes 表示路由集合类型。
 type Routes []Route
 
 func (routes Routes) String() string {

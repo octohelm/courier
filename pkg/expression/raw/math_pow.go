@@ -7,6 +7,7 @@ import (
 
 // Pow
 // v ** x
+// Pow 执行两个值的幂运算。
 func Pow(x Value, v Value) (any, error) {
 	switch x.Kind() {
 	case Float:

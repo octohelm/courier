@@ -106,6 +106,8 @@ func (@Type) ResponseErrors() []error {
 }
 
 func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named, typeAndValues gengotypes.TypeAndValues) {
+	shouldGenerateResponseData := !g.hasMethod(named, "ResponseData")
+
 	var successType types.Type
 	var fromExpr ast.Expr
 
@@ -142,13 +144,23 @@ func (@Type) ResponseContent() any {
 	return nil
 }
 
+@ResponseData
+`, snippet.Args{
+			"Type": snippet.ID(named.Obj()),
+			"ResponseData": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+				if !shouldGenerateResponseData {
+					return
+				}
+
+				yield(snippet.T(`
 func (@Type) ResponseData() *@courierNoContent {
 	return new(@courierNoContent)
 }
-
 `, snippet.Args{
-			"Type":             snippet.ID(named.Obj()),
-			"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
+					"Type":             snippet.ID(named.Obj()),
+					"courierNoContent": snippet.ID("github.com/octohelm/courier/pkg/courier.NoContent"),
+				}))
+			}),
 		})
 	} else if types.IsInterface(successType) && !strings.Contains(successType.String(), "github.com/octohelm/courier/pkg/courierhttp.Response") {
 		c.Logger().Warn(fmt.Errorf("%s return interface %s will be untyped jsonschema", named, successType))
@@ -222,13 +234,24 @@ func (@Type) ResponseContent() any {
 	return new(@ReturnType)
 }
 
-func (@Type) ResponseData() *@ReturnType {
-	return new(@ReturnType)
-}
-
+@ResponseData
 `, snippet.Args{
 			"Type":       snippet.ID(named.Obj()),
 			"ReturnType": snippet.ID(successType),
+			"ResponseData": snippet.Snippets(func(yield func(snippet.Snippet) bool) {
+				if !shouldGenerateResponseData {
+					return
+				}
+
+				yield(snippet.T(`
+func (@Type) ResponseData() *@ReturnType {
+	return new(@ReturnType)
+}
+`, snippet.Args{
+					"Type":       snippet.ID(named.Obj()),
+					"ReturnType": snippet.ID(successType),
+				}))
+			}),
 		})
 	}
 }
@@ -264,6 +287,11 @@ func init() {
 
 func (g *operatorGen) resolvePkg(c gengo.Context, importPath string) *types.Package {
 	return c.Package(importPath).Pkg()
+}
+
+func (g *operatorGen) hasMethod(named *types.Named, name string) bool {
+	_, ok := typex.FromTType(types.NewPointer(named)).MethodByName(name)
+	return ok
 }
 
 func (g *operatorGen) firstValueOfFunc(c gengo.Context, named *types.Named, name string) (any, bool) {

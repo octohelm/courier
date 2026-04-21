@@ -4,6 +4,7 @@ import (
 	"encoding"
 )
 
+// ValueOf 将任意值转换为内部值类型。
 func ValueOf(in any) Value {
 	switch v := in.(type) {
 	case Value:
@@ -55,6 +56,7 @@ func ValueOf(in any) Value {
 	return nil
 }
 
+// Kind 表示值的类型枚举。
 type Kind int
 
 const (
@@ -68,10 +70,12 @@ const (
 	Map
 )
 
+// Value 表示内部值接口。
 type Value interface {
 	Kind() Kind
 }
 
+// ArrayValue 表示数组值类型。
 type ArrayValue []Value
 
 func (ArrayValue) Kind() Kind {
@@ -90,6 +94,7 @@ func (arr ArrayValue) Iter() Iter {
 	return &arrayValueIter{arr: arr, n: len(arr)}
 }
 
+// MapValue 表示映射值类型。
 type MapValue map[string]Value
 
 func (MapValue) Kind() Kind {

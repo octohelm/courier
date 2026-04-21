@@ -1,23 +1,31 @@
-tidy: gen fmt
-    go mod tidy
+mod example 'internal/example/cmd/example/justfile'
 
-test:
-    CGO_ENABLED=0 go test -count=1 -failfast ./...
+# 列出所有可用命令（无输入）
+[group('meta')]
+default:
+    @just --list
 
-test-race:
-    CGO_ENABLED=1 go test -count=1 -v -race ./...
+# 运行基础测试
+[group('test')]
+test path *args:
+    go test -count=1 -failfast {{ args }} {{ path }}
 
+# 格式化仓库代码（无输入）
+[group('fmt')]
 fmt:
     go tool gofumpt -l -w .
 
+# 整理依赖（无输入）
+[group('env')]
 dep:
     go mod tidy
 
+# 更新依赖版本（无输入）
+[group('env')]
 update:
     go get -u ./...
 
-gen:
-    go generate ./...
-
-serve:
-    go tool example
+# 执行仓库生成
+[group('gen')]
+gen path:
+    go generate {{ path }}

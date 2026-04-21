@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Wrap 包装错误并设置状态码和错误码。
 func Wrap(err error, statusCode int, code string) error {
 	if err == nil {
 		return nil

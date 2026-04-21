@@ -7,6 +7,7 @@ import (
 	"github.com/octohelm/x/slices"
 )
 
+// AsErrorResponse 将错误转换为错误响应格式。
 func AsErrorResponse(err error, source string) *ErrorResponse {
 	if err == nil {
 		return nil
@@ -51,6 +52,7 @@ func AsErrorResponse(err error, source string) *ErrorResponse {
 	return er
 }
 
+// ErrorResponse 表示结构化的错误响应。
 type ErrorResponse struct {
 	// 错误状态码
 	Code int `json:"code,omitzero"`

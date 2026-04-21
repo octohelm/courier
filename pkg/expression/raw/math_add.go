@@ -4,6 +4,7 @@ import "fmt"
 
 // Add
 // v + x
+// Add 执行两个值的加法运算。
 func Add(x Value, v Value) (any, error) {
 	switch x.Kind() {
 	case Float:

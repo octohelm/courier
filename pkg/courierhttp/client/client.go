@@ -183,9 +183,13 @@ func (r *result) Meta() courier.Metadata {
 }
 
 func (r *result) Into(body any) (courier.Metadata, error) {
+	autoClose := true
+
 	defer func() {
-		if r.Response != nil && r.Response.Body != nil {
-			_ = r.Response.Body.Close()
+		if autoClose {
+			if r.Response != nil && r.Response.Body != nil {
+				_ = r.Response.Body.Close()
+			}
 		}
 	}()
 
@@ -210,6 +214,10 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 	}
 
 	switch x := body.(type) {
+	case *io.ReadCloser:
+		autoClose = false
+		*x = r.Response.Body
+		return meta, nil
 	case *any:
 		return meta, nil
 	case interface {
@@ -236,6 +244,7 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 			return meta, err
 		}
 		return meta, x
+
 	case io.Writer:
 		if _, err := io.Copy(x, r.Response.Body); err != nil {
 			return meta, statuserror.Wrap(err, http.StatusInternalServerError, "WriteFailed")
