@@ -2,11 +2,10 @@ package testingutil
 
 import (
 	"bytes"
-	"net/http"
+	"fmt"
 	"os"
 
 	"github.com/go-json-experiment/json"
-	testingx "github.com/octohelm/x/testing"
 )
 
 func PrintJSON(v any) {
@@ -15,35 +14,19 @@ func PrintJSON(v any) {
 	}
 }
 
-func BeJSON[X any](expect string) testingx.Matcher[X] {
-	return &jsonMatcher[X]{
-		expect: bytes.TrimSpace([]byte(expect)),
+func BeJSON[X any](expect string) func(v X) error {
+	expectData := bytes.TrimSpace([]byte(expect))
+
+	return func(v X) error {
+		actual, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+
+		if bytes.Equal(actual, expectData) {
+			return nil
+		}
+
+		return fmt.Errorf("json mismatch\nexpect:\n%s\nactual:\n%s", expectData, actual)
 	}
-}
-
-type jsonMatcher[X any] struct {
-	expect []byte
-	actual []byte
-}
-
-func (m *jsonMatcher[X]) Action() string {
-	return "Be JSON"
-}
-
-func (m *jsonMatcher[X]) Match(v X) bool {
-	m.actual, _ = json.Marshal(v)
-
-	return bytes.Equal(m.actual, m.expect)
-}
-
-func (m *jsonMatcher[X]) Negative() bool {
-	return false
-}
-
-func (m *jsonMatcher[X]) NormalizeActual(actual http.Handler) any {
-	return string(m.actual)
-}
-
-func (m *jsonMatcher[X]) NormalizedExpected() any {
-	return string(m.expect)
 }

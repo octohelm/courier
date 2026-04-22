@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/octohelm/courier/pkg/validator/internal/rules"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
 
 type formatValidator struct{}

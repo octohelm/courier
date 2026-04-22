@@ -1,6 +1,8 @@
 package openapi
 
-import "github.com/octohelm/courier/pkg/openapi/jsonschema"
+import (
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+)
 
 func NewOperation(operationId string) *OperationObject {
 	op := &OperationObject{}

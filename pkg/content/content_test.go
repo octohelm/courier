@@ -9,8 +9,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/octohelm/courier/internal/httprequest"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/internal/httprequest"
 )
 
 type textValue string

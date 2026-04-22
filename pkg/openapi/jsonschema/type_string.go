@@ -1,6 +1,8 @@
 package jsonschema
 
-import "io"
+import (
+	"io"
+)
 
 func String() *StringType {
 	return &StringType{

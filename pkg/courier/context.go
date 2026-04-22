@@ -1,6 +1,8 @@
 package courier
 
-import "context"
+import (
+	"context"
+)
 
 // CanInjectContext 表示可注入上下文的接口。
 type CanInjectContext interface {

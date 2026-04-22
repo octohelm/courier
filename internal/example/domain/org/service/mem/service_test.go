@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	metav1 "github.com/octohelm/courier/internal/example/pkg/apis/meta/v1"
 	orgv1 "github.com/octohelm/courier/internal/example/pkg/apis/org/v1"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 func TestService(t *testing.T) {

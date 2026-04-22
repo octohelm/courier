@@ -12,9 +12,10 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/pkg/courier"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 type routeStub struct{}

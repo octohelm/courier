@@ -5,30 +5,30 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/octohelm/courier/pkg/expression/raw"
+	. "github.com/octohelm/x/testing/v2"
 
-	testingx "github.com/octohelm/x/testing"
+	"github.com/octohelm/courier/pkg/expression/raw"
 )
 
-func TestExpr(t *testing.T) {
+func TestCompositeExpressions(t *testing.T) {
 	t.Run("array every", func(t *testing.T) {
 		e, _ := From(Every(
 			Elem(Pipe(Len(), Gte(3))),
 		))
 
-		t.Run("should pass", func(t *testing.T) {
+		t.Run("returns true when every element matches", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "123", "123"})
-			testingx.Expect(t, ret, testingx.Be[any](true))
+			expectExpr(t, ret, true)
 		})
 
-		t.Run("should failed cause array len", func(t *testing.T) {
+		t.Run("returns false when some element is too short", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "11"})
-			testingx.Expect(t, ret, testingx.Be[any](false))
+			expectExpr(t, ret, false)
 		})
 
-		t.Run("should failed cause elem len", func(t *testing.T) {
+		t.Run("returns false when any element fails", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "11", "123"})
-			testingx.Expect(t, ret, testingx.Be[any](false))
+			expectExpr(t, ret, false)
 		})
 	})
 
@@ -37,54 +37,53 @@ func TestExpr(t *testing.T) {
 			Elem(Pipe(Len(), Gte(3))),
 		))
 
-		t.Run("should pass", func(t *testing.T) {
+		t.Run("returns true when all elements match", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "123", "123"})
-			testingx.Expect(t, ret, testingx.Be[any](true))
+			expectExpr(t, ret, true)
 		})
 
-		t.Run("should pass when some array item match", func(t *testing.T) {
+		t.Run("returns true when some element matches", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"123", "11", "1"})
-			testingx.Expect(t, ret, testingx.Be[any](true))
+			expectExpr(t, ret, true)
 		})
 
-		t.Run("should failed when nothing match", func(t *testing.T) {
+		t.Run("returns false when no element matches", func(t *testing.T) {
 			ret, _ := e.Exec(context.Background(), []any{"12", "11", "1"})
-			testingx.Expect(t, ret, testingx.Be[any](false))
+			expectExpr(t, ret, false)
 		})
 	})
 
 	t.Run("eq", func(t *testing.T) {
 		ex, err := From(Eq(1))
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, ex.String(), testingx.Be[string]("eq(1)"))
+		expectErrNil(t, err)
+		expectExpr(t, ex.String(), "eq(1)")
 
 		ret, err := ex.Exec(context.Background(), 1)
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, ret, testingx.Be[any](true))
+		expectErrNil(t, err)
+		expectExpr(t, ret, true)
 	})
 
 	t.Run("match", func(t *testing.T) {
 		e, err := From(Match("[a-z]+"))
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, e.String(), testingx.Be[string](`match("[a-z]+")`))
+		expectErrNil(t, err)
+		expectExpr(t, e.String(), `match("[a-z]+")`)
 
 		ret, err := e.Exec(context.Background(), "abc")
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, ret, testingx.Be[any](true))
+		expectErrNil(t, err)
+		expectExpr(t, ret, true)
 	})
 
 	t.Run("pipe", func(t *testing.T) {
 		e, err := From(Pipe(Get("x"), Len(), Eq(5)))
-
-		testingx.Expect(t, err, testingx.Be[error](nil))
+		expectErrNil(t, err)
 
 		ctx := WithValueGetter(context.Background(), ValueGetterFunc(func(name string) (any, bool) {
 			return "12345", true
 		}))
 
 		ret, err := e.Exec(ctx, nil)
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, ret, testingx.Be[any](true))
+		expectErrNil(t, err)
+		expectExpr(t, ret, true)
 	})
 
 	t.Run("simple when", func(t *testing.T) {
@@ -95,22 +94,22 @@ func TestExpr(t *testing.T) {
 			),
 		)
 
-		t.Run("when condition pass", func(t *testing.T) {
+		t.Run("returns branch value when condition matches", func(t *testing.T) {
 			ctx := WithValueGetter(context.Background(), ValueGetterFunc(func(name string) (any, bool) {
 				return 1, true
 			}))
 			ret, err := ex.Exec(ctx, nil)
-			testingx.Expect(t, err, testingx.Be[error](nil))
-			testingx.Expect(t, ret, testingx.Be[any]("x"))
+			expectErrNil(t, err)
+			expectExpr(t, ret, "x")
 		})
 
-		t.Run("when condition not pass", func(t *testing.T) {
+		t.Run("returns nil when condition does not match", func(t *testing.T) {
 			ctx := WithValueGetter(context.Background(), ValueGetterFunc(func(name string) (any, bool) {
 				return 2, true
 			}))
 			ret, err := ex.Exec(ctx, nil)
-			testingx.Expect(t, err, testingx.Be[error](nil))
-			testingx.Expect(t, ret, testingx.Be[any](nil))
+			expectErrNil(t, err)
+			expectExpr[any](t, ret, nil)
 		})
 	})
 
@@ -125,30 +124,30 @@ func TestExpr(t *testing.T) {
 			),
 		)
 
-		t.Run("when condition pass", func(t *testing.T) {
+		t.Run("returns first branch when condition matches", func(t *testing.T) {
 			ctx := WithValueGetter(context.Background(), ValueGetterFunc(func(name string) (any, bool) {
 				return 1, true
 			}))
 			ret, err := ex.Exec(ctx, 1)
-			testingx.Expect(t, err, testingx.Be[error](nil))
-			testingx.Expect(t, ret, testingx.Be[any](true))
+			expectErrNil(t, err)
+			expectExpr(t, ret, true)
 		})
 
-		t.Run("when condition not pass", func(t *testing.T) {
+		t.Run("falls back to default branch when condition does not match", func(t *testing.T) {
 			ctx := WithValueGetter(context.Background(), ValueGetterFunc(func(name string) (any, bool) {
 				return 2, true
 			}))
 
 			{
 				ret, err := ex.Exec(ctx, 1)
-				testingx.Expect(t, err, testingx.Be[error](nil))
-				testingx.Expect(t, ret, testingx.Be[any](false))
+				expectErrNil(t, err)
+				expectExpr(t, ret, false)
 			}
 
 			{
 				ret, err := ex.Exec(ctx, 2)
-				testingx.Expect(t, err, testingx.Be[error](nil))
-				testingx.Expect(t, ret, testingx.Be[any](true))
+				expectErrNil(t, err)
+				expectExpr(t, ret, true)
 			}
 		})
 	})
@@ -272,12 +271,12 @@ var cases = []struct {
 	},
 }
 
-func TestExpressions(t *testing.T) {
+func TestExpressionFixtures(t *testing.T) {
 	for i := range cases {
 		c := cases[i]
 
 		ex, err := From(c.ex)
-		testingx.Expect(t, err, testingx.Be[error](nil))
+		expectErrNil(t, err)
 
 		t.Run(fmt.Sprintf("%s: %s", c.summary, ex.String()), func(t *testing.T) {
 			for j := range c.fixtures {
@@ -285,8 +284,8 @@ func TestExpressions(t *testing.T) {
 
 				t.Run(fmt.Sprintf("x(%v)=%v", ft.in, ft.ret), func(t *testing.T) {
 					out, err := ex.Exec(context.Background(), ft.in)
-					testingx.Expect(t, err, testingx.Be[error](nil))
-					testingx.Expect(t, out, testingx.Be[any](ft.ret))
+					expectErrNil(t, err)
+					expectExpr(t, out, ft.ret)
 				})
 			}
 		})
@@ -311,4 +310,12 @@ func Benchmark(b *testing.B) {
 			_, _ = exec(context.Background(), 1)
 		}
 	})
+}
+
+func expectExpr[V any](t *testing.T, actual V, expected V) {
+	Then(t, "表达式结果符合预期", Expect(actual, Equal(expected)))
+}
+
+func expectErrNil(t *testing.T, err error) {
+	Then(t, "执行过程中不返回错误", Expect(err, Equal[error](nil)))
 }

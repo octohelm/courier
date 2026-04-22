@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
 var multiplyCases = [][]any{
@@ -16,12 +16,17 @@ var multiplyCases = [][]any{
 
 func TestMultiply(t *testing.T) {
 	for _, c := range multiplyCases {
-		bdd.FromT(t).When(fmt.Sprintf("%T(%v) * %T(%v)  = %T(%v)", c[1], c[1], c[0], c[0], c[2], c[2]), func(b bdd.T) {
-			v, err := Mul(ValueOf(c[0]), ValueOf(c[1]))
-			b.Then("success",
-				bdd.NoError(err),
-				bdd.Equal(c[2], v),
-			)
+		t.Run(fmt.Sprintf("%T(%v)*%T(%v)", c[0], c[0], c[1], c[1]), func(t *testing.T) {
+			Then(t, "乘法会返回预期结果", ExpectMust(func() error {
+				v, err := Mul(ValueOf(c[0]), ValueOf(c[1]))
+				if err != nil {
+					return err
+				}
+				if v != c[2] {
+					return errRaw("unexpected multiply result")
+				}
+				return nil
+			}))
 		})
 	}
 }

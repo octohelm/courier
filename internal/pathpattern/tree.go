@@ -81,12 +81,12 @@ func (g *group[N]) add(method string, segs Segments, node N) {
 
 	if named, ok := seg.(NamedSegment); ok {
 		if currentNamed, ok := g.seg.(NamedSegment); ok && currentNamed.Multiple() {
-			panic(fmt.Sprintf("named path segment is not allow after multiple segment: %s", node.PathSegments()))
+			panic(fmt.Errorf("多段路径参数后不允许继续出现命名路径参数：当前路径 %s", node.PathSegments()))
 		}
 
 		if g.childWild != nil {
 			if g.childWild.seg != named {
-				panic(fmt.Sprintf("%s conflicts with %s", node.PathSegments(), g.childWild.PathSegments()))
+				panic(fmt.Errorf("命名路径冲突：当前路径 %s 与已存在路径 %s 冲突", node.PathSegments(), g.childWild.PathSegments()))
 			}
 		} else {
 			g.childWild = &group[N]{

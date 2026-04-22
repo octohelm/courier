@@ -1,10 +1,13 @@
 package extractors
 
 import (
+	"fmt"
+
+	"github.com/octohelm/x/ptr"
+
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/validator"
 	"github.com/octohelm/courier/pkg/validator/validators"
-	"github.com/octohelm/x/ptr"
 )
 
 func PatchSchemaValidation(s jsonschema.Schema, opt validator.Option) (jsonschema.Schema, error) {
@@ -76,7 +79,7 @@ func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator
 
 			elem, err := PatchSchemaValidation(x.Items, vt.Elem())
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("补充 slice 元素校验失败: %w", err))
 			}
 			x.Items = elem
 
@@ -92,13 +95,13 @@ func PatchSchemaValidationByValidator(s jsonschema.Schema, v validator.Validator
 
 			key, err := PatchSchemaValidation(x.PropertyNames, vt.Key())
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("补充 map key 校验失败: %w", err))
 			}
 			x.PropertyNames = key
 
 			elem, err := PatchSchemaValidation(x.AdditionalProperties, vt.Elem())
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("补充 map value 校验失败: %w", err))
 			}
 			x.AdditionalProperties = elem
 

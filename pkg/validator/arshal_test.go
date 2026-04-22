@@ -8,8 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	"github.com/octohelm/courier/pkg/statuserror"
-	testingx "github.com/octohelm/x/testing"
 )
 
 type Named string
@@ -24,7 +25,7 @@ func (*CustomType) UnmarshalText(b []byte) error {
 	return fmt.Errorf("invalid CustomType: %v", string(b))
 }
 
-func TestUnmarshal(t *testing.T) {
+func TestUnmarshalAggregatesAllValidationErrors(t *testing.T) {
 	type SubPtrStruct struct {
 		PtrInt   *int     `validate:"@int[1,]"`
 		PtrFloat *float32 `validate:"@float[1,]"`
@@ -78,7 +79,8 @@ func TestUnmarshal(t *testing.T) {
 		_, _ = fmt.Fprintf(io.MultiWriter(b, os.Stdout), "%s\n", e)
 	}
 
-	testingx.Expect(t, strings.TrimSpace(b.String()), testingx.Be(strings.TrimSpace(`
+	Then(t, "反序列化会聚合所有校验错误并保留路径上下文",
+		Expect(strings.TrimSpace(b.String()), Equal(strings.TrimSpace(`
 string value length should be larger or equal than 1, but got 0 at /Slice/0
 string value length should be larger or equal than 1, but got 0 at /Slice/1
 integer value should be larger or equal than 1 and less or equal than 2147483647, but got 0 at /SliceStruct/0/Int
@@ -103,5 +105,6 @@ missing required field at /Uint
 missing required field at /PtrInt
 missing required field at /PtrFloat
 missing required field at /PtrUint
-`)))
+`))),
+	)
 }

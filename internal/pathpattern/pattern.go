@@ -86,7 +86,7 @@ func (ss Segments) PathValues(pathname string) (Values, error) {
 
 	_, ok := ss.MatchTo(params, pathname)
 	if !ok {
-		return nil, fmt.Errorf("pathname %s is not match %s", pathname, ss)
+		return nil, fmt.Errorf("路径不匹配：实际路径 %s 不符合模式 %s", pathname, ss)
 	}
 
 	return params, nil

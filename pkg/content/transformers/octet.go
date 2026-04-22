@@ -7,10 +7,10 @@ import (
 	"mime"
 	"reflect"
 
-	"github.com/octohelm/courier/internal/jsonflags"
-
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
+
+	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/pkg/content/internal"
 	"github.com/octohelm/courier/pkg/validator"
 )

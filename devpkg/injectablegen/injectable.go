@@ -6,9 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
-
 	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 )
 
 func init() {

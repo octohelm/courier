@@ -1,6 +1,8 @@
 package jsonschema
 
-import "io"
+import (
+	"io"
+)
 
 type NullType struct {
 	Type string `json:"type,omitzero"`

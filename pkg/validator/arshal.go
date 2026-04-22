@@ -7,6 +7,7 @@ import (
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	jsonv1 "github.com/go-json-experiment/json/v1"
+
 	"github.com/octohelm/courier/pkg/validator/internal"
 )
 

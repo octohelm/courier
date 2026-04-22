@@ -1,12 +1,13 @@
 package rules
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
-func TestParseRule(t *testing.T) {
+func TestParseRuleString(t *testing.T) {
 	cases := [][]string{
 		// simple
 		{`@email`, `@email`},
@@ -67,23 +68,27 @@ func TestParseRule(t *testing.T) {
 		{`@slice<@float64<10,4>[-1.000,100.000]?>`, `@slice<@float64<10,4>[-1.000,100.000]?>`},
 	}
 
-	b := bdd.FromT(t)
-
 	for i := range cases {
 		c := cases[i]
 
-		b.When("parse rule:"+c[0], func(b bdd.T) {
-			r, err := ParseRuleString(c[0])
-
-			b.Then("success",
-				bdd.NoError(err),
-				bdd.Equal(c[1], string(r.Bytes())),
+		t.Run("规范化 "+c[0], func(t *testing.T) {
+			Then(t, "规则字符串会被解析为稳定格式",
+				ExpectMust(func() error {
+					r, err := ParseRuleString(c[0])
+					if err != nil {
+						return err
+					}
+					if string(r.Bytes()) != c[1] {
+						return fmt.Errorf("unexpected rule bytes: %s", r.Bytes())
+					}
+					return nil
+				}),
 			)
 		})
 	}
 }
 
-func TestParseRuleFailed(t *testing.T) {
+func TestParseRuleStringRejectsInvalidInput(t *testing.T) {
 	cases := []string{
 		`@`,
 		`@name<`,
@@ -99,17 +104,25 @@ func TestParseRuleFailed(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		_, err := ParseRuleString(c)
-		t.Logf("%s %s", c, err)
+		t.Run("非法规则 "+c, func(t *testing.T) {
+			Then(t, "非法规则会返回错误",
+				ExpectMust(func() error {
+					_, err := ParseRuleString(c)
+					if err == nil {
+						return fmt.Errorf("expected parse error")
+					}
+					return nil
+				}),
+			)
+		})
 	}
 }
 
-func TestRule(t *testing.T) {
-	bdd.FromT(t).When("parse", func(b bdd.T) {
-		_, err := ParseRuleString("@string{A,B,C}{a,b}{1,2}")
-
-		b.Then("success",
-			bdd.NoError(err),
-		)
-	})
+func TestParseRuleStringSupportsValueMatrix(t *testing.T) {
+	Then(t, "合法的 value matrix 规则可以成功解析",
+		ExpectMust(func() error {
+			_, err := ParseRuleString("@string{A,B,C}{a,b}{1,2}")
+			return err
+		}),
+	)
 }

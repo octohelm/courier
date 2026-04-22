@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-json-experiment/json/jsontext"
-
 	"github.com/go-json-experiment/json"
-	"github.com/octohelm/courier/pkg/validator/internal"
+	"github.com/go-json-experiment/json/jsontext"
 	testingx "github.com/octohelm/x/testing"
+
+	"github.com/octohelm/courier/pkg/validator/internal"
 )
 
 type Cases = []Case

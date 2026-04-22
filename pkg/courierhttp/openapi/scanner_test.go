@@ -5,14 +5,16 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
+
+	. "github.com/octohelm/x/testing/v2"
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	pkgopenapi "github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/courier/pkg/statuserror"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 type scannerRequestBody struct {
@@ -112,6 +114,14 @@ type scannerContentTypeOp struct {
 
 func (*scannerContentTypeOp) Output(context.Context) (any, error) { return nil, nil }
 func (*scannerContentTypeOp) ResponseContent() any                { return &scannerContentTypeResp{} }
+
+type scannerMissingInOp struct {
+	courierhttp.MethodPost `path:"/api/missing-in"`
+
+	Name string
+}
+
+func (*scannerMissingInOp) Output(context.Context) (any, error) { return nil, nil }
 
 func TestScannerHelpersAndFromRouter(t *testing.T) {
 	Then(t, "scanner 主链路与辅助方法覆盖关键分支",
@@ -266,6 +276,63 @@ func TestScannerHelpersAndFromRouter(t *testing.T) {
 			return nil
 		}),
 	)
+}
+
+func TestScannerErrorMessages(t *testing.T) {
+	t.Run("字段缺少 in 标记时应返回中文上下文", func(t *testing.T) {
+		b := &scanner{
+			o: pkgopenapi.NewOpenAPI(),
+			opt: buildOption{
+				naming: func(s string) string { return "Named" + s },
+			},
+		}
+		op := pkgopenapi.NewOperation("MissingIn")
+
+		err := captureScannerPanic(func() {
+			b.scanParameterOrRequestBody(context.Background(), op, reflect.TypeFor[scannerMissingInOp]())
+		})
+		if err == nil {
+			t.Fatalf("expected panic error")
+		}
+		if !strings.Contains(err.Error(), "操作 MissingIn 的字段 Name 缺少 in 标记") {
+			t.Fatalf("unexpected error message: %v", err)
+		}
+	})
+
+	t.Run("FromRouter 应补扫描 OpenAPI 路由失败上下文", func(t *testing.T) {
+		r := courierhttp.GroupRouter("/").With(
+			courier.NewRouter(&scannerMissingInOp{}),
+		)
+
+		err := captureScannerPanic(func() {
+			_ = FromRouter(r)
+		})
+		if err == nil {
+			t.Fatalf("expected panic error")
+		}
+		if !strings.Contains(err.Error(), "扫描 OpenAPI 路由失败") {
+			t.Fatalf("unexpected wrapped error message: %v", err)
+		}
+		if !strings.Contains(err.Error(), "缺少 in 标记") {
+			t.Fatalf("expected inner error context, got: %v", err)
+		}
+	})
+}
+
+func captureScannerPanic(fn func()) (err error) {
+	defer func() {
+		if x := recover(); x != nil {
+			switch e := x.(type) {
+			case error:
+				err = e
+			default:
+				err = errors.New("unexpected non-error panic")
+			}
+		}
+	}()
+
+	fn()
+	return nil
 }
 
 func errScanner(msg string) error {

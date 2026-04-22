@@ -3,9 +3,10 @@ package courier
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
 func ExampleNewRouter() {
@@ -79,16 +80,59 @@ func (OperatorB2) Output(ctx context.Context) (any, error) {
 	return nil, nil
 }
 
-func TestRegister(t *testing.T) {
+func TestRegisterRejectsDuplicateRouter(t *testing.T) {
 	RouterRoot := NewRouter(&EmptyOperator{})
 	RouterA := NewRouter(&OperatorA{})
 	RouterRoot.Register(RouterA)
 
-	bdd.FromT(t).When("register", func(b bdd.T) {
-		b.Then("panic with conflict",
-			bdd.HasError(Try(func() {
+	Then(t, "重复注册同一路由会触发冲突 panic",
+		ExpectMust(func() error {
+			err := Try(func() {
 				RouterRoot.Register(RouterA)
-			})),
-		)
-	})
+			})
+			if err == nil {
+				return fmt.Errorf("expected register conflict")
+			}
+			return nil
+		}),
+	)
+}
+
+func TestRegisterConflictMessage(t *testing.T) {
+	RouterRoot := NewRouter(&EmptyOperator{})
+	RouterA := NewRouter(&OperatorA{})
+	RouterRoot.Register(RouterA)
+
+	Then(t, "冲突消息会包含重复注册与父路由上下文",
+		ExpectMust(func() error {
+			err := captureRouterPanic(func() {
+				RouterRoot.Register(RouterA)
+			})
+			if err == nil {
+				return fmt.Errorf("expected panic error")
+			}
+			if !strings.Contains(err.Error(), "路由重复注册") {
+				return fmt.Errorf("unexpected error message: %v", err)
+			}
+			if !strings.Contains(err.Error(), "当前父路由") {
+				return fmt.Errorf("missing parent route context: %v", err)
+			}
+			return nil
+		}),
+	)
+}
+
+func captureRouterPanic(fn func()) (err error) {
+	defer func() {
+		if x := recover(); x != nil {
+			if e, ok := x.(error); ok {
+				err = e
+				return
+			}
+			err = fmt.Errorf("unexpected non-error panic: %v", x)
+		}
+	}()
+
+	fn()
+	return nil
 }

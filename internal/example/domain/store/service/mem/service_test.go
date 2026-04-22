@@ -6,8 +6,9 @@ import (
 	"io"
 	"testing"
 
-	storev1 "github.com/octohelm/courier/internal/example/pkg/apis/store/v1"
 	. "github.com/octohelm/x/testing/v2"
+
+	storev1 "github.com/octohelm/courier/internal/example/pkg/apis/store/v1"
 )
 
 func TestService(t *testing.T) {

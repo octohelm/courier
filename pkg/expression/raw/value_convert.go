@@ -1,6 +1,8 @@
 package raw
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Len 获取值的长度。
 func Len(value Value) int {

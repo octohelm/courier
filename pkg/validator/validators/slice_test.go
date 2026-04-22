@@ -2,13 +2,15 @@ package validators
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+
+	"github.com/octohelm/x/ptr"
+	. "github.com/octohelm/x/testing/v2"
 
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/testutil"
-	"github.com/octohelm/x/ptr"
-	testingx "github.com/octohelm/x/testing"
 )
 
 func TestSliceValidatorProvider(t *testing.T) {
@@ -20,17 +22,22 @@ func TestSliceValidatorProvider(t *testing.T) {
 
 	for _, r := range rules {
 		t.Run("parse "+r[0], func(t *testing.T) {
-			v, err := internal.New(internal.ValidatorOption{
-				Rule: r[0],
-			})
-			testingx.Expect(t, err, testingx.BeNil[error]())
-			testingx.Expect(t, v.String(), testingx.Be(r[1]))
+			Then(t, "slice validator 规则会被规范化", ExpectMust(func() error {
+				v, err := internal.New(internal.ValidatorOption{Rule: r[0]})
+				if err != nil {
+					return err
+				}
+				if v.String() != r[1] {
+					return fmt.Errorf("unexpected validator string: %s", v.String())
+				}
+				return nil
+			}))
 		})
 	}
 }
 
 func TestSliceValidator(t *testing.T) {
-	t.Run("should be valid", func(t *testing.T) {
+	t.Run("accepts valid slice input", func(t *testing.T) {
 		cases := testutil.Cases{
 			{
 				Expect: []byte(`{"x":["1"]}`),
@@ -43,7 +50,7 @@ func TestSliceValidator(t *testing.T) {
 		testutil.Run(t, cases...)
 	})
 
-	t.Run("should be invalid", func(t *testing.T) {
+	t.Run("rejects invalid slice input", func(t *testing.T) {
 		cases := testutil.Cases{
 			{
 				Input: []byte(`{}`),

@@ -2,17 +2,17 @@ package transport_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
-	testingx "github.com/octohelm/x/testing"
 )
 
 func TestRequestTransformer(t *testing.T) {
@@ -43,7 +43,7 @@ func TestRequestTransformer(t *testing.T) {
 		C string `json:",omitzero" xml:",omitzero"`
 	}
 
-	t.Run("full in parameters", func(t *testing.T) {
+	t.Run("full parameter mapping", func(t *testing.T) {
 		type Request struct {
 			courierhttp.MethodGet `path:"/:id"`
 			ID                    string `name:"id" in:"path"`
@@ -73,9 +73,12 @@ func TestRequestTransformer(t *testing.T) {
 			},
 		}
 
-		r, err := transport.NewRequest(context.Background(), req)
-		testingx.Expect(t, err, testingx.BeNil[error]())
-		testingx.Expect(t, r, testingutil.BeRequest(`
+		Then(t, "请求可在 outgoing 与 incoming transport 之间往返", ExpectMust(func() error {
+			r, err := transport.NewRequest(context.Background(), req)
+			if err != nil {
+				return err
+			}
+			if err := testingutil.BeRequest(`
 GET /1?bytes=bytes&int=1&slice=1&slice=2&string=string HTTP/1.1
 Content-Type: application/json; charset=utf-8
 Cookie: a=xxx; slice=1; slice=2
@@ -84,80 +87,127 @@ Hint: 1
 Hstring: string
 
 {}
-`))
+`)(r); err != nil {
+				return err
+			}
 
-		req2 := &Request{}
+			req2 := &Request{}
 
-		incomeTransport, err := transport.NewIncomingTransport(context.Background(), req2)
-		testingx.Expect(t, err, testingx.BeNil[error]())
+			incomeTransport, err := transport.NewIncomingTransport(context.Background(), req2)
+			if err != nil {
+				return err
+			}
 
-		request := r.WithContext(httprequest.ContextWithPathValueGetter(r.Context(), handler.Params{"id": "1"}))
+			request := r.WithContext(httprequest.ContextWithPathValueGetter(r.Context(), handler.Params{"id": "1"}))
 
-		err = incomeTransport.UnmarshalOperator(context.Background(), httprequest.From(request), req2)
-		testingx.Expect(t, err, testingx.BeNil[error]())
+			if err := incomeTransport.UnmarshalOperator(context.Background(), httprequest.From(request), req2); err != nil {
+				return err
+			}
+			return nil
+		}))
 	})
 
-	t.Run("Should unmarshal header values from query values with prefix `x-param-header-`", func(t *testing.T) {
+	t.Run("header fallback from query prefix", func(t *testing.T) {
 		req := &struct {
 			courierhttp.MethodGet `path:"/"`
 			Headers
 		}{}
 
-		it, err := transport.NewIncomingTransport(context.Background(), req)
-		testingx.Expect(t, err, testingx.Be[error](nil))
+		Then(t, "x-param-header- 前缀的 query 参数会映射为 header", ExpectMust(func() error {
+			it, err := transport.NewIncomingTransport(context.Background(), req)
+			if err != nil {
+				return err
+			}
 
-		httpRequest, err := http.NewRequest("GET", "/?x-param-header-Hint=1&x-param-header-Hbool=true&x-param-header-Hstring=string", nil)
-		testingx.Expect(t, err, testingx.Be[error](nil))
+			httpRequest, err := http.NewRequest("GET", "/?x-param-header-Hint=1&x-param-header-Hbool=true&x-param-header-Hstring=string", nil)
+			if err != nil {
+				return err
+			}
 
-		err = it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req)
-		testingx.Expect(t, err, testingx.Be[error](nil))
-		testingx.Expect(t, req.Headers, testingx.Equal(Headers{
-			HInt:    1,
-			HString: "string",
-			HBool:   true,
+			if err := it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req); err != nil {
+				return err
+			}
+			expected := Headers{HInt: 1, HString: "string", HBool: true}
+			if req.Headers != expected {
+				return fmt.Errorf("unexpected headers: %#v", req.Headers)
+			}
+			return nil
 		}))
 	})
 }
 
-func TestRequestTransformerWithDefaultValue(t *testing.T) {
-	t.Run("declare a operator", bdd.GivenT(func(b bdd.T) {
+func TestRequestTransformerAppliesDefaultValue(t *testing.T) {
+	t.Run("uses provided query value when in range", func(t *testing.T) {
 		req := &struct {
 			courierhttp.MethodGet `path:"/"`
 			Limit                 int64 `name:"limit,omitzero" validate:"@int[-1,50] = 10" in:"query"`
 		}{}
 
-		it := bdd.Must(transport.NewIncomingTransport(b.Context(), req))
+		Then(t, "显式传值时保留请求值", ExpectMust(func() error {
+			it, err := transport.NewIncomingTransport(context.Background(), req)
+			if err != nil {
+				return err
+			}
+			httpRequest, err := http.NewRequest("GET", "/?limit=20", nil)
+			if err != nil {
+				return err
+			}
+			if err := it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req); err != nil {
+				return err
+			}
+			if req.Limit != 20 {
+				return fmt.Errorf("unexpected limit: %d", req.Limit)
+			}
+			return nil
+		}))
+	})
 
-		b.When("handle request with limit in range", func(b bdd.T) {
-			httpRequest := bdd.Must(http.NewRequest("GET", "/?limit=20", nil))
+	t.Run("fills default value when query missing", func(t *testing.T) {
+		req := &struct {
+			courierhttp.MethodGet `path:"/"`
+			Limit                 int64 `name:"limit,omitzero" validate:"@int[-1,50] = 10" in:"query"`
+		}{}
 
-			b.Then("parse parameters successful",
-				bdd.Nil(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
-			)
+		Then(t, "缺省值会在请求中缺失时补齐", ExpectMust(func() error {
+			it, err := transport.NewIncomingTransport(context.Background(), req)
+			if err != nil {
+				return err
+			}
+			httpRequest, err := http.NewRequest("GET", "/", nil)
+			if err != nil {
+				return err
+			}
+			if err := it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req); err != nil {
+				return err
+			}
+			if req.Limit != 10 {
+				return fmt.Errorf("unexpected default limit: %d", req.Limit)
+			}
+			return nil
+		}))
+	})
 
-			b.Then("value should set",
-				bdd.Equal(20, req.Limit),
-			)
-		})
+	t.Run("rejects out-of-range value", func(t *testing.T) {
+		req := &struct {
+			courierhttp.MethodGet `path:"/"`
+			Limit                 int64 `name:"limit,omitzero" validate:"@int[-1,50] = 10" in:"query"`
+		}{}
 
-		b.When("handle request with empty limit", func(b bdd.T) {
-			httpRequest := bdd.Must(http.NewRequest("GET", "/", nil))
-
-			b.Then("parse parameters successful",
-				bdd.Nil(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
-			)
-
-			b.Then("default value should set",
-				bdd.Equal(10, req.Limit),
-			)
-		})
-
-		b.When("handle request with limit which out of range", func(b bdd.T) {
-			httpRequest := bdd.Must(http.NewRequest("GET", "/?limit=200", nil))
-
-			b.Then("parse parameters failed",
-				bdd.HasError(it.UnmarshalOperator(b.Context(), httprequest.From(httpRequest), req)),
-			)
-		})
-	}))
+		Then(t, "超出范围的值会返回错误",
+			ExpectMust(func() error {
+				it, err := transport.NewIncomingTransport(context.Background(), req)
+				if err != nil {
+					return err
+				}
+				httpRequest, err := http.NewRequest("GET", "/?limit=200", nil)
+				if err != nil {
+					return err
+				}
+				if err := it.UnmarshalOperator(context.Background(), httprequest.From(httpRequest), req); err == nil {
+					return fmt.Errorf("expected out-of-range error")
+				}
+				return nil
+			}),
+		)
+	})
 }

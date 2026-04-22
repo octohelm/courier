@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"unicode"
 
+	"github.com/go-json-experiment/json/jsontext"
 	"github.com/octohelm/x/ptr"
 
-	"github.com/go-json-experiment/json/jsontext"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"

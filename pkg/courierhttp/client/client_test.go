@@ -11,11 +11,11 @@ import (
 	"regexp"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
 	"golang.org/x/net/http2"
 
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 type roundTripperFunc func(*http.Request) (*http.Response, error)
@@ -117,7 +117,7 @@ func TestClientRequestAndDo(t0 *testing.T) {
 			c := &Client{Endpoint: "://bad"}
 			_, err := c.newRequest(context.Background(), testRequest{ID: "1"})
 			return err
-		}, ErrorMatch(regexp.MustCompile("InvalidEndpoint"))),
+		}, ErrorMatch(regexp.MustCompile(`InvalidEndpoint\{message="补全客户端 Endpoint 失败: .*missing protocol scheme",statusCode=400\}`))),
 		ExpectMust(func() error {
 			var seenHost string
 			c := &Client{
@@ -156,8 +156,11 @@ func TestClientRequestAndDo(t0 *testing.T) {
 				}),
 			})
 			_, err := c.Do(ctx, testRequest{ID: "1"}).Into(nil)
-			if err == nil || !regexp.MustCompile("ClientClosedRequest").MatchString(err.Error()) {
-				return errClient("expected client closed request error")
+			if err == nil || !regexp.MustCompile(`ClientClosedRequest\{message="请求已取消: .*context canceled",statusCode=499\}`).MatchString(err.Error()) {
+				if err == nil {
+					return errClient("expected client closed request error, got nil")
+				}
+				return errClient("expected client closed request error, got: " + err.Error())
 			}
 			return nil
 		}),
@@ -169,7 +172,7 @@ func TestClientRequestAndDo(t0 *testing.T) {
 				}),
 			})
 			_, err := c.Do(ctx, testRequest{ID: "1"}).Into(nil)
-			if err == nil || !regexp.MustCompile("RequestFailed").MatchString(err.Error()) {
+			if err == nil || !regexp.MustCompile(`RequestFailed\{message="发送请求失败: .*boom",statusCode=500\}`).MatchString(err.Error()) {
 				return errClient("expected request failed error")
 			}
 			return nil

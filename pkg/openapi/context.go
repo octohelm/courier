@@ -1,6 +1,8 @@
 package openapi
 
-import "context"
+import (
+	"context"
+)
 
 type contextKey struct{}
 

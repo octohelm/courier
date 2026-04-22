@@ -1,6 +1,8 @@
 package testingutil
 
-import "time"
+import (
+	"time"
+)
 
 // openapi:strfmt date-time
 type Datetime time.Time

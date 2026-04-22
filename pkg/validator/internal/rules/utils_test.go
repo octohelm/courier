@@ -1,12 +1,13 @@
 package rules
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
-func TestSlashUnslash(t *testing.T) {
+func TestSlashAndUnslash(t *testing.T) {
 	cases := [][]string{
 		{`/\w+\/test/`, `\w+/test`},
 		{`/a/`, `a`},
@@ -21,26 +22,30 @@ func TestSlashUnslash(t *testing.T) {
 		{`/\//`, `/`},
 	}
 
-	b := bdd.FromT(t)
-
 	for i := range cases {
 		c := cases[i]
 
-		b.When("unslash:"+c[0], func(b bdd.T) {
-			r, err := Unslash([]byte(c[0]))
-
-			b.Then("success",
-				bdd.NoError(err),
-				bdd.Equal(c[1], string(r)),
-			)
+		t.Run("unslash "+c[0], func(t *testing.T) {
+			Then(t, "Unslash 会还原原始文本", ExpectMust(func() error {
+				r, err := Unslash([]byte(c[0]))
+				if err != nil {
+					return err
+				}
+				if string(r) != c[1] {
+					return fmt.Errorf("unexpected unslash result: %s", r)
+				}
+				return nil
+			}))
 		})
 
-		b.When("slash:"+c[1], func(b bdd.T) {
-			v := Slash([]byte(c[1]))
-
-			b.Then("success",
-				bdd.Equal(c[0], string(v)),
-			)
+		t.Run("slash "+c[1], func(t *testing.T) {
+			Then(t, "Slash 会生成可回放的正则文本", ExpectMust(func() error {
+				v := Slash([]byte(c[1]))
+				if string(v) != c[0] {
+					return fmt.Errorf("unexpected slash result: %s", v)
+				}
+				return nil
+			}))
 		})
 	}
 
@@ -52,10 +57,15 @@ func TestSlashUnslash(t *testing.T) {
 	for i := range casesForFailed {
 		c := casesForFailed[i]
 
-		b.When("unslash:"+c[0], func(b bdd.T) {
-			_, err := Unslash([]byte(c[0]))
-			b.Then("success",
-				bdd.HasError(err),
+		t.Run("unslash invalid "+c[0], func(t *testing.T) {
+			Then(t, "非法输入会返回错误",
+				ExpectMust(func() error {
+					_, err := Unslash([]byte(c[0]))
+					if err == nil {
+						return fmt.Errorf("expected unslash error")
+					}
+					return nil
+				}),
 			)
 		})
 	}

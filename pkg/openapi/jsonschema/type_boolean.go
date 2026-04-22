@@ -1,6 +1,8 @@
 package jsonschema
 
-import "io"
+import (
+	"io"
+)
 
 func Boolean() *BooleanType {
 	return &BooleanType{

@@ -2,13 +2,14 @@ package client
 
 import (
 	"net"
+	"reflect"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
-func TestHostAliases(t *testing.T) {
-	bdd.FromT(t).Given("host alias for ipv4", func(b bdd.T) {
+func TestHostAliasMarshalAndUnmarshal(t *testing.T) {
+	t.Run("ipv4 host alias", func(t *testing.T) {
 		ha := &HostAlias{
 			IP: net.ParseIP("127.0.0.1"),
 			Hostnames: []string{
@@ -17,23 +18,29 @@ func TestHostAliases(t *testing.T) {
 			},
 		}
 
-		txt := bdd.Must(ha.MarshalText())
+		Then(t, "序列化与反序列化结果正确",
+			ExpectMust(func() error {
+				txt, err := ha.MarshalText()
+				if err != nil {
+					return err
+				}
+				if string(txt) != "127.0.0.1:localhost,localhost1" {
+					return errClient("unexpected ipv4 marshal result")
+				}
 
-		b.Then("match results",
-			bdd.Equal("127.0.0.1:localhost,localhost1", string(txt)),
+				ha1 := &HostAlias{}
+				if err := ha1.UnmarshalText(txt); err != nil {
+					return err
+				}
+				if !reflect.DeepEqual(ha, ha1) {
+					return errClient("unexpected ipv4 unmarshal result")
+				}
+				return nil
+			}),
 		)
-
-		b.When("unmarshal", func(b bdd.T) {
-			ha1 := &HostAlias{}
-
-			b.Then("success",
-				bdd.NoError(ha1.UnmarshalText(txt)),
-				bdd.Equal(ha, ha1),
-			)
-		})
 	})
 
-	bdd.FromT(t).Given("host alias for ipv6", func(b bdd.T) {
+	t.Run("ipv6 host alias", func(t *testing.T) {
 		ha := &HostAlias{
 			IP: net.ParseIP("::1"),
 			Hostnames: []string{
@@ -42,19 +49,22 @@ func TestHostAliases(t *testing.T) {
 			},
 		}
 
-		txt := bdd.Must(ha.MarshalText())
-
-		b.Then("match results",
-			bdd.Equal("[::1]:localhost,localhost1", string(txt)),
-		)
-
-		b.When("unmarshal", func(b bdd.T) {
+		Then(t, "序列化与反序列化结果正确", ExpectMust(func() error {
+			txt, err := ha.MarshalText()
+			if err != nil {
+				return err
+			}
+			if string(txt) != "[::1]:localhost,localhost1" {
+				return errClient("unexpected ipv6 marshal result")
+			}
 			ha1 := &HostAlias{}
-
-			b.Then("success",
-				bdd.NoError(ha1.UnmarshalText(txt)),
-				bdd.Equal(ha, ha1),
-			)
-		})
+			if err := ha1.UnmarshalText(txt); err != nil {
+				return err
+			}
+			if !reflect.DeepEqual(ha, ha1) {
+				return errClient("unexpected ipv6 unmarshal result")
+			}
+			return nil
+		}))
 	})
 }

@@ -10,15 +10,15 @@
 //
 // 对 struct 字段还支持以下参数：
 //
-//   - `` `inject:""` ``
+//   - “ `inject:""` “
 //     表示该字段需要从 context 中读取 provider。
-//   - `` `inject:",opt"` ``
+//   - “ `inject:",opt"` “
 //     可选注入；context 中缺失时不报错。
-//   - `` `inject:"-"` ``
+//   - “ `inject:"-"` “
 //     禁止作为注入字段处理。
-//   - `` `provide:""` ``
+//   - “ `provide:""` “
 //     表示该字段会在当前 provider 的 `InjectContext` 中继续写回 context。
-//   - `` `provide:"-"` ``
+//   - “ `provide:"-"` “
 //     禁止作为 provider 字段处理。
 //
 // 除字段注入外，生成代码还会识别 `beforeInit(context.Context) error` 与

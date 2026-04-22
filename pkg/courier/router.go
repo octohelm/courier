@@ -64,7 +64,7 @@ func (rt *router) Register(r Router) {
 		rt.children = map[*router]bool{}
 	}
 	if r.(*router).parent != nil {
-		panic(fmt.Errorf("router %v already registered to router %v", r, rt.parent))
+		panic(fmt.Errorf("路由重复注册：目标路由 %v 已绑定父路由 %v，当前父路由 %v", r, r.(*router).parent, rt))
 	}
 	r.(*router).parent = rt
 	rt.children[r.(*router)] = true

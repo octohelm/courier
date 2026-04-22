@@ -21,7 +21,7 @@ func (*OpenAPITestGetOrg) Output(context.Context) (any, error) {
 	}{ID: 1}, nil
 }
 
-func TestOpenapi(t *testing.T) {
+func TestFromRouterDebugPrint(t *testing.T) {
 	r := courierhttp.GroupRouter("/").With(
 		courier.NewRouter(&OpenAPITestGetOrg{}),
 	)

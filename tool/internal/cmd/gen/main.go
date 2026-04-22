@@ -4,16 +4,19 @@ import (
 	"context"
 	"os"
 
-	// 注册
-	_ "github.com/octohelm/courier/devpkg/clientgen"
-	_ "github.com/octohelm/courier/devpkg/injectablegen"
-	_ "github.com/octohelm/courier/devpkg/operatorgen"
+	"github.com/octohelm/gengo/pkg/gengo"
+
+	"github.com/octohelm/x/logr"
+	"github.com/octohelm/x/logr/slog"
+)
+
+import (
 	_ "github.com/octohelm/gengo/devpkg/deepcopygen"
 	_ "github.com/octohelm/gengo/devpkg/runtimedocgen"
 
-	"github.com/octohelm/gengo/pkg/gengo"
-	"github.com/octohelm/x/logr"
-	"github.com/octohelm/x/logr/slog"
+	_ "github.com/octohelm/courier/devpkg/clientgen"
+	_ "github.com/octohelm/courier/devpkg/injectablegen"
+	_ "github.com/octohelm/courier/devpkg/operatorgen"
 )
 
 func main() {

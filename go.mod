@@ -8,8 +8,8 @@ tool (
 )
 
 require (
-	github.com/octohelm/gengo v0.0.0-20260422081545-3cd68178cc48
-	github.com/octohelm/x v0.0.0-20260421082716-a77c6918d9d0
+	github.com/octohelm/gengo v0.0.0-20260423102458-7653461bdb71
+	github.com/octohelm/x v0.0.0-20260423102402-017813b113b1
 )
 
 require (
@@ -18,7 +18,7 @@ require (
 	github.com/juju/ansiterm v1.0.0
 	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
-	k8s.io/apimachinery v0.35.4
+	k8s.io/apimachinery v0.36.0
 )
 
 require (

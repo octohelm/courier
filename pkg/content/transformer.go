@@ -4,7 +4,9 @@ import (
 	"reflect"
 
 	"github.com/octohelm/courier/pkg/content/internal"
+)
 
+import (
 	_ "github.com/octohelm/courier/pkg/content/transformers"
 )
 

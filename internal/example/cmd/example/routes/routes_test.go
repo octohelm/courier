@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	orgservice "github.com/octohelm/courier/internal/example/domain/org/service"
 	orgmem "github.com/octohelm/courier/internal/example/domain/org/service/mem"
 	storeservice "github.com/octohelm/courier/internal/example/domain/store/service"
@@ -23,7 +25,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/statuserror"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 func TestRoutes(t *testing.T) {

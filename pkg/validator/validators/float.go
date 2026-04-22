@@ -9,10 +9,11 @@ import (
 	"sync"
 
 	"github.com/go-json-experiment/json/jsontext"
+	"github.com/octohelm/x/ptr"
+
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
-	"github.com/octohelm/x/ptr"
 )
 
 func init() {

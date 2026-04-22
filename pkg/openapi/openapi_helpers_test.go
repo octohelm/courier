@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json"
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 func TestOpenAPIHelpers(t0 *testing.T) {

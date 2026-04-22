@@ -10,9 +10,10 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/pkg/courierhttp"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 type stubUpgrader struct {

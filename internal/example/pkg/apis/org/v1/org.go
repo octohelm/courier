@@ -4,10 +4,9 @@ import (
 	"regexp"
 	"time"
 
+	metav1 "github.com/octohelm/courier/internal/example/pkg/apis/meta/v1"
 	"github.com/octohelm/courier/pkg/validator"
 	"github.com/octohelm/courier/pkg/validator/validators"
-
-	metav1 "github.com/octohelm/courier/internal/example/pkg/apis/meta/v1"
 )
 
 type OrgList = metav1.List[Org]

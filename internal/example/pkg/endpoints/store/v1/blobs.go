@@ -3,9 +3,8 @@ package v1
 import (
 	"io"
 
-	"github.com/octohelm/courier/pkg/courierhttp"
-
 	storev1 "github.com/octohelm/courier/internal/example/pkg/apis/store/v1"
+	"github.com/octohelm/courier/pkg/courierhttp"
 )
 
 // UploadBlob 表示上传 blob。

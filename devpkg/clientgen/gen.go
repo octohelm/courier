@@ -15,11 +15,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
+
 	"github.com/octohelm/courier/pkg/courierhttp/client"
 	"github.com/octohelm/courier/pkg/openapi"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/gengo/pkg/gengo"
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
 )
 
 func init() {

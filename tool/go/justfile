@@ -1,0 +1,29 @@
+# 运行 Go 单测（输入：path，可选，默认 `./...`；其余参数透传给 `go test`）
+[group('test')]
+[no-cd]
+test path='./...' *args:
+    @go test -failfast --count=1 {{ args }} {{ path }}
+
+# 运行 Go vet 检查（输入：path，可选，默认 `./...`；其余参数透传给 `go vet`）
+[group('lint')]
+[no-cd]
+vet path='./...' *args:
+    @go vet {{ args }} {{ path }}
+
+# 格式化目标路径下的 Go 文件（输入：path）
+[group('fmt')]
+[no-cd]
+fmt path="./...":
+    go tool fmt {{ path }}
+
+# 整理依赖
+[group('env')]
+[no-cd]
+dep:
+    go mod tidy
+
+# 更新直接依赖（输入：path，可选，默认 `./...`）
+[group('env')]
+[no-cd]
+update path='./...':
+    go get -u {{ path }}

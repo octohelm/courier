@@ -10,12 +10,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/octohelm/courier/internal/jsonflags"
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
-	"github.com/octohelm/courier/pkg/validator"
 	contextx "github.com/octohelm/x/context"
 	reflectx "github.com/octohelm/x/reflect"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/octohelm/courier/internal/jsonflags"
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+	"github.com/octohelm/courier/pkg/validator"
 )
 
 type RuntimeDocer interface {
@@ -51,13 +52,6 @@ func (o Opt) WithEnumInDoc(enumInDoc []string) Opt {
 	return o
 }
 
-func must[T any](ret T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return ret
-}
-
 func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.Schema) {
 	sr := SchemaRegisterContext.From(ctx)
 
@@ -70,7 +64,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 						Rule: v.StructTagValidate(),
 					})
 					if err != nil {
-						panic(err)
+						panic(fmt.Errorf("为类型 %s 补充 StructTagValidate 校验失败: %w", t.String(), err))
 					}
 					s = patched
 				}
@@ -95,8 +89,12 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 		ref := sr.RefString(typeRef)
 
 		if ok := sr.Record(typeRef); ok {
+			refString, err := jsonschema.ParseURIReferenceString(ref)
+			if err != nil {
+				panic(fmt.Errorf("解析类型 %s 的 schema 引用失败: %w", t.String(), err))
+			}
 			return &jsonschema.RefType{
-				Ref: must(jsonschema.ParseURIReferenceString(ref)),
+				Ref: refString,
 			}
 		} else {
 			defer func() {
@@ -118,7 +116,11 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 				sr.RegisterSchema(ref, s)
 
 				if !opt.Decl {
-					s = &jsonschema.RefType{Ref: must(jsonschema.ParseURIReferenceString(ref))}
+					refString, err := jsonschema.ParseURIReferenceString(ref)
+					if err != nil {
+						panic(fmt.Errorf("解析类型 %s 的 schema 引用失败: %w", t.String(), err))
+					}
+					s = &jsonschema.RefType{Ref: refString}
 				}
 			}()
 		}
@@ -318,7 +320,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 			break
 		default:
 			if _, ok := keySchema.(*jsonschema.StringType); !ok {
-				panic(fmt.Errorf("only support string of map key, but got %s", keySchema))
+				panic(fmt.Errorf("类型 %s 的 map key 仅支持 string schema，当前为 %s", t.String(), keySchema))
 			}
 		}
 		return jsonschema.RecordOf(keySchema, SchemaFromType(ctx, t.Elem(), opt.WithDecl(false)))
@@ -327,7 +329,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 
 		fields, err := jsonflags.Structs.StructFields(t)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("提取类型 %s 的 schema 字段失败: %w", t.String(), err))
 		}
 
 		for f := range fields.StructField() {
@@ -384,7 +386,7 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 
 		return structSchema
 	default:
-		panic(fmt.Errorf("unsupported type %T", t))
+		panic(fmt.Errorf("类型 %s 暂不支持生成 schema", t.String()))
 	}
 
 	return nil
@@ -426,7 +428,7 @@ func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsons
 			Rule: sf.Tag.Get("validate"),
 		})
 		if err != nil {
-			panic(fmt.Errorf("invalid validate %s: %w", sf.Tag.Get("validate"), err))
+			panic(fmt.Errorf("字段 %s 的 validate 规则 %q 非法: %w", sf.FieldName, sf.Tag.Get("validate"), err))
 		}
 
 		SetTitleOrDescription(s.GetMetadata(), fieldDoc)

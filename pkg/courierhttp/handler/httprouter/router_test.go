@@ -1,12 +1,19 @@
 package httprouter_test
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
+
+	. "github.com/octohelm/x/testing/v2"
 
 	"github.com/octohelm/courier/internal/testingutil"
 	"github.com/octohelm/courier/pkg/courier"
@@ -14,7 +21,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/validator"
 	"github.com/octohelm/courier/pkg/validator/validators"
-	testingx "github.com/octohelm/x/testing"
 )
 
 type testOrgType string
@@ -98,21 +104,23 @@ func TestNew(t *testing.T) {
 	)
 
 	h, err := httprouter.New(r, "test")
-	testingx.Expect(t, err, testingx.BeNil[error]())
+	Then(t, "构建 httprouter handler 成功", Expect(err, Equal[error](nil)))
 
 	t.Run("Redirect", func(t *testing.T) {
 		type ListOrgOld struct {
 			courierhttp.MethodGet `path:"/api/example/v0/org"`
 		}
 
-		testingx.Expect(t, h, testingutil.ShouldReturnWhenRequest(&ListOrgOld{}, `
+		Then(t, "旧路由会返回重定向响应",
+			Expect(h, Be(testingutil.ShouldReturnWhenRequest(&ListOrgOld{}, `
 HTTP/0.0 302 Found
 Content-Type: text/html; charset=utf-8
 Location: /orgs
 Server: test (testRouterListOrgOld)
 
 <a href="/orgs">Found</a>.
-`))
+`))),
+		)
 	})
 
 	t.Run("Set-Cookie", func(t *testing.T) {
@@ -127,14 +135,16 @@ Server: test (testRouterListOrgOld)
 			Expires: time.Now().Add(24 * time.Hour),
 		}
 
-		testingx.Expect(t, h, testingutil.ShouldReturnWhenRequest(&Cookie{
-			Token: cookie.Value,
-		}, `
+		Then(t, "cookie 会被正确写回响应头",
+			Expect(h, Be(testingutil.ShouldReturnWhenRequest(&Cookie{
+				Token: cookie.Value,
+			}, `
 HTTP/0.0 204 No Content
 Server: test (testRouterCookie)
 Set-Cookie: `+cookie.String()+`
 
-`))
+`))),
+		)
 	})
 
 	t.Run("return ok", func(t *testing.T) {
@@ -143,38 +153,38 @@ Set-Cookie: `+cookie.String()+`
 			Name                  string `name:"orgName" in:"path"`
 		}
 
-		testingx.Expect(t, h, testingutil.ShouldReturnWhenRequest(&GetOrg{
-			Name: "hello",
-		}, `HTTP/0.0 200 OK
+		Then(t, "GET 请求会返回 JSON 响应",
+			Expect(h, Be(testingutil.ShouldReturnWhenRequest(&GetOrg{
+				Name: "hello",
+			}, `HTTP/0.0 200 OK
 Content-Type: application/json; charset=utf-8
 Server: test (testRouterGetOrg)
 
 {"name":"hello","type":"GOV"}
-`))
+`))),
+		)
 	})
 
-	t.Run("POST", func(t *testing.T) {
+	t.Run("POST routes", func(t *testing.T) {
 		type AddOrg struct {
 			courierhttp.MethodPost `path:"/api/example/v0/orgs"`
 			TestOrgInfo            `in:"body"`
 		}
 
-		t.Run("return 204", func(t *testing.T) {
-			testingx.Expect(t,
-				h,
-				testingutil.ShouldReturnWhenRequest(&AddOrg{
-					TestOrgInfo: TestOrgInfo{
-						Name: "x",
-						Type: testOrgTypeGov,
-					},
-				}, `
+		t.Run("returns 204 on valid request", func(t *testing.T) {
+			Then(t, "合法请求会返回 204", Expect(h, Be(testingutil.ShouldReturnWhenRequest(&AddOrg{
+				TestOrgInfo: TestOrgInfo{
+					Name: "x",
+					Type: testOrgTypeGov,
+				},
+			}, `
 HTTP/0.0 204 No Content
 Server: test (testRouterCreateOrg)
-`))
+`))))
 		})
 
-		t.Run("POST return failed", func(t *testing.T) {
-			testingx.Expect(t, h, testingutil.ShouldReturnWhenRequest(&AddOrg{
+		t.Run("returns validation error on invalid request", func(t *testing.T) {
+			Then(t, "非法请求会返回带 pointer 的校验错误", Expect(h, Be(testingutil.ShouldReturnWhenRequest(&AddOrg{
 				TestOrgInfo: TestOrgInfo{
 					Name: "xxxxxxx",
 				},
@@ -184,7 +194,66 @@ Content-Type: application/json; charset=utf-8
 Server: test (testRouterCreateOrg)
 
 {"code":400,"msg":"Bad Request","errors":[{"code":"INVALID_PARAMETER","message":"string value length should be less or equal than 5, but got 7","location":"body","pointer":"/name","source":"test"}]}
-`))
+`))))
 		})
 	})
+}
+
+func TestRouteSnapshot(t *testing.T) {
+	r := courierhttp.GroupRouter("/").With(
+		courier.NewRouter(&testRouterCookie{}),
+		courier.NewRouter(&testRouterCreateOrg{}),
+		courier.NewRouter(&testRouterGetOrg{}),
+		courier.NewRouter(&testRouterListOrgOld{}),
+	)
+
+	Then(t, "路由快照会包含关键 method、path 和 operator 链", ExpectMust(func() error {
+		snapshot, err := httprouter.RouteSnapshot(r, "test")
+		if err != nil {
+			return err
+		}
+		for _, fragment := range []string{
+			"GET   /api/example/v0/org",
+			"GET   /api/example/v0/orgs/{orgName}",
+			"POST  /api/example/v0/orgs",
+			"{{ httprouter_test.testRouterGetOrg }}",
+			"{{ httprouter.OpenAPI }}",
+		} {
+			if !strings.Contains(snapshot, fragment) {
+				return fmt.Errorf("snapshot missing fragment: %s", fragment)
+			}
+		}
+		return nil
+	}))
+}
+
+func TestRouteSnapshotMatchesStartupOutput(t *testing.T) {
+	r := courierhttp.GroupRouter("/").With(
+		courier.NewRouter(&testRouterCookie{}),
+		courier.NewRouter(&testRouterCreateOrg{}),
+		courier.NewRouter(&testRouterGetOrg{}),
+		courier.NewRouter(&testRouterListOrgOld{}),
+	)
+
+	snapshot, err := httprouter.RouteSnapshot(r, "test")
+	Then(t, "路由快照构建成功", Expect(err, Equal[error](nil)))
+
+	originStdout := os.Stdout
+	reader, writer, err := os.Pipe()
+	Then(t, "可以捕获启动时标准输出", Expect(err, Equal[error](nil)))
+	os.Stdout = writer
+	defer func() {
+		os.Stdout = originStdout
+	}()
+
+	_, err = httprouter.New(r, "test")
+	Then(t, "构建 handler 时会打印启动快照", Expect(err, Equal[error](nil)))
+
+	_ = writer.Close()
+
+	data, err := io.ReadAll(reader)
+	Then(t, "可以读取捕获到的输出", Expect(err, Equal[error](nil)))
+
+	startupOutput := strings.TrimSpace(bytes.NewBuffer(data).String())
+	Then(t, "启动输出与 RouteSnapshot 结果一致", Expect(startupOutput, Equal(snapshot)))
 }

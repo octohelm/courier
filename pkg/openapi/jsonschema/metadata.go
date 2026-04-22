@@ -1,6 +1,8 @@
 package jsonschema
 
-import "maps"
+import (
+	"maps"
+)
 
 const (
 	XEnumLabels    = `x-enum-labels`
