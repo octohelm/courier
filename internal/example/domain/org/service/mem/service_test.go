@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	metav1 "github.com/octohelm/courier/internal/example/pkg/apis/meta/v1"
 	orgv1 "github.com/octohelm/courier/internal/example/pkg/apis/org/v1"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 func TestService(t *testing.T) {
@@ -20,7 +21,8 @@ func TestService(t *testing.T) {
 				Type: orgv1.ORG_TYPE__GOV,
 			},
 		})
-		Then(t, "创建组织后可命中名称过滤",
+		Then(
+			t, "创建组织后可命中名称过滤",
 			Expect(err, Equal[error](nil)),
 			Expect(org.ID > 0, Equal(true)),
 		)
@@ -28,7 +30,8 @@ func TestService(t *testing.T) {
 		list, err := svc.List(ctx, &orgv1.OrgForListRequest{
 			OrgName: ptr(orgv1.OrgName("alpha")),
 		}, &metav1.Pager{})
-		Then(t, "列表查询结果符合预期",
+		Then(
+			t, "列表查询结果符合预期",
 			Expect(err, Equal[error](nil)),
 			Expect(list.Total, Equal(int64(1))),
 			Expect(len(list.Items), Equal(1)),
@@ -42,7 +45,8 @@ func TestService(t *testing.T) {
 				Type: orgv1.ORG_TYPE__COMPANY,
 			},
 		})
-		Then(t, "重复创建同名组织会返回冲突错误",
+		Then(
+			t, "重复创建同名组织会返回冲突错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*orgv1.ErrOrgNameConflict]()),
 		)
 	})
@@ -54,7 +58,8 @@ func TestService(t *testing.T) {
 				Type: orgv1.ORG_TYPE__COMPANY,
 			},
 		})
-		Then(t, "准备更新数据成功",
+		Then(
+			t, "准备更新数据成功",
 			Expect(err, Equal[error](nil)),
 		)
 
@@ -64,18 +69,21 @@ func TestService(t *testing.T) {
 				Type: orgv1.ORG_TYPE__GOV,
 			},
 		})
-		Then(t, "更新组织后名称发生变化",
+		Then(
+			t, "更新组织后名称发生变化",
 			Expect(err, Equal[error](nil)),
 			Expect(updated.Spec.Name, Equal(orgv1.OrgName("beta2"))),
 		)
 
 		err = svc.Delete(ctx, org.ID)
-		Then(t, "删除组织成功",
+		Then(
+			t, "删除组织成功",
 			Expect(err, Equal[error](nil)),
 		)
 
 		_, err = svc.Get(ctx, org.ID)
-		Then(t, "删除后再次查询会返回不存在错误",
+		Then(
+			t, "删除后再次查询会返回不存在错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*orgv1.ErrOrgNotFound]()),
 		)
 	})

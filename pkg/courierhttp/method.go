@@ -1,6 +1,8 @@
 package courierhttp
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // Method HTTP方法类型标记。
 type Method struct{}

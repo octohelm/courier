@@ -12,16 +12,16 @@ func All(err error) iter.Seq[error] {
 
 		switch x := err.(type) {
 		case WithJSONPointer:
-			if !(yield(err)) {
+			if !yield(err) {
 				return
 			}
 		case WithStatusCode:
-			if !(yield(err)) {
+			if !yield(err) {
 				return
 			}
 		case interface{ Unwrap() error }:
 			if _, ok := err.(WithLocation); ok {
-				if !(yield(err)) {
+				if !yield(err) {
 					return
 				}
 			}
@@ -32,7 +32,7 @@ func All(err error) iter.Seq[error] {
 			}
 
 			for e := range All(err) {
-				if !(yield(e)) {
+				if !yield(e) {
 					return
 				}
 			}
@@ -42,13 +42,13 @@ func All(err error) iter.Seq[error] {
 					continue
 				}
 				for e := range All(ee) {
-					if !(yield(e)) {
+					if !yield(e) {
 						return
 					}
 				}
 			}
 		default:
-			if !(yield(err)) {
+			if !yield(err) {
 				return
 			}
 		}

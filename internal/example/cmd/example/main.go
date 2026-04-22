@@ -4,16 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	orgmem "github.com/octohelm/courier/internal/example/domain/org/service/mem"
-	orgservice "github.com/octohelm/courier/internal/example/domain/org/service"
-	storemem "github.com/octohelm/courier/internal/example/domain/store/service/mem"
-	storeservice "github.com/octohelm/courier/internal/example/domain/store/service"
+	"github.com/octohelm/x/logr"
+	"github.com/octohelm/x/logr/slog"
+
 	exampleroutes "github.com/octohelm/courier/internal/example/cmd/example/routes"
+	orgservice "github.com/octohelm/courier/internal/example/domain/org/service"
+	orgmem "github.com/octohelm/courier/internal/example/domain/org/service/mem"
+	storeservice "github.com/octohelm/courier/internal/example/domain/store/service"
+	storemem "github.com/octohelm/courier/internal/example/domain/store/service/mem"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/httputil"
-	"github.com/octohelm/x/logr"
-	"github.com/octohelm/x/logr/slog"
 )
 
 func main() {

@@ -1,6 +1,8 @@
 package openapi
 
-import "github.com/octohelm/courier/pkg/openapi/jsonschema"
+import (
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
+)
 
 type ContentObject struct {
 	Content map[string]*MediaTypeObject `json:"content,omitzero"`

@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/octohelm/courier/pkg/validator/internal/rules"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
 
 type formatValidator struct{}
@@ -22,7 +23,8 @@ func TestMarshalAndUnmarshalHelpers(t0 *testing.T) {
 		Empty string `json:"empty,omitempty"`
 	}
 
-	Then(t0, "公开 marshal 与 unmarshal 入口可正常工作",
+	Then(
+		t0, "公开 marshal 与 unmarshal 入口可正常工作",
 		ExpectMust(func() error {
 			value := &payload{}
 			if err := UnmarshalRead(bytes.NewBufferString(`{"name":"demo"}`), value); err != nil {
@@ -82,7 +84,8 @@ func TestValidatorProviderHelpers(t0 *testing.T) {
 	})
 	Register(provider)
 
-	Then(t0, "validator provider 包装器可正确注册并创建校验器",
+	Then(
+		t0, "validator provider 包装器可正确注册并创建校验器",
 		ExpectMust(func() error {
 			if !reflect.DeepEqual(provider.Names(), []string{"custom-format"}) {
 				return errf("unexpected names %v", provider.Names())

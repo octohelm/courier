@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/go-json-experiment/json/jsontext"
+
 	"github.com/octohelm/courier/internal/jsonflags"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"

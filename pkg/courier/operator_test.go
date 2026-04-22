@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	testingx "github.com/octohelm/x/testing"
+	. "github.com/octohelm/x/testing/v2"
 )
 
 type DoSomeThing struct {
@@ -29,7 +29,7 @@ func TestNewOperatorFactory(t *testing.T) {
 
 	op := opInfo.New()
 
-	testingx.Expect(t, op.(*DoSomeThing).Param, testingx.Equal(1))
+	Then(t, "新建 operator 时会应用默认值", Expect(op.(*DoSomeThing).Param, Equal(1)))
 }
 
 func Try(f func()) (err error) {

@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	orgservice "github.com/octohelm/courier/internal/example/domain/org/service"
 	orgmem "github.com/octohelm/courier/internal/example/domain/org/service/mem"
 	storeservice "github.com/octohelm/courier/internal/example/domain/store/service"
@@ -23,7 +25,6 @@ import (
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/handler/httprouter"
 	"github.com/octohelm/courier/pkg/statuserror"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 func TestRoutes(t *testing.T) {
@@ -44,7 +45,8 @@ func TestRoutes(t *testing.T) {
 				},
 			},
 		})
-		Then(t, "创建组织接口可返回新建对象",
+		Then(
+			t, "创建组织接口可返回新建对象",
 			Expect(err, Equal[error](nil)),
 			Expect(created.ID > 0, Equal(true)),
 			Expect(created.Spec.Name, Equal(orgv1.OrgName("alpha"))),
@@ -53,7 +55,8 @@ func TestRoutes(t *testing.T) {
 		listed, err := courier.DoWith(ctx, orgClient, &endpointorgv1.ListOrg{
 			OrgType: ptr(orgv1.ORG_TYPE__GOV),
 		})
-		Then(t, "列表接口可命中过滤条件",
+		Then(
+			t, "列表接口可命中过滤条件",
 			Expect(err, Equal[error](nil)),
 			Expect(listed.Total, Equal(int64(1))),
 			Expect(len(listed.Items), Equal(1)),
@@ -64,7 +67,8 @@ func TestRoutes(t *testing.T) {
 			OrgID: created.ID,
 		})
 
-		Then(t, "详情接口可读取已创建组织",
+		Then(
+			t, "详情接口可读取已创建组织",
 			Expect(err, Equal[error](nil)),
 			Expect(got.Spec.Name, Equal(orgv1.OrgName("alpha"))),
 		)
@@ -78,7 +82,8 @@ func TestRoutes(t *testing.T) {
 				},
 			},
 		})
-		Then(t, "更新接口可返回最新组织内容",
+		Then(
+			t, "更新接口可返回最新组织内容",
 			Expect(err, Equal[error](nil)),
 			Expect(updated.Spec.Name, Equal(orgv1.OrgName("beta2"))),
 			Expect(updated.Spec.Type, Equal(orgv1.ORG_TYPE__COMPANY)),
@@ -92,7 +97,8 @@ func TestRoutes(t *testing.T) {
 				},
 			},
 		})
-		Then(t, "重复组织名会返回冲突错误",
+		Then(
+			t, "重复组织名会返回冲突错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*statuserror.Descriptor]()),
 			ExpectMust(func() error { return expectStatusCode(err, http.StatusConflict) }),
 		)
@@ -100,14 +106,16 @@ func TestRoutes(t *testing.T) {
 		_, err = courier.DoWith(ctx, orgClient, &endpointorgv1.DeleteOrg{
 			OrgID: created.ID,
 		})
-		Then(t, "删除接口可成功执行",
+		Then(
+			t, "删除接口可成功执行",
 			Expect(err, Equal[error](nil)),
 		)
 
 		_, err = courier.DoWith(ctx, orgClient, &endpointorgv1.GetOrg{
 			OrgID: created.ID,
 		})
-		Then(t, "删除后再次读取会返回不存在错误",
+		Then(
+			t, "删除后再次读取会返回不存在错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*statuserror.Descriptor]()),
 			ExpectMust(func() error { return expectStatusCode(err, http.StatusNotFound) }),
 		)
@@ -120,7 +128,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Body:      ioReadCloser("config"),
 		})
-		Then(t, "上传 config blob 成功",
+		Then(
+			t, "上传 config blob 成功",
 			Expect(err, Equal[error](nil)),
 			Expect(config.Size, Equal(int64(6))),
 		)
@@ -129,7 +138,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Body:      ioReadCloser("asset"),
 		})
-		Then(t, "上传 asset blob 成功",
+		Then(
+			t, "上传 asset blob 成功",
 			Expect(err, Equal[error](nil)),
 			Expect(asset.Size, Equal(int64(5))),
 		)
@@ -142,7 +152,8 @@ func TestRoutes(t *testing.T) {
 			defer r.Close()
 			return io.ReadAll(r)
 		})
-		Then(t, "读取 blob 接口可返回原始内容",
+		Then(
+			t, "读取 blob 接口可返回原始内容",
 			Expect(err, Equal[error](nil)),
 			Expect(string(raw), Equal("config")),
 		)
@@ -155,7 +166,8 @@ func TestRoutes(t *testing.T) {
 				Assets: []storev1.Descriptor{*asset},
 			},
 		})
-		Then(t, "写入 manifest 接口可返回描述对象",
+		Then(
+			t, "写入 manifest 接口可返回描述对象",
 			Expect(err, Equal[error](nil)),
 			Expect(manifestDesc.Digest, Equal(storev1.Digest("sha256:manifest"))),
 		)
@@ -164,7 +176,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Digest:    "sha256:manifest",
 		})
-		Then(t, "读取 manifest 接口可返回完整清单",
+		Then(
+			t, "读取 manifest 接口可返回完整清单",
 			Expect(err, Equal[error](nil)),
 			Expect(manifest.Config.Digest, Equal(config.Digest)),
 			Expect(len(manifest.Assets), Equal(1)),
@@ -175,7 +188,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Digest:    "sha256:manifest",
 		})
-		Then(t, "删除 manifest 接口可成功执行",
+		Then(
+			t, "删除 manifest 接口可成功执行",
 			Expect(err, Equal[error](nil)),
 		)
 
@@ -183,7 +197,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Digest:    "sha256:manifest",
 		})
-		Then(t, "删除后再次读取 manifest 会返回不存在错误",
+		Then(
+			t, "删除后再次读取 manifest 会返回不存在错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*statuserror.Descriptor]()),
 			ExpectMust(func() error { return expectStatusCode(err, http.StatusNotFound) }),
 		)
@@ -192,7 +207,8 @@ func TestRoutes(t *testing.T) {
 			Namespace: ns,
 			Digest:    asset.Digest,
 		})
-		Then(t, "删除 blob 接口可返回被删对象描述",
+		Then(
+			t, "删除 blob 接口可返回被删对象描述",
 			Expect(err, Equal[error](nil)),
 			Expect(deleted.Digest, Equal(asset.Digest)),
 		)
@@ -201,7 +217,8 @@ func TestRoutes(t *testing.T) {
 			Digest:    asset.Digest,
 		})
 
-		Then(t, "删除后再次读取 blob 会返回不存在错误",
+		Then(
+			t, "删除后再次读取 blob 会返回不存在错误",
 			ExpectDo(func() error { return err }, ErrorAsType[*statuserror.Descriptor]()),
 			ExpectMust(func() error { return expectStatusCode(err, http.StatusNotFound) }),
 		)

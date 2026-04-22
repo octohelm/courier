@@ -12,9 +12,10 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/octohelm/x/testing/v2"
+
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/pkg/courier"
-	. "github.com/octohelm/x/testing/v2"
 )
 
 type routeStub struct{}
@@ -71,7 +72,8 @@ func TestContextAndRouteHelpers(t0 *testing.T) {
 	}
 	req, _ := http.NewRequest(http.MethodGet, "http://example.com/users", nil)
 
-	Then(t0, "上下文与路由辅助行为符合预期",
+	Then(
+		t0, "上下文与路由辅助行为符合预期",
 		Expect(op.UserAgent(), Equal("courier/1.0.0 (ListUsers)")),
 		Expect(Server{Name: "courier"}.UserAgent(), Equal("courier")),
 		ExpectMust(func() error {
@@ -142,10 +144,12 @@ func TestWrapAndWriteResponse(t0 *testing.T) {
 	req, _ := http.NewRequest(http.MethodGet, "http://example.com/users", nil)
 	reqInfo := httprequest.From(req)
 
-	Then(t0, "普通响应会写出状态码、头和正文",
+	Then(
+		t0, "普通响应会写出状态码、头和正文",
 		ExpectMust(func() error {
 			rec := httptest.NewRecorder()
-			resp := Wrap(map[string]string{"name": "demo"},
+			resp := Wrap(
+				map[string]string{"name": "demo"},
 				WithStatusCode(http.StatusAccepted),
 				WithContentType("application/custom+json"),
 				WithMetadata("X-Trace", "trace-1"),
@@ -197,7 +201,8 @@ func TestWrapAndWriteResponse(t0 *testing.T) {
 }
 
 func TestResponseSpecialCases(t0 *testing.T) {
-	Then(t0, "特殊响应分支可正确处理",
+	Then(
+		t0, "特殊响应分支可正确处理",
 		ExpectMust(func() error {
 			req, _ := http.NewRequest(http.MethodGet, "http://example.com/users", nil)
 			rec := httptest.NewRecorder()
@@ -244,7 +249,8 @@ func TestResponseSpecialCases(t0 *testing.T) {
 }
 
 func TestWrapErrorAndErrorType(t0 *testing.T) {
-	Then(t0, "错误响应包装与错误类型行为符合预期",
+	Then(
+		t0, "错误响应包装与错误类型行为符合预期",
 		Expect((&ErrContextCanceled{Reason: "client gone"}).StatusCode(), Equal(499)),
 		Expect((&ErrContextCanceled{Reason: "client gone"}).Error(), Equal("context canceled: client gone")),
 		ExpectMust(func() error {

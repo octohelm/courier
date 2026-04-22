@@ -1,14 +1,17 @@
 package httprouter
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/juju/ansiterm"
+
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/courierhttp"
@@ -29,24 +32,48 @@ func (m *mux) register(h request.RouteHandler) {
 	m.tree.Add(h)
 }
 
-func (m *mux) Handler() (http.Handler, error) {
-	w := ansiterm.NewTabWriter(os.Stdout, 0, 4, 2, ' ', 0)
-	defer func() {
-		_ = w.Flush()
-	}()
-	_, _ = fmt.Fprintln(w)
-	defer func() {
-		_, _ = fmt.Fprintln(w)
-	}()
-	m.w = w
-
+func (m *mux) routeGroup() *group {
 	g := &group{}
+
+	if m.tree == nil {
+		return g
+	}
 
 	for h := range m.tree.Route() {
 		g.add(h, slices.Collect(h.PathSegments().Chunk())...)
 	}
 
-	return g.handler(m), nil
+	return g
+}
+
+func (m *mux) buildHandler(w io.Writer) (http.Handler, error) {
+	tw := ansiterm.NewTabWriter(w, 0, 4, 2, ' ', 0)
+	defer func() {
+		_ = tw.Flush()
+	}()
+
+	_, _ = fmt.Fprintln(tw)
+	defer func() {
+		_, _ = fmt.Fprintln(tw)
+	}()
+
+	m.w = tw
+
+	return m.routeGroup().handler(m), nil
+}
+
+func (m *mux) Handler() (http.Handler, error) {
+	return m.buildHandler(os.Stdout)
+}
+
+func (m *mux) RoutesText() (string, error) {
+	buf := bytes.NewBuffer(nil)
+
+	if _, err := m.buildHandler(buf); err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(buf.String()), nil
 }
 
 type contextInject = func(ctx context.Context) context.Context

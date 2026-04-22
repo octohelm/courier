@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"unicode/utf8"
 
-	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
-
 	"github.com/go-json-experiment/json/jsontext"
+
+	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )

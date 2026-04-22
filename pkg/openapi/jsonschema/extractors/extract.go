@@ -43,11 +43,11 @@ func FieldShouldPick(t reflect.Type, fieldName string) bool {
 	if filter, ok := fieldFilters.Load(t); ok {
 		ff := filter.(FieldFilter)
 
-		if (len(ff.Include)) > 0 {
+		if len(ff.Include) > 0 {
 			return slices.Contains(ff.Include, fieldName)
 		}
 
-		if (len(ff.Exclude)) > 0 {
+		if len(ff.Exclude) > 0 {
 			return !slices.Contains(ff.Exclude, fieldName)
 		}
 

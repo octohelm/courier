@@ -1,6 +1,8 @@
 package statuserror
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type ClientClosedRequest struct{}
 

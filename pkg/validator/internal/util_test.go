@@ -21,3 +21,17 @@ func TestMaxIntAndMinInt(t *testing.T) {
 		}
 	}
 }
+
+func TestMaxUint(t *testing.T) {
+	cases := [][]uint64{
+		{MaxUint(8), 255},
+		{MaxUint(16), 65535},
+		{MaxUint(32), 4294967295},
+	}
+
+	for _, values := range cases {
+		if values[0] != values[1] {
+			t.Errorf("got %d, want %d", values[0], values[1])
+		}
+	}
+}

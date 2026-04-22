@@ -1,6 +1,8 @@
 package openapi
 
-import "github.com/octohelm/courier/pkg/openapi/internal"
+import (
+	"github.com/octohelm/courier/pkg/openapi/internal"
+)
 
 // PathItemObject
 // https://spec.openapis.org/oas/latest.html#pathItemObject

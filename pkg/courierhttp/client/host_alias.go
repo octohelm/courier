@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"iter"
 	"maps"
+	randv2 "math/rand/v2"
 	"net"
 	"strings"
-
-	randv2 "math/rand/v2"
 )
 
 var ErrInvalidHostAlias = errors.New("invalid host alias")

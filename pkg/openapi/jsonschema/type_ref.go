@@ -1,6 +1,8 @@
 package jsonschema
 
-import "io"
+import (
+	"io"
+)
 
 type RefType struct {
 	Ref        *URIReferenceString `json:"$ref,omitzero"`

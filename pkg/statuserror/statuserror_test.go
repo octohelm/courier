@@ -26,7 +26,8 @@ type exportedError struct{}
 func (exportedError) Error() string { return "exported" }
 
 func TestWrapAndErrCode(t0 *testing.T) {
-	Then(t0, "包装错误与错误码推导符合预期",
+	Then(
+		t0, "包装错误与错误码推导符合预期",
 		Expect(Wrap(nil, http.StatusBadRequest, "BAD"), Equal[error](nil)),
 		ExpectMust(func() error {
 			err := Wrap(errors.New("boom"), http.StatusConflict, "CONFLICT")
@@ -57,7 +58,8 @@ func TestAllAndAsErrorResponse(t0 *testing.T) {
 		Wrap(errors.New("failed"), http.StatusConflict, "CONFLICT"),
 	)
 
-	Then(t0, "错误链遍历与错误响应转换符合预期",
+	Then(
+		t0, "错误链遍历与错误响应转换符合预期",
 		ExpectMust(func() error {
 			all := make([]error, 0)
 			for err := range All(joined) {
@@ -106,7 +108,8 @@ func TestAllAndAsErrorResponse(t0 *testing.T) {
 func TestDescriptorAndErrorResponseHelpers(t0 *testing.T) {
 	raw := []byte(`{"code":400001,"msg":"bad request","errors":[{"code":"INVALID_PARAMETER","message":"missing","location":"query"}],"title":"ignored","detail":"also ignored"}`)
 
-	Then(t0, "描述对象与错误响应辅助方法符合预期",
+	Then(
+		t0, "描述对象与错误响应辅助方法符合预期",
 		ExpectMust(func() error {
 			var d Descriptor
 			if err := d.UnmarshalErrorResponse(http.StatusBadRequest, raw); err != nil {
@@ -205,7 +208,8 @@ func TestHTTPStatusErrors(t0 *testing.T) {
 }
 
 func TestRuntimeDocAndSequenceBranches(t0 *testing.T) {
-	Then(t0, "运行时文档与错误链其他分支可覆盖",
+	Then(
+		t0, "运行时文档与错误链其他分支可覆盖",
 		ExpectMust(func() error {
 			if doc, ok := (&Descriptor{}).RuntimeDoc("Code"); !ok || len(doc) == 0 {
 				return fmt.Errorf("missing descriptor doc")

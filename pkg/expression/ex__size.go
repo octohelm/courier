@@ -42,7 +42,7 @@ type charCount struct {
 }
 
 func (e *charCount) Exec(ctx context.Context, in any) (any, error) {
-	if s, ok := (raw.ValueOf(in)).(raw.StringValue); ok {
+	if s, ok := raw.ValueOf(in).(raw.StringValue); ok {
 		return utf8.RuneCount([]byte(s)), nil
 	}
 	return 0, nil

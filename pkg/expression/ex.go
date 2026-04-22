@@ -189,7 +189,7 @@ func newEx(expr Expr) *exprCreator {
 				}
 			}
 
-			if (f.Type).Implements(tpeRawValue) {
+			if f.Type.Implements(tpeRawValue) {
 				return func(rv reflect.Value, args []any) error {
 					if argIndex > len(args) {
 						return fmt.Errorf("missing arg %d", argIndex)

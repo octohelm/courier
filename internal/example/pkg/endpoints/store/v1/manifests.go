@@ -1,10 +1,9 @@
 package v1
 
 import (
+	storev1 "github.com/octohelm/courier/internal/example/pkg/apis/store/v1"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
-
-	storev1 "github.com/octohelm/courier/internal/example/pkg/apis/store/v1"
 )
 
 // PutManifest 表示写入 manifest。

@@ -1,6 +1,8 @@
 package pathpattern
 
-import "iter"
+import (
+	"iter"
+)
 
 type orderedMap[K comparable, V any] struct {
 	m    map[K]V

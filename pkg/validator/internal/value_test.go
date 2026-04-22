@@ -4,8 +4,11 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/octohelm/courier/pkg/validator/testutil"
 
+	"github.com/octohelm/courier/pkg/validator/testutil"
+)
+
+import (
 	_ "github.com/octohelm/courier/pkg/validator/validators"
 )
 

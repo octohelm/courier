@@ -7,13 +7,14 @@ import (
 	"strings"
 	"sync"
 
+	contextx "github.com/octohelm/x/context"
+
 	"github.com/octohelm/courier/internal/httprequest"
 	"github.com/octohelm/courier/internal/pathpattern"
 	"github.com/octohelm/courier/pkg/courier"
 	"github.com/octohelm/courier/pkg/courierhttp"
 	"github.com/octohelm/courier/pkg/courierhttp/handler"
 	"github.com/octohelm/courier/pkg/courierhttp/transport"
-	contextx "github.com/octohelm/x/context"
 )
 
 type Segments = pathpattern.Segments

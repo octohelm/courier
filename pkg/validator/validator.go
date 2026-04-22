@@ -3,7 +3,9 @@ package validator
 import (
 	"github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
+)
 
+import (
 	_ "github.com/octohelm/courier/pkg/validator/strfmt"
 	_ "github.com/octohelm/courier/pkg/validator/validators"
 )

@@ -6,12 +6,14 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json"
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 func TestOpenAPIHelpers(t0 *testing.T) {
-	Then(t0, "OpenAPI 辅助对象可正确构建",
+	Then(
+		t0, "OpenAPI 辅助对象可正确构建",
 		ExpectMust(func() error {
 			doc := NewOpenAPI()
 			if doc.OpenAPI != "3.1.0" {
@@ -103,7 +105,8 @@ func TestOpenAPIHelpers(t0 *testing.T) {
 }
 
 func TestPayloadJSON(t0 *testing.T) {
-	Then(t0, "Payload 可进行 JSON 编解码",
+	Then(
+		t0, "Payload 可进行 JSON 编解码",
 		ExpectMust(func() error {
 			doc := NewOpenAPI()
 			doc.Title = "Demo"

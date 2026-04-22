@@ -22,7 +22,8 @@ func ExampleMetadata() {
 
 	metaAll.Del("B")
 
-	results = append(results,
+	results = append(
+		results,
 		metaAll.Get("B"),
 		metaAll.String(),
 	)

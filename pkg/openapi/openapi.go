@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/go-json-experiment/json"
+
 	"github.com/octohelm/courier/pkg/openapi/internal"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )

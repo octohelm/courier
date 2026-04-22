@@ -1,8 +1,9 @@
 package openapi
 
 import (
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/x/ptr"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 func NewParameter(name string, in ParameterIn) *ParameterObject {

@@ -12,7 +12,8 @@ import (
 )
 
 func TestListenAndServe(t0 *testing.T) {
-	Then(t0, "服务可启动并在收到终止信号后优雅退出",
+	Then(
+		t0, "服务可启动并在收到终止信号后优雅退出",
 		ExpectMust(func() error {
 			done := make(chan error, 1)
 

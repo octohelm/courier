@@ -1,2 +1,4 @@
+# 启动示例服务
+[group('dev')]
 serve:
     go run .

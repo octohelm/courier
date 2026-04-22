@@ -2,46 +2,25 @@ package testingutil
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"regexp"
-
-	testingx "github.com/octohelm/x/testing"
 )
 
-func BeRequest(expect string) testingx.Matcher[*http.Request] {
-	return &requestMatcher{
-		expect: unifyRequestData([]byte(expect)),
+func BeRequest(expect string) func(req *http.Request) error {
+	expectData := unifyRequestData([]byte(expect))
+
+	return func(req *http.Request) error {
+		raw, _ := httputil.DumpRequest(req, true)
+		actual := unifyRequestData(raw)
+
+		if bytes.Equal(actual, expectData) {
+			return nil
+		}
+
+		return fmt.Errorf("request mismatch\nexpect:\n%s\nactual:\n%s", expectData, actual)
 	}
-}
-
-type requestMatcher struct {
-	expect []byte
-	actual []byte
-}
-
-func (m *requestMatcher) Match(req *http.Request) bool {
-	raw, _ := httputil.DumpRequest(req, true)
-	m.actual = unifyRequestData(raw)
-	return bytes.Equal(m.actual, m.expect)
-}
-
-func (m *requestMatcher) Action() string {
-	return "Be Request"
-}
-
-func (m *requestMatcher) Negative() bool {
-	return false
-}
-
-func (m *requestMatcher) NormalizeActual(req *http.Request) any {
-	return string(m.actual)
-}
-
-var _ testingx.MatcherWithNormalizedExpected = &requestMatcher{}
-
-func (m *requestMatcher) NormalizedExpected() any {
-	return string(m.expect)
 }
 
 var reContentTypeWithBoundary = regexp.MustCompile(`Content-Type: multipart/form-data; boundary=([A-Za-z0-9]+)`)

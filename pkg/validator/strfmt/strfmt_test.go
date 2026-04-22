@@ -4,12 +4,14 @@ import (
 	"testing"
 
 	"github.com/go-json-experiment/json/jsontext"
-	"github.com/octohelm/courier/pkg/validator/internal/rules"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )
 
 func TestBuiltinStrfmtProviders(t0 *testing.T) {
-	Then(t0, "内置字符串格式校验 provider 可工作",
+	Then(
+		t0, "内置字符串格式校验 provider 可工作",
 		ExpectMust(func() error {
 			if len(ASCIIValidatorProvider.Names()) == 0 || ASCIIValidatorProvider.Names()[0] != "ascii" {
 				return errStrfmt("unexpected ascii provider names")

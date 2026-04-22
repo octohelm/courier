@@ -1,4 +1,4 @@
-package defaultergen
+package uintstrgen
 
 import (
 	"go/types"

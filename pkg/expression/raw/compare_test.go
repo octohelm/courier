@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/octohelm/x/testing/bdd"
+	. "github.com/octohelm/x/testing/v2"
 )
 
 var compareCases = map[int][][]any{
@@ -34,38 +34,20 @@ var compareCases = map[int][][]any{
 }
 
 func TestCompare(t *testing.T) {
-	for i, cs := range compareCases {
-		switch i {
-		case -1:
-			for _, c := range cs {
-				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should less than %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
+	for expected, cs := range compareCases {
+		for _, c := range cs {
+			t.Run(fmt.Sprintf("%T(%v) compare %T(%v)", c[0], c[0], c[1], c[1]), func(t *testing.T) {
+				Then(t, "比较会返回预期顺序", ExpectMust(func() error {
 					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					b.Then("success",
-						bdd.NoError(err),
-						bdd.Equal[any](i, v),
-					)
-				})
-			}
-		case 1:
-			for _, c := range cs {
-				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should great than %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
-					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					b.Then("success",
-						bdd.NoError(err),
-						bdd.Equal[any](i, v),
-					)
-				})
-			}
-		case 0:
-			for _, c := range cs {
-				bdd.FromT(t).When(fmt.Sprintf("%T(%v) should equal %T(%v)", c[0], c[0], c[1], c[1]), func(b bdd.T) {
-					v, err := Compare(ValueOf(c[0]), ValueOf(c[1]))
-					b.Then("success",
-						bdd.NoError(err),
-						bdd.Equal[any](i, v),
-					)
-				})
-			}
+					if err != nil {
+						return err
+					}
+					if v != expected {
+						return errRaw("unexpected compare result")
+					}
+					return nil
+				}))
+			})
 		}
 	}
 }

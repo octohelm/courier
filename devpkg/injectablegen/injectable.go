@@ -6,9 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/octohelm/gengo/pkg/gengo/snippet"
-
 	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/gengo/pkg/gengo/snippet"
 )
 
 func init() {
@@ -30,8 +29,10 @@ func (g *injectableGen) init(c gengo.Context) {
 		sig := c.Package("context").Function("Cause").Signature()
 
 		g.publicInjectContextInterface = types.NewInterfaceType([]*types.Func{
-			types.NewFunc(0, c.Package("context").Pkg(), "InjectContext",
-				types.NewSignatureType(nil, nil, nil,
+			types.NewFunc(
+				0, c.Package("context").Pkg(), "InjectContext",
+				types.NewSignatureType(
+					nil, nil, nil,
 					types.NewTuple(sig.Params().At(0)),
 					types.NewTuple(sig.Params().At(0)),
 					false,

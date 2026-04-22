@@ -1,6 +1,8 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func ApplyMiddlewares(mw ...Middleware) Middleware {
 	return func(final http.Handler) http.Handler {

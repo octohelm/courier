@@ -11,10 +11,11 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
 	typex "github.com/octohelm/x/types"
+
+	"github.com/octohelm/courier/pkg/statuserror"
 )
 
 func newStatusErrScanner() *statusErrScanner {

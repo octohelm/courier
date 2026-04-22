@@ -11,6 +11,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/octohelm/gengo/pkg/gengo"
+	"github.com/octohelm/x/ptr"
+
 	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/internal/request"
 	"github.com/octohelm/courier/pkg/content"
@@ -22,8 +25,6 @@ import (
 	"github.com/octohelm/courier/pkg/openapi/jsonschema/extractors"
 	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/courier/pkg/validator"
-	"github.com/octohelm/gengo/pkg/gengo"
-	"github.com/octohelm/x/ptr"
 )
 
 type BuildFunc func(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI
@@ -170,8 +171,8 @@ func FromRouter(r courier.Router, fns ...BuildOptionFunc) *openapi.OpenAPI {
 	routes := r.Routes()
 
 	for i := range routes {
-		if err := b.scan(routes[i]); err != nil {
-			panic(err)
+		if err := b.scanWithRecover(routes[i]); err != nil {
+			panic(fmt.Errorf("扫描 OpenAPI 路由失败: %w", err))
 		}
 	}
 
@@ -234,6 +235,21 @@ func (b *scanner) scan(r courier.Route) error {
 	}
 
 	return nil
+}
+
+func (b *scanner) scanWithRecover(r courier.Route) (err error) {
+	defer func() {
+		if x := recover(); x != nil {
+			switch e := x.(type) {
+			case error:
+				err = e
+			default:
+				err = fmt.Errorf("发生未知错误: %v", x)
+			}
+		}
+	}()
+
+	return b.scan(r)
 }
 
 var reHttpRouterPath = regexp.MustCompile("/{([^/]+)(...)?}")
@@ -399,20 +415,20 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 
 	fields, err := jsonflags.Structs.StructFields(t)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("提取类型 %s 的字段失败: %w", t.String(), err))
 	}
 
 	for field := range fields.StructField() {
 		location := field.Tag.Get("in")
 
 		if location == "" {
-			panic(fmt.Errorf("missing tag `in` for %s of %s", field.FieldName, op.OperationId))
+			panic(fmt.Errorf("操作 %s 的字段 %s 缺少 in 标记", op.OperationId, field.FieldName))
 		}
 		optional := field.Omitzero || field.Omitempty
 
 		tf, err := content.New(field.Type, field.Tag.Get("mime"), "unmarshal")
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("为操作 %s 的字段 %s 创建内容转换器失败: %w", op.OperationId, field.FieldName, err))
 		}
 
 		schema := b.SchemaFromType(ctx, reflect.New(field.Type).Interface(), false)
@@ -422,7 +438,7 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 				Rule: field.Tag.Get("validate"),
 			})
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("为操作 %s 的字段 %s 补充校验规则失败: %w", op.OperationId, field.FieldName, err))
 			}
 			schema = patched
 		}

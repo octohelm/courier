@@ -1,6 +1,8 @@
 package internal
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type HeaderGetter interface {
 	Header() http.Header

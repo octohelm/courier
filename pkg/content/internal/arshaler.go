@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"github.com/octohelm/courier/internal/httprequest"
-
 	"github.com/octohelm/courier/internal/pathpattern"
 )
 

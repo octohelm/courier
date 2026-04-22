@@ -3,8 +3,9 @@ package extractors
 import (
 	"sync"
 
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	contextx "github.com/octohelm/x/context"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 var SchemaRegisterContext = contextx.New[SchemaRegister](contextx.WithDefaultsFunc(func() SchemaRegister {

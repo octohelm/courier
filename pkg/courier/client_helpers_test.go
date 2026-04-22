@@ -51,7 +51,8 @@ func (readCloserRequest) ResponseData() io.ReadCloser {
 func TestClientAndContextHelpers(t0 *testing.T) {
 	ctx := ContextWithClient(context.Background(), "default", testClient{})
 
-	Then(t0, "client 上下文与 DoWith 行为符合预期",
+	Then(
+		t0, "client 上下文与 DoWith 行为符合预期",
 		ExpectMust(func() error {
 			if ClientFromContext(ctx, "default") == nil {
 				return errors.New("missing client in context")
@@ -123,7 +124,8 @@ func TestClientAndContextHelpers(t0 *testing.T) {
 }
 
 func TestMetadataAndContextCompose(t0 *testing.T) {
-	Then(t0, "元数据与上下文组合辅助方法符合预期",
+	Then(
+		t0, "元数据与上下文组合辅助方法符合预期",
 		ExpectMust(func() error {
 			meta := FromMetas(
 				Metadata{"X-Trace": {"1"}},

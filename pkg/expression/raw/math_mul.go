@@ -1,6 +1,8 @@
 package raw
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Mul
 // v * x

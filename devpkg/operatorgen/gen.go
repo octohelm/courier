@@ -9,13 +9,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/octohelm/courier/pkg/courier"
-	"github.com/octohelm/courier/pkg/courierhttp"
-	"github.com/octohelm/courier/pkg/statuserror"
 	"github.com/octohelm/gengo/pkg/gengo"
 	"github.com/octohelm/gengo/pkg/gengo/snippet"
 	gengotypes "github.com/octohelm/gengo/pkg/types"
 	typex "github.com/octohelm/x/types"
+
+	"github.com/octohelm/courier/pkg/courier"
+	"github.com/octohelm/courier/pkg/courierhttp"
+	"github.com/octohelm/courier/pkg/statuserror"
 )
 
 func init() {

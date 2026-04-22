@@ -19,7 +19,7 @@ func NewRouteHandlers(route courier.Route, service string, routeMiddlewares ...h
 	return request.NewRouteHandlers(route, service, routeMiddlewares...)
 }
 
-func New(cr courier.Router, service string, routeMiddlewares ...handler.Middleware) (http.Handler, error) {
+func newMux(cr courier.Router, service string, routeMiddlewares ...handler.Middleware) (*mux, error) {
 	customOpenApiRouter := false
 
 	for _, r := range cr.Routes() {
@@ -77,6 +77,25 @@ func New(cr courier.Router, service string, routeMiddlewares ...handler.Middlewa
 
 	for i := range handlers {
 		m.register(handlers[i])
+	}
+
+	return m, nil
+}
+
+// RouteSnapshot 返回当前 router 最终会暴露的 HTTP 路由快照文本。
+func RouteSnapshot(cr courier.Router, service string, routeMiddlewares ...handler.Middleware) (string, error) {
+	m, err := newMux(cr, service, routeMiddlewares...)
+	if err != nil {
+		return "", err
+	}
+
+	return m.RoutesText()
+}
+
+func New(cr courier.Router, service string, routeMiddlewares ...handler.Middleware) (http.Handler, error) {
+	m, err := newMux(cr, service, routeMiddlewares...)
+	if err != nil {
+		return nil, err
 	}
 
 	h, err := m.Handler()

@@ -97,7 +97,7 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		if err != nil {
 			return &result{
 				c:   c,
-				err: statuserror.Wrap(err, http.StatusInternalServerError, "HttpRequestFailed"),
+				err: statuserror.Wrap(fmt.Errorf("构造 HTTP 请求失败: %w", err), http.StatusInternalServerError, "HttpRequestFailed"),
 			}
 		}
 		httpReq = r
@@ -123,13 +123,13 @@ func (c *Client) Do(ctx context.Context, req any, metas ...courier.Metadata) cou
 		if errors.Is(err, context.Canceled) {
 			return &result{
 				c:   c,
-				err: statuserror.Wrap(err, 499, "ClientClosedRequest"),
+				err: statuserror.Wrap(fmt.Errorf("请求已取消: %w", err), 499, "ClientClosedRequest"),
 			}
 		}
 
 		return &result{
 			c:   c,
-			err: statuserror.Wrap(err, http.StatusInternalServerError, "RequestFailed"),
+			err: statuserror.Wrap(fmt.Errorf("发送请求失败: %w", err), http.StatusInternalServerError, "RequestFailed"),
 		}
 	}
 
@@ -150,7 +150,7 @@ func (c *Client) newRequest(ctx context.Context, r any, metas ...courier.Metadat
 	}
 
 	if err := c.completeEndpoint(req.URL); err != nil {
-		return nil, statuserror.Wrap(err, http.StatusBadRequest, "InvalidEndpoint")
+		return nil, statuserror.Wrap(fmt.Errorf("补全客户端 Endpoint 失败: %w", err), http.StatusBadRequest, "InvalidEndpoint")
 	}
 
 	for k, vs := range courier.FromMetas(metas...) {

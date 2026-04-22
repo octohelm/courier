@@ -4,8 +4,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 	"github.com/octohelm/x/ptr"
+
+	"github.com/octohelm/courier/pkg/openapi/jsonschema"
 )
 
 // https://spec.openapis.org/oas/latest.html#components-object

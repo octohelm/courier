@@ -9,8 +9,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/octohelm/courier/internal/httprequest"
 	. "github.com/octohelm/x/testing/v2"
+
+	"github.com/octohelm/courier/internal/httprequest"
 )
 
 type textValue string
@@ -37,7 +38,8 @@ func (r *closeableReader) Close() error {
 }
 
 func TestNew(t0 *testing.T) {
-	Then(t0, "按类型和媒体类型选择转换器",
+	Then(
+		t0, "按类型和媒体类型选择转换器",
 		ExpectMustValue(func() (string, error) {
 			x, err := New(reflect.TypeFor[string](), "", "marshal")
 			if err != nil {
@@ -88,7 +90,8 @@ func TestRequestRoundTrip(t0 *testing.T) {
 		Data:        "test",
 	}
 
-	Then(t0, "从结构体生成请求并反序列化回来",
+	Then(
+		t0, "从结构体生成请求并反序列化回来",
 		ExpectMustValue(func() (*http.Request, error) {
 			return NewRequest(context.Background(), http.MethodGet, "/users/{id}", origin)
 		}, Be(func(req *http.Request) error {
