@@ -24,10 +24,10 @@ github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Ky
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=
 github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
-github.com/octohelm/gengo v0.0.0-20260508082215-12ad0e3d1026 h1:/xFlFOBNIe8Zv3Y9STXx66gTjCxJhqpSOH6ayOJbHNk=
-github.com/octohelm/gengo v0.0.0-20260508082215-12ad0e3d1026/go.mod h1:uPR3DH7UFiwfvVJu6CSMEbetLTCrjE0S6yQxW810dkM=
-github.com/octohelm/x v0.0.0-20260508075008-3bb151cb7bd8 h1:cUtPRuxM1Cr3PbV915drgt17GAFyF5YmXZyaVdPks7k=
-github.com/octohelm/x v0.0.0-20260508075008-3bb151cb7bd8/go.mod h1:9S/Ui6UzHySbZlBJbmFN8Aojiy3mcD05F4rdAaJIXN0=
+github.com/octohelm/gengo v0.0.0-20260508104904-5ab1a7f587f6 h1:d+2zjlYpwiXDfvy7PaE9cDnCrCiPK2dokSDwzXWHGDg=
+github.com/octohelm/gengo v0.0.0-20260508104904-5ab1a7f587f6/go.mod h1:Nq2HlC7xfgihnmOZ0nYz34aN+3sTRR8Tr5WlZcr5BME=
+github.com/octohelm/x v0.0.0-20260508104609-6b72a870e0d2 h1:LxqawVVW/F3HhhYG/ZkIsNTmmscEY6GlvBiqpmCf8pQ=
+github.com/octohelm/x v0.0.0-20260508104609-6b72a870e0d2/go.mod h1:9S/Ui6UzHySbZlBJbmFN8Aojiy3mcD05F4rdAaJIXN0=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 golang.org/x/mod v0.35.0 h1:Ww1D637e6Pg+Zb2KrWfHQUnH2dQRLBQyAtpr/haaJeM=
