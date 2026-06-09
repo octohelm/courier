@@ -133,7 +133,7 @@ func TestScannerHelpersAndFromRouter(t *testing.T) {
 			)
 
 			o := FromRouter(r, Naming(func(s string) string {
-				return "Named" + reflect.TypeOf(s).Name()
+				return "Named" + reflect.TypeFor[string]().Name()
 			}))
 			if o == nil {
 				return errScanner("nil openapi")

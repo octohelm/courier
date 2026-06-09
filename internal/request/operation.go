@@ -22,7 +22,6 @@ var courierhttpPkgPath = reflect.TypeFor[courierhttp.MethodGet]().PkgPath()
 
 func resolvePathInto(m *meta, structType reflect.Type) {
 	for f := range structType.Fields() {
-		f := f
 		if f.Anonymous && f.Type.PkgPath() == courierhttpPkgPath && strings.HasPrefix(f.Name, "Method") {
 			if path, ok := f.Tag.Lookup("path"); ok {
 				vs := strings.Split(path, ",")

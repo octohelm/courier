@@ -424,6 +424,11 @@ func (b *scanner) scanParameterOrRequestBody(ctx context.Context, op *openapi.Op
 		if location == "" {
 			panic(fmt.Errorf("操作 %s 的字段 %s 缺少 in 标记", op.OperationId, field.FieldName))
 		}
+
+		if strings.Contains(field.Tag.Get("openapi"), "hidden") {
+			continue
+		}
+
 		optional := field.Omitzero || field.Omitempty
 
 		tf, err := content.New(field.Type, field.Tag.Get("mime"), "unmarshal")

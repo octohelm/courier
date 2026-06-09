@@ -55,7 +55,6 @@ var courierHttpPkgPath = reflect.TypeFor[courierhttp.Method]().PkgPath()
 
 func resolvePathInTag(tpe reflect.Type) string {
 	for f := range tpe.Fields() {
-		f := f
 
 		if f.Anonymous {
 			if f.Type.PkgPath() == courierHttpPkgPath && strings.HasPrefix(f.Name, "Method") {

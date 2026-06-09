@@ -276,6 +276,7 @@ func expectStatusCode(err error, code int) error {
 	return nil
 }
 
+//go:fix inline
 func ptr[T any](v T) *T {
-	return &v
+	return new(v)
 }
