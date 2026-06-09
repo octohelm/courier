@@ -363,24 +363,6 @@ func TestHostAndDefaultClientHelpers(t0 *testing.T) {
 			}
 			return nil
 		}),
-		ExpectMust(func() error {
-			c := &Client{}
-			if doc, ok := c.RuntimeDoc(); !ok || len(doc) != 0 {
-				return errClient("unexpected runtime doc")
-			}
-			for _, name := range []string{"Endpoint", "NewError", "HttpTransports"} {
-				if _, ok := c.RuntimeDoc(name); !ok {
-					return errClient("missing runtime doc for " + name)
-				}
-			}
-			if _, ok := c.RuntimeDoc("Unknown"); ok {
-				return errClient("unexpected runtime doc hit")
-			}
-			if _, ok := runtimeDoc(struct{}{}, "", "Endpoint"); ok {
-				return errClient("unexpected runtimeDoc helper hit")
-			}
-			return nil
-		}),
 		Expect(isOk(http.StatusOK), Equal(true)),
 		Expect(isOk(http.StatusBadRequest), Equal(false)),
 	)

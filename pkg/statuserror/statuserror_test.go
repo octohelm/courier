@@ -209,47 +209,7 @@ func TestHTTPStatusErrors(t0 *testing.T) {
 
 func TestRuntimeDocAndSequenceBranches(t0 *testing.T) {
 	Then(
-		t0, "运行时文档与错误链其他分支可覆盖",
-		ExpectMust(func() error {
-			if doc, ok := (&Descriptor{}).RuntimeDoc("Code"); !ok || len(doc) == 0 {
-				return fmt.Errorf("missing descriptor doc")
-			}
-			for _, name := range []string{"Message", "Description", "Location", "Pointer", "Source", "Errors", "Extra", "Status"} {
-				if _, ok := (&Descriptor{}).RuntimeDoc(name); !ok {
-					return fmt.Errorf("missing descriptor doc for %s", name)
-				}
-			}
-			if doc, ok := (&Descriptor{}).RuntimeDoc(); !ok || len(doc) != 0 {
-				return fmt.Errorf("unexpected descriptor root doc %v", doc)
-			}
-			if _, ok := (&Descriptor{}).RuntimeDoc("Unknown"); ok {
-				return fmt.Errorf("unexpected descriptor doc hit")
-			}
-			if doc, ok := (&ErrorResponse{}).RuntimeDoc("Msg"); !ok || len(doc) == 0 {
-				return fmt.Errorf("missing error response doc")
-			}
-			for _, name := range []string{"Code", "Errors"} {
-				if _, ok := (&ErrorResponse{}).RuntimeDoc(name); !ok {
-					return fmt.Errorf("missing error response doc for %s", name)
-				}
-			}
-			if doc, ok := (&ErrorResponse{}).RuntimeDoc(); !ok || len(doc) != 0 {
-				return fmt.Errorf("unexpected error response root doc %v", doc)
-			}
-			if _, ok := (&ErrorResponse{}).RuntimeDoc("Unknown"); ok {
-				return fmt.Errorf("unexpected error response doc hit")
-			}
-			if doc, ok := new(IntOrString).RuntimeDoc(); !ok || len(doc) != 0 {
-				return fmt.Errorf("unexpected int or string doc %v", doc)
-			}
-			if doc, ok := runtimeDoc(&Descriptor{}, "前缀:", "Code"); !ok || len(doc) == 0 || doc[0] != "前缀:错误编码" {
-				return fmt.Errorf("unexpected prefixed doc %v", doc)
-			}
-			if _, ok := runtimeDoc(struct{}{}, "", "Code"); ok {
-				return fmt.Errorf("unexpected runtime doc hit")
-			}
-			return nil
-		}),
+		t0, "错误链其他分支可覆盖",
 		ExpectMust(func() error {
 			count := 0
 			for range All(errors.Join(nil, errors.New("x"))) {

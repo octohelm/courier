@@ -107,7 +107,7 @@ func (@Type) ResponseErrors() []error {
 }
 
 func (g *operatorGen) generateSuccessReturn(c gengo.Context, named *types.Named, typeAndValues gengotypes.TypeAndValues) {
-	shouldGenerateResponseData := !g.hasMethod(named, "ResponseData")
+	shouldGenerateResponseData := true
 
 	var successType types.Type
 	var fromExpr ast.Expr

@@ -38,27 +38,6 @@ func TestNamingAndPkgNamingPrefix(t0 *testing.T) {
 	)
 }
 
-func TestRuntimeDocHelpers(t0 *testing.T) {
-	Then(
-		t0, "运行时文档辅助方法可用",
-		ExpectMust(func() error {
-			if doc, ok := new(BuildFunc).RuntimeDoc(); !ok || len(doc) != 0 {
-				return errOpenAPI("unexpected BuildFunc doc")
-			}
-			if doc, ok := new(BuildOptionFunc).RuntimeDoc(); !ok || len(doc) != 0 {
-				return errOpenAPI("unexpected BuildOptionFunc doc")
-			}
-			if doc, ok := new(PkgNamingPrefix).RuntimeDoc(); !ok || len(doc) != 0 {
-				return errOpenAPI("unexpected PkgNamingPrefix doc")
-			}
-			if _, ok := runtimeDoc(struct{}{}, "", "name"); ok {
-				return errOpenAPI("unexpected runtimeDoc hit")
-			}
-			return nil
-		}),
-	)
-}
-
 func errOpenAPI(msg string) error {
 	return &openapiHelperError{msg: msg}
 }

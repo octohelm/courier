@@ -8,8 +8,6 @@
 
 ```go
 // +gengo:runtimedoc=true
-//
-//go:generate go tool gen .
 package v1
 ```
 
@@ -22,9 +20,6 @@ package v1
 
 ```go
 // +gengo:operator:register=R
-// +gengo:runtimedoc=false
-//
-//go:generate go tool gen .
 package v1
 
 import "github.com/octohelm/courier/pkg/courier"

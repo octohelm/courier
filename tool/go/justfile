@@ -1,20 +1,7 @@
-# 运行 Go 单测（输入：path，可选，默认 `./...`；其余参数透传给 `go test`）
-[group('test')]
-[no-cd]
-test path='./...' *args:
-    @go test -failfast --count=1 {{ args }} {{ path }}
-
-# 运行 Go vet 检查（输入：path，可选，默认 `./...`；其余参数透传给 `go vet`）
-[group('lint')]
-[no-cd]
-vet path='./...' *args:
-    @go vet {{ args }} {{ path }}
-
-# 格式化目标路径下的 Go 文件（输入：path）
-[group('fmt')]
-[no-cd]
-fmt path="./...":
-    go tool fmt {{ path }}
+# 列出 Go 工具链公共入口
+[group('meta')]
+default:
+    @just --list
 
 # 整理依赖
 [group('env')]
@@ -22,12 +9,56 @@ fmt path="./...":
 dep:
     go mod tidy
 
-# 更新直接依赖（输入：path，可选，默认 `./...`）
+# 更新依赖
 [group('env')]
 [no-cd]
-update path='./...':
-    go get -u {{ path }}
+update:
+    go get -u ./...
 
+# 运行测试（默认覆盖全部包）
+[group('test')]
+[no-cd]
+test path='./...' *args:
+    go test -count=1 -failfast {{ args }} {{ path }}
+
+# 检查覆盖率（按项目调整包路径）
+[group('test')]
+[no-cd]
+cover path='./...' *args:
+    go test -cover {{ args }} {{ path }}
+
+# 格式化
+[group('fmt')]
+[no-cd]
+fmt path='./...':
+    go tool fmt {{ path }}
+
+# 代码检查
+[group('lint')]
+[no-cd]
+lint path='./...' *args:
+    go vet {{ args }} {{ path }}
+
+# 运行指定入口
+[group('dev')]
+[no-cd]
+run pkg *args:
+    go run ./cmd/{{ pkg }} {{ args }}
+
+# 代码生成（默认全部包）
+[group('build')]
+[no-cd]
+gen path='./...' *args:
+    go tool gen {{ path }} {{ args }}
+
+# 清理构建产物
+[group('env')]
+[no-cd]
+clean:
+    go clean
+    rm -rf bin/
+
+# 安装 agent skills
 [group('env')]
 [no-cd]
 skills-install:

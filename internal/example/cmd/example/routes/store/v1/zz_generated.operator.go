@@ -14,12 +14,20 @@ func (DeleteBlob) ResponseContent() any {
 	return new(storev1.Descriptor)
 }
 
+func (DeleteBlob) ResponseData() *storev1.Descriptor {
+	return new(storev1.Descriptor)
+}
+
 func init() {
 	R.Register(courier.NewRouter(&DeleteManifest{}))
 }
 
 func (DeleteManifest) ResponseContent() any {
 	return nil
+}
+
+func (DeleteManifest) ResponseData() *courier.NoContent {
+	return new(courier.NoContent)
 }
 
 func init() {
@@ -34,6 +42,10 @@ func (GetManifest) ResponseContent() any {
 	return new(storev1.Manifest)
 }
 
+func (GetManifest) ResponseData() *storev1.Manifest {
+	return new(storev1.Manifest)
+}
+
 func init() {
 	R.Register(courier.NewRouter(&PutManifest{}))
 }
@@ -42,10 +54,18 @@ func (PutManifest) ResponseContent() any {
 	return new(storev1.Descriptor)
 }
 
+func (PutManifest) ResponseData() *storev1.Descriptor {
+	return new(storev1.Descriptor)
+}
+
 func init() {
 	R.Register(courier.NewRouter(&UploadBlob{}))
 }
 
 func (UploadBlob) ResponseContent() any {
+	return new(storev1.Descriptor)
+}
+
+func (UploadBlob) ResponseData() *storev1.Descriptor {
 	return new(storev1.Descriptor)
 }

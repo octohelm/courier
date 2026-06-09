@@ -2,5 +2,4 @@
 //
 // 这个包只保留稳定接口，不负责具体存储；内存实现位于同级 `mem` 子包。
 //
-//go:generate go tool gen .
 package service

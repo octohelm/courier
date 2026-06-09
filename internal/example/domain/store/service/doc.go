@@ -2,5 +2,4 @@
 //
 // 这个包只描述 blob 与 manifest 的领域操作；内存实现位于同级 `mem` 子包。
 //
-//go:generate go tool gen .
 package service

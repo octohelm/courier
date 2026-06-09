@@ -3,7 +3,6 @@
 //
 // Package v1 组装示例组织域的 v1 路由操作符，并注册到本包导出的 Router。
 //
-//go:generate go tool gen .
 package v1
 
 import (
