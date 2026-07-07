@@ -135,12 +135,12 @@ func (p *Payload) SetUnderlying(u any) {
 var _ Type = &Payload{}
 
 type StringKinded struct {
-	Kind  string `json:"kind"`
+	Kind  string `json:"kind" validate:"@string{String}"`
 	Value string `json:"value"`
 }
 
 type BoolKinded struct {
-	Kind  string `json:"kind"`
+	Kind  string `json:"kind" validate:"@string{Bool}"`
 	Value bool   `json:"value"`
 }
 

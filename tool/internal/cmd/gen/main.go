@@ -16,6 +16,7 @@ import (
 	_ "github.com/octohelm/courier/devpkg/clientgen"
 	_ "github.com/octohelm/courier/devpkg/injectablegen"
 	_ "github.com/octohelm/courier/devpkg/operatorgen"
+	_ "github.com/octohelm/courier/devpkg/taggeduniongen"
 )
 
 func main() {
