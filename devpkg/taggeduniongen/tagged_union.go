@@ -187,7 +187,7 @@ func (u *@Type) Underlying() @ReturnType {
 func (g *taggedUnionGen) generateIsZero(c gengo.Context, t *types.Named, fields []mappingField) {
 	c.RenderT(`
 func (u *@Type) IsZero() bool {
-	return @nilChecks
+	return u == nil || @nilChecks
 }
 
 `, snippet.Args{

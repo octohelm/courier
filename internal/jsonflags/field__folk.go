@@ -23,8 +23,7 @@ type fieldOptions struct {
 	quotedName string // quoted name per RFC 8785, section 3.2.2.2.
 	hasName    bool
 	casing     int8 // either 0, nocase, or strictcase
-	inline     bool
-	unknown    bool
+	embed      bool
 	omitzero   bool
 	omitempty  bool
 	string     bool
@@ -118,10 +117,8 @@ func parseFieldOptions(sf reflect.StructField) (out fieldOptions, ignored bool, 
 			out.casing |= nocase
 		case "strictcase":
 			out.casing |= strictcase
-		case "inline":
-			out.inline = true
-		case "unknown":
-			out.unknown = true
+		case "inline", "embed", "unknown":
+			out.embed = true
 		case "omitzero":
 			out.omitzero = true
 		case "omitempty":
@@ -147,7 +144,7 @@ func parseFieldOptions(sf reflect.StructField) (out fieldOptions, ignored bool, 
 			// This catches invalid mutants such as "omitEmpty" or "omit_empty".
 			normOpt := strings.ReplaceAll(strings.ToLower(opt), "_", "")
 			switch normOpt {
-			case "nocase", "strictcase", "inline", "unknown", "omitzero", "omitempty", "string", "format":
+			case "nocase", "strictcase", "embed", "unknown", "omitzero", "omitempty", "string", "format":
 				err = firstError(err, fmt.Errorf("Go struct field %s has invalid appearance of `%s` tag option; specify `%s` instead", sf.Name, opt, normOpt))
 			}
 

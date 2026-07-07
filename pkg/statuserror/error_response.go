@@ -61,7 +61,7 @@ type ErrorResponse struct {
 	// 错误详情
 	Errors []*Descriptor `json:"errors,omitzero"`
 
-	Extra map[string]any `json:",inline"`
+	Extra map[string]any `json:",embed"`
 }
 
 func (e *ErrorResponse) StatusCode() int {

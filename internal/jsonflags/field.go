@@ -21,8 +21,7 @@ type FieldOptions struct {
 	QuotedName string
 	HasName    bool
 	Casing     Casing
-	Inline     bool
-	Unknown    bool
+	Embed      bool
 	Omitzero   bool
 	Omitempty  bool
 	String     bool
@@ -74,8 +73,7 @@ func ParseFieldOptions(sf reflect.StructField) (FieldOptions, bool, error) {
 		QuotedName: options.quotedName,
 		HasName:    options.hasName,
 		Casing:     Casing(options.casing),
-		Inline:     options.inline,
-		Unknown:    options.unknown,
+		Embed:      options.embed,
 		Omitzero:   options.omitzero,
 		Omitempty:  options.omitempty,
 		Format:     options.format,

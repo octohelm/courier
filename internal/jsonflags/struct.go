@@ -43,11 +43,11 @@ func (f *StructField) GetOrNewAt(v reflect.Value) reflect.Value {
 }
 
 type StructFields struct {
-	flattened       []*StructField
-	byName          map[string]*StructField
-	inlinedFallback *StructField
-	located         map[string][]*StructField
-	byLocatedName   map[locatedName]*StructField
+	flattened        []*StructField
+	byName           map[string]*StructField
+	embeddedFallback *StructField
+	located          map[string][]*StructField
+	byLocatedName    map[locatedName]*StructField
 }
 
 type locatedName struct {
@@ -85,8 +85,8 @@ func (s *StructFields) Lookup(name string) (*StructField, bool) {
 	return sf, ok
 }
 
-func (s *StructFields) InlinedFallback() (*StructField, bool) {
-	return s.inlinedFallback, s.inlinedFallback != nil
+func (s *StructFields) EmbeddedFallback() (*StructField, bool) {
+	return s.embeddedFallback, s.embeddedFallback != nil
 }
 
 func (s *StructFields) Len() int {
@@ -103,7 +103,6 @@ type cache struct {
 func (v *cache) StructFields(typ reflect.Type) (*StructFields, error) {
 	if typ.Kind() == reflect.Pointer {
 		panic(fmt.Errorf("invalid type %s", typ))
-		return nil, nil
 	}
 	if vv, ok := v.structFields.Load(typ); ok {
 		return vv.(*StructFields), nil
@@ -128,7 +127,7 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 	queueIndex := 0
 
 	allFields := make([]*StructField, 0)
-	inlinedFallbacks := make([]*StructField, 0)
+	embeddedFallbacks := make([]*StructField, 0)
 
 	for queueIndex < len(queue) {
 		qe := queue[queueIndex]
@@ -156,10 +155,10 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 			}
 
 			if sf.Anonymous && !f.HasName {
-				f.Inline = true
+				f.Embed = true
 			}
 
-			if f.Inline || f.Unknown {
+			if f.Embed {
 				tf := f.Type
 
 				if tf.Kind() == reflect.Pointer && tf.Name() == "" {
@@ -167,10 +166,6 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 				}
 
 				if tf.Kind() == reflect.Struct {
-					if f.Unknown {
-						continue
-					}
-
 					if qe.visitChildren {
 						queue = append(queue, queueEntry{
 							typ:           tf,
@@ -184,7 +179,7 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 					continue
 				}
 
-				inlinedFallbacks = append(inlinedFallbacks, f)
+				embeddedFallbacks = append(embeddedFallbacks, f)
 			} else {
 				f.id = len(allFields)
 				allFields = append(allFields, f)
@@ -210,8 +205,8 @@ func makeStructFields(root reflect.Type) (*StructFields, *json.SemanticError) {
 		}
 	}
 
-	if n := len(inlinedFallbacks); n == 1 || (n > 1 && len(inlinedFallbacks[0].index) != len(inlinedFallbacks[1].index)) {
-		sfs.inlinedFallback = inlinedFallbacks[0]
+	if n := len(embeddedFallbacks); n == 1 || (n > 1 && len(embeddedFallbacks[0].index) != len(embeddedFallbacks[1].index)) {
+		sfs.embeddedFallback = embeddedFallbacks[0]
 	}
 
 	return sfs, nil

@@ -38,7 +38,7 @@ func ExtOf(ext map[string]any) Ext {
 }
 
 type Ext struct {
-	Extensions map[string]any `json:",inline"`
+	Extensions map[string]any `json:",embed"`
 }
 
 func (in *Ext) DeepCopy() *Ext {

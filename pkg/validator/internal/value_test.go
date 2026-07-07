@@ -6,9 +6,7 @@ import (
 	"github.com/go-json-experiment/json/jsontext"
 
 	"github.com/octohelm/courier/pkg/validator/testutil"
-)
 
-import (
 	_ "github.com/octohelm/courier/pkg/validator/validators"
 )
 
@@ -90,7 +88,7 @@ func TestValue(t *testing.T) {
 				Expect: []byte(`{"a":"a","x-a":"1"}`),
 				Target: &struct {
 					A       string         `json:"a"`
-					Unknown jsontext.Value `json:",unknown"`
+					Unknown jsontext.Value `json:",embed"`
 				}{},
 			},
 		}

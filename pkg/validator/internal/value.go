@@ -416,11 +416,11 @@ func (va *Struct) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) e
 
 		seen := map[string]struct{}{}
 
-		inlineFallback, hasInlineFallback := f.InlinedFallback()
+		embededFallback, hasEmbededFallback := f.EmbeddedFallback()
 		var unknown *bytes.Buffer
 		var unknownEnc *jsontext.Encoder
 
-		if hasInlineFallback {
+		if hasEmbededFallback {
 			unknown = new(bytes.Buffer)
 			unknownEnc = jsontext.NewEncoder(unknown)
 
@@ -442,7 +442,7 @@ func (va *Struct) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) e
 
 			sf, ok := f.Lookup(propName)
 			if !ok {
-				if hasInlineFallback {
+				if hasEmbededFallback {
 					propValue, err := dec.ReadValue()
 					if err != nil {
 						return err
@@ -480,12 +480,12 @@ func (va *Struct) UnmarshalDecode(dec *jsontext.Decoder, options json.Options) e
 			return err
 		}
 
-		if hasInlineFallback {
+		if hasEmbededFallback {
 			if err := unknownEnc.WriteToken(jsontext.EndObject); err != nil {
 				return err
 			}
 
-			if err := (&Value{Value: inlineFallback.GetOrNewAt(va.Value)}).UnmarshalDecode(jsontext.NewDecoder(unknown), options); err != nil {
+			if err := (&Value{Value: embededFallback.GetOrNewAt(va.Value)}).UnmarshalDecode(jsontext.NewDecoder(unknown), options); err != nil {
 				if validatorerrors.IsValidationError(err) {
 					errs = append(errs, err)
 				}
