@@ -60,7 +60,7 @@ func TestIncomingTransportWriteResponse(t0 *testing.T) {
 	req := mustTransportRequest()
 	info := httprequest.From(req)
 	ctx := courierhttp.OperationInfoInjectContext(context.Background(), &courierhttp.OperationInfo{
-		Server: courierhttp.Server{Name: "test"},
+		Name: "test",
 	})
 
 	Then(

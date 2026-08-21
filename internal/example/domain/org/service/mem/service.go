@@ -164,10 +164,7 @@ func normalizePager(pager *metav1.Pager, total int64) (int64, int64) {
 		return 0, total
 	}
 
-	offset := max(pager.Offset, 0)
-	if offset > total {
-		offset = total
-	}
+	offset := min(max(pager.Offset, 0), total)
 
 	limit := pager.Limit
 	if limit <= 0 {

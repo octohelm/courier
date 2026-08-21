@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 	. "github.com/octohelm/x/testing/v2"
 
 	"github.com/octohelm/courier/pkg/validator/internal/rules"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 )
 
 func PrintJSON(v any) {

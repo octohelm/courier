@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/v2"
+	"encoding/json/jsontext"
 
 	"github.com/octohelm/courier/internal/jsonflags"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
@@ -565,7 +565,7 @@ func (va *Struct) patchJsonOptions(sf *jsonflags.StructField, options json.Optio
 		nextOptions = json.JoinOptions(nextOptions, json.StringifyNumbers(true))
 	}
 	if sf.Format != "" {
-		// FIXME until https://github.com/go-json-experiment/json/issues/52
+		// FIXME until https://encoding/json/v2/issues/52
 	}
 	return nextOptions
 }

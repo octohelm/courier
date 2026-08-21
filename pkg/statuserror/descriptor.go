@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 )
 
 type WithStatusCode interface {
@@ -46,8 +46,8 @@ type Descriptor struct {
 }
 
 func (e *Descriptor) UnmarshalErrorResponse(statusCode int, raw []byte) error {
-	d := Descriptor{}
-	d.Status = statusCode
+	d := Descriptor{
+		Status: statusCode}
 
 	errResp := &ErrorResponse{}
 	if err := json.Unmarshal(raw, errResp); err != nil {

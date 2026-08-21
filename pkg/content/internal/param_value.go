@@ -9,7 +9,7 @@ import (
 	"iter"
 	"reflect"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 
 	"github.com/octohelm/courier/internal/jsonflags"
 	"github.com/octohelm/courier/pkg/validator"
@@ -103,11 +103,11 @@ func (p *ParamValue) UnmarshalValues(ctx context.Context, sf *jsonflags.StructFi
 }
 
 func NewValidatorWithStructField(sf *jsonflags.StructField) (validator.Validator, error) {
-	opt := validator.Option{}
+	opt := validator.Option{
 
-	opt.Type = sf.Type
-	opt.String = sf.String
-	opt.Optional = cmp.Or(sf.Omitzero, sf.Omitempty)
+		Type:     sf.Type,
+		String:   sf.String,
+		Optional: cmp.Or(sf.Omitzero, sf.Omitempty)}
 
 	if v, ok := sf.Tag.Lookup("validate"); ok {
 		opt.Rule = v

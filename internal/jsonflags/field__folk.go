@@ -1,4 +1,4 @@
-// copy from https://github.com/go-json-experiment/json/blob/master/fields.go
+// copy from https://encoding/json/v2/blob/master/fields.go
 package jsonflags
 
 import (
@@ -10,7 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 )
 
 const (

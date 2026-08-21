@@ -65,7 +65,8 @@ func (r *responseWriterStub) WriteResponse(context.Context, http.ResponseWriter,
 func TestContextAndRouteHelpers(t0 *testing.T) {
 	ctx := context.Background()
 	op := &OperationInfo{
-		Server: Server{Name: "courier", Version: "1.0.0"},
+		Name: "courier", 
+		Version: "1.0.0",
 		ID:     "ListUsers",
 		Method: http.MethodGet,
 		Route:  "/users",

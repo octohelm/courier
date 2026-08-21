@@ -3,7 +3,7 @@ package openapi
 import (
 	"strings"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 
 	"github.com/octohelm/courier/pkg/openapi/internal"
 	"github.com/octohelm/courier/pkg/openapi/jsonschema"

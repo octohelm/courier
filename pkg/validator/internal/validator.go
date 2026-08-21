@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 
 	"github.com/octohelm/courier/internal/jsonflags"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
@@ -58,11 +58,11 @@ func Register(creator ValidatorProvider) {
 }
 
 func NewWithStructField(sf *jsonflags.StructField) (Validator, error) {
-	opt := ValidatorOption{}
+	opt := ValidatorOption{
 
-	opt.Type = sf.Type
-	opt.String = sf.String
-	opt.Optional = cmp.Or(sf.Omitzero, sf.Omitempty)
+		Type:     sf.Type,
+		String:   sf.String,
+		Optional: cmp.Or(sf.Omitzero, sf.Omitempty)}
 
 	if v, ok := sf.Tag.Lookup("validate"); ok {
 		opt.Rule = v

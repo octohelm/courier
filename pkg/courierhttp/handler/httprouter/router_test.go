@@ -176,10 +176,8 @@ Server: test (testRouterGetOrg)
 
 		t.Run("returns 204 on valid request", func(t *testing.T) {
 			Then(t, "合法请求会返回 204", Expect(h, Be(testingutil.ShouldReturnWhenRequest(&AddOrg{
-				TestOrgInfo: TestOrgInfo{
-					Name: "x",
-					Type: testOrgTypeGov,
-				},
+				Name: "x",
+				Type: testOrgTypeGov,
 			}, `
 HTTP/0.0 204 No Content
 Server: test (testRouterCreateOrg)
@@ -188,9 +186,7 @@ Server: test (testRouterCreateOrg)
 
 		t.Run("returns validation error on invalid request", func(t *testing.T) {
 			Then(t, "非法请求会返回带 pointer 的校验错误", Expect(h, Be(testingutil.ShouldReturnWhenRequest(&AddOrg{
-				TestOrgInfo: TestOrgInfo{
-					Name: "xxxxxxx",
-				},
+				Name: "xxxxxxx",
 			}, `
 HTTP/0.0 400 Bad Request
 Content-Type: application/json; charset=utf-8

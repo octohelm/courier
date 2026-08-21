@@ -239,7 +239,7 @@ func (u *@Type) UnmarshalJSON(data []byte) error {
 `, snippet.Args{
 		"Type":               snippet.ID(t.Obj()),
 		"unmarshalDecode":    snippet.ID("github.com/octohelm/courier/pkg/validator/taggedunion.UnmarshalDecode"),
-		"jsontextNewDecoder": snippet.ID("github.com/go-json-experiment/json/jsontext.NewDecoder"),
+		"jsontextNewDecoder": snippet.ID("encoding/json/jsontext.NewDecoder"),
 		"bytesNewBuffer":     snippet.ID("bytes.NewBuffer"),
 	})
 }

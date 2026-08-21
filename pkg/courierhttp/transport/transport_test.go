@@ -55,22 +55,16 @@ func TestRequestTransformer(t *testing.T) {
 		}
 
 		req := Request{
-			ID: "1",
-			Headers: Headers{
-				HInt:    1,
-				HString: "string",
-				HBool:   true,
-			},
-			Queries: Queries{
-				QInt:    1,
-				QString: "string",
-				QSlice:  []string{"1", "2"},
-				QBytes:  []byte("bytes"),
-			},
-			Cookies: Cookies{
-				CString: "xxx",
-				CSlice:  []string{"1", "2"},
-			},
+			ID:      "1",
+			HInt:    1,
+			HString: "string",
+			HBool:   true,
+			QInt:    1,
+			QString: "string",
+			QSlice:  []string{"1", "2"},
+			QBytes:  []byte("bytes"),
+			CString: "xxx",
+			CSlice:  []string{"1", "2"},
 		}
 
 		Then(t, "请求可在 outgoing 与 incoming transport 之间往返", ExpectMust(func() error {

@@ -5,7 +5,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 )
 
 var (

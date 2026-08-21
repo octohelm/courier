@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 
 	internalvalidator "github.com/octohelm/courier/pkg/validator/internal"
 	"github.com/octohelm/courier/pkg/validator/internal/rules"

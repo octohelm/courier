@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 )
 
 type Casing int
@@ -85,7 +85,7 @@ func ParseFieldOptions(sf reflect.StructField) (FieldOptions, bool, error) {
 	}
 
 	if !v.String {
-		if sf.Type.Kind() == reflect.Slice || sf.Type.Kind() == reflect.Slice {
+		if sf.Type.Kind() == reflect.Slice {
 			v.StringItem = UnmarshalFromString(sf.Type.Elem())
 		}
 	}

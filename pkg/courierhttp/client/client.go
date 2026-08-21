@@ -261,7 +261,7 @@ func (r *result) Into(body any) (courier.Metadata, error) {
 func (r *result) unmarshalInto(body any) error {
 	rv := reflect.ValueOf(body)
 
-	mediaType := strings.Split(r.Response.Header.Get("Content-Type"), ";")[0]
+	mediaType, _, _ := strings.Cut(r.Response.Header.Get("Content-Type"), ";")
 	if v, ok := body.(interface{ ContentType() string }); ok {
 		mediaType = v.ContentType()
 	}

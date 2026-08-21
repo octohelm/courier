@@ -62,8 +62,7 @@ func TestOpenAPIRelatedHelpers(t *testing.T) {
 			defer ForbidOpenAPI(false)
 
 			_, err := (&OpenAPI{}).Output(context.Background())
-			var forbidden *ErrOpenAPIForbidden
-			if !errors.As(err, &forbidden) {
+			if _, ok := errors.AsType[*ErrOpenAPIForbidden](err); !ok {
 				return errHttprouter("expected forbidden error")
 			}
 			return nil

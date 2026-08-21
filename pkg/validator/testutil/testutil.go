@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/v2"
+	"encoding/json/jsontext"
 	testingx "github.com/octohelm/x/testing"
 
 	"github.com/octohelm/courier/pkg/validator/internal"

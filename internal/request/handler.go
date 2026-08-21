@@ -154,10 +154,19 @@ func (h *routeHandler) Operators() []*courier.OperatorFactory {
 	return h.operators
 }
 
-func (h routeHandler) cloneWithMethod(m string) RouteHandler {
-	h.method = m
-	h.operationID = fmt.Sprintf("%s_%s", m, h.operationID)
-	return &h
+func (h *routeHandler) cloneWithMethod(m string) RouteHandler {
+	return &routeHandler{
+		method:       m,
+		operationID:  fmt.Sprintf("%s_%s", m, h.operationID),
+		service:      h.service,
+		segments:     h.segments,
+		summary:      h.summary,
+		deprecated:   h.deprecated,
+		description:  h.description,
+		operators:    h.operators,
+		transformers: h.transformers,
+		middleware:   h.middleware,
+	}
 }
 
 func (h *routeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

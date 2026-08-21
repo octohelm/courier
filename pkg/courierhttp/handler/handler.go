@@ -2,13 +2,14 @@ package handler
 
 import (
 	"net/http"
+	"slices"
 )
 
 func ApplyMiddlewares(mw ...Middleware) Middleware {
 	return func(final http.Handler) http.Handler {
 		last := final
-		for i := len(mw) - 1; i >= 0; i-- {
-			last = mw[i](last)
+		for _, m := range slices.Backward(mw) {
+			last = m(last)
 		}
 		return last
 	}

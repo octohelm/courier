@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"
 	"github.com/octohelm/courier/pkg/validator/internal"

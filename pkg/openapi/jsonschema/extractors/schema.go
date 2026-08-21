@@ -388,8 +388,6 @@ func SchemaFromType(ctx context.Context, t reflect.Type, opt Opt) (s jsonschema.
 	default:
 		panic(fmt.Errorf("类型 %s 暂不支持生成 schema", t.String()))
 	}
-
-	return nil
 }
 
 func toPropSchema(ctx context.Context, sf *jsonflags.StructField, opt Opt) jsonschema.Schema {

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 	"github.com/octohelm/x/ptr"
 
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"

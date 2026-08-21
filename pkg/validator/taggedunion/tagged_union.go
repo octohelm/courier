@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
 
 	"github.com/octohelm/courier/pkg/validator"
 	validatorerrors "github.com/octohelm/courier/pkg/validator/errors"

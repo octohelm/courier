@@ -5,8 +5,9 @@ import (
 	"io"
 	"iter"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+
 	"github.com/octohelm/x/container/list"
 )
 
@@ -105,7 +106,7 @@ func (r *Record[K, V]) UnmarshalJSONFrom(d *jsontext.Decoder) error {
 		}
 	}
 
-	if r == nil {
+	if r != nil {
 		*r = Record[K, V]{}
 	}
 

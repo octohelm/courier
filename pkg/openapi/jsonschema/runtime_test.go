@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 	. "github.com/octohelm/x/testing/v2"
 )
 
@@ -92,8 +92,8 @@ func TestObjectPropsAndMetadata(t *testing.T) {
 			obj.AdditionalProperties = Integer()
 			obj.Defs = map[string]Schema{
 				"Nested": &ObjectType{
-					Type: "object",
-					Core: Core{DynamicAnchor: "Nested"},
+					Type:          "object",
+					DynamicAnchor: "Nested",
 				},
 			}
 			meta := &Metadata{

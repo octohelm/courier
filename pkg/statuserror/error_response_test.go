@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 	. "github.com/octohelm/x/testing/v2"
 )
 

@@ -3,8 +3,7 @@ package v1
 
 import (
 	bytes "bytes"
-
-	jsonjsontext "github.com/go-json-experiment/json/jsontext"
+	jsontext "encoding/json/jsontext"
 
 	validator "github.com/octohelm/courier/pkg/validator"
 	taggedunion "github.com/octohelm/courier/pkg/validator/taggedunion"
@@ -43,7 +42,7 @@ func (u *Union) Underlying() Kinded {
 }
 
 func (u *Union) IsZero() bool {
-	return u.String == nil && u.Bool == nil
+	return u == nil || u.String == nil && u.Bool == nil
 }
 
 func (u Union) MarshalJSON() ([]byte, error) {
@@ -55,7 +54,7 @@ func (u Union) MarshalJSON() ([]byte, error) {
 
 func (u *Union) UnmarshalJSON(data []byte) error {
 	mm := Union{}
-	if err := taggedunion.UnmarshalDecode(jsonjsontext.NewDecoder(bytes.NewBuffer(data)), &mm); err != nil {
+	if err := taggedunion.UnmarshalDecode(jsontext.NewDecoder(bytes.NewBuffer(data)), &mm); err != nil {
 		return err
 	}
 	*u = mm

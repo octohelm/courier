@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
-	jsonv1 "github.com/go-json-experiment/json/v1"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+	jsonv1 "encoding/json"
 
 	"github.com/octohelm/courier/pkg/validator/internal"
 )

@@ -3,7 +3,7 @@ package validators
 import (
 	"fmt"
 
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 
 	"github.com/octohelm/courier/pkg/validator/internal/rules"
 )

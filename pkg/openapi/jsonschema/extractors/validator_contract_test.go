@@ -17,12 +17,10 @@ func TestPatchSchemaValidationByValidatorContracts(t *testing.T) {
 		schema := PatchSchemaValidationByValidator(
 			&jsonschema.NumberType{Type: "integer"},
 			&validators.IntegerValidator[int64]{
-				Number: validators.Number[int64]{
-					Minimum:          ptr.Ptr(int64(1)),
-					Maximum:          ptr.Ptr(int64(10)),
-					ExclusiveMaximum: true,
-					MultipleOf:       2,
-				},
+				Minimum:          ptr.Ptr(int64(1)),
+				Maximum:          ptr.Ptr(int64(10)),
+				ExclusiveMaximum: true,
+				MultipleOf:       2,
 			},
 		)
 
